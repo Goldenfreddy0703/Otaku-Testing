@@ -335,6 +335,8 @@ class Sources(BrowserBase):
             'byte_size': 0,
             'info': source_utils.getInfo(res['name']),
             'lang': source_utils.getAudio_lang(res['name']),
+            'channel': source_utils.getAudio_channel(res['name']),
+            'sub': source_utils.getSubtitle_lang(res['name']),
             'cached': cached,
             'seeders': res['seeders']
         }

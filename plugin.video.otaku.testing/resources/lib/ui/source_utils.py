@@ -9,22 +9,46 @@ res = ['EQ', '480p', '720p', '1080p', '4k']
 
 def getAudio_lang(release_title):
     release_title = cleanTitle(release_title)
-    if any(i in release_title for i in ['dual audio']):
+    if any(i in release_title for i in ['multi audio', 'multi lang', 'multiple audio', 'multiple lang']):
+        lang = 0
+    elif any(i in release_title for i in ['dual audio']):
         lang = 1
     elif any(i in release_title for i in ['dub', 'dubbed']):
-        lang = 2
+        lang = 3
     else:
-        lang = 0
+        lang = 2
     return lang
+
+
+def getAudio_channel(release_title):
+    release_title = cleanTitle(release_title)
+    if any(i in release_title for i in ['2 0 ', '2 0ch', '2ch']):
+        channel = 0
+    elif any(i in release_title for i in ['5 1 ', '5 1ch', '6ch']):
+        channel = 1
+    elif any(i in release_title for i in ['7 1 ', '7 1ch', '8ch']):
+        channel = 2
+    else:
+        channel = 3
+    return channel
+
+
+def getSubtitle_lang(release_title):
+    release_title = cleanTitle(release_title)
+    if any(i in release_title for i in ['multi sub', 'multiple sub']):
+        sub = 0
+    else:
+        sub = 1
+    return sub
 
 
 def getQuality(release_title):
     release_title = release_title.lower()
-    if '4k' in release_title or '2160' in release_title:
+    if any(i in release_title for i in ['4k', '2160', "216o"]):
         quality = 4
-    elif '1080' in release_title:
+    elif any(i in release_title for i in ["1080", "1o80", "108o", "1o8o"]):
         quality = 3
-    elif '720' in release_title:
+    elif any(i in release_title for i in ["720", "72o"]):
         quality = 2
     else:
         quality = 1
@@ -49,12 +73,18 @@ def getInfo(release_title):
         info.append('WMV')
     if any(i in release_title for i in ['mpeg']):
         info.append('MPEG')
+    if any(i in release_title for i in ['vp9']):
+        info.append('VP9')
+    if any(i in release_title for i in ['av1']):
+        info.append('AV1')
     if any(i in release_title for i in ['remux', 'bdremux']):
         info.append('REMUX')
-    if any(i in release_title for i in [' hdr ', 'hdr10', 'hdr 10']):
+    if any(i in release_title for i in [' hdr ', 'hdr10', 'hdr 10', 'uhd bluray 2160p', 'uhd blu ray 2160p', '2160p uhd bluray', '2160p uhd blu ray', '2160p bluray hevc truehd', '2160p bluray hevc dts', '2160p bluray hevc lpcm', '2160p us bluray hevc truehd', '2160p us bluray hevc dts']):
         info.append('HDR')
     if any(i in release_title for i in [' sdr ']):
         info.append('SDR')
+    if any(i in release_title for i in [' dv ', 'dovi', 'dolby vision', 'dolbyvision']):
+        info.append('DV')
 
     # info.audio
     if any(i in release_title for i in ['aac']):
@@ -62,25 +92,31 @@ def getInfo(release_title):
     if any(i in release_title for i in ['dts']):
         info.append('DTS')
     if any(i in release_title for i in ['hd ma', 'hdma']):
-        info.append('HD-MA')
+        info.append('DTS-HDMA')
+    if any(i in release_title for i in ['hd hr', 'hdhr', 'dts hr', 'dtshr']):
+        info.append('DTS-HDHR')
+    if any(i in release_title for i in ['dtsx', ' dts x']):
+        info.append('DTS-X')
     if any(i in release_title for i in ['atmos']):
         info.append('ATMOS')
     if any(i in release_title for i in ['truehd', 'true hd']):
         info.append('TRUEHD')
-    if any(i in release_title for i in ['ddp', 'dd+', 'eac3']):
+    if any(i in release_title for i in ['ddp', 'dd+', 'eac3', ' e ac3', ' e ac 3']):
         info.append('DD+')
-    if any(i in release_title for i in [' dd ', 'dd2', 'dd5', 'dd7', ' ac3']):
+    if any(i in release_title for i in [' dd ', 'dd2', 'dd5', 'dd7', ' ac3', ' ac 3']):
         info.append('DD')
     if any(i in release_title for i in ['mp3']):
         info.append('MP3')
     if any(i in release_title for i in [' wma']):
         info.append('WMA')
+    if any(i in release_title for i in ['opus']):
+        info.append('OPUS')
     if any(i in release_title for i in ['dub', 'dubbed']):
         info.append('DUB')
-    if any(i in release_title for i in ['sub', 'subbed']):
-        info.append('SUB')
-    if any(i in release_title for i in ['dual-audio', 'dual audio']):
+    if any(i in release_title for i in ['dual audio']):
         info.append('DUAL-AUDIO')
+    if any(i in release_title for i in ['multi audio', 'multi lang', 'multiple audio', 'multiple lang']):
+        info.append('MULTI-AUDIO')
 
     # info.channels
     if any(i in release_title for i in ['2 0 ', '2 0ch', '2ch']):
@@ -90,6 +126,10 @@ def getInfo(release_title):
     if any(i in release_title for i in ['7 1 ', '7 1ch', '8ch']):
         info.append('7.1')
 
+    # info.subtitles
+    if any(i in release_title for i in ['multi sub', 'multiple sub']):
+        info.append('MULTI-SUB')
+
     # info.source
     # no point at all with WEBRip vs WEB-DL cuz it's always labeled wrong with TV Shows
     # WEB = WEB-DL in terms of size and quality
@@ -97,7 +137,7 @@ def getInfo(release_title):
         info.append('BLURAY')
     if any(i in release_title for i in [' web ', 'webrip', 'webdl', 'web rip', 'web dl']):
         info.append('WEB')
-    if any(i in release_title for i in ['hdrip', 'hd rip']):
+    if any(i in release_title for i in [' hdrip', ' hd rip']):
         info.append('HDRIP')
     if any(i in release_title for i in ['dvdrip', 'dvd rip']):
         info.append('DVDRIP')
@@ -113,11 +153,13 @@ def getInfo(release_title):
         info.append('HC')
     if any(i in release_title for i in ['blurred']):
         info.append('BLUR')
-    if any(i in release_title for i in [' 3d']):
+    if any(i in release_title for i in [" 3d", " half ou", " half sbs"]):
         info.append('3D')
+    if any(i in release_title for i in [" 60 fps", " 60fps"]):
+        info.append('60-FPS')
 
     # info.batch
-    if any(i in release_title for i in [' batch']):
+    if any(i in release_title for i in ['batch']):
         info.append('BATCH')
 
     return info

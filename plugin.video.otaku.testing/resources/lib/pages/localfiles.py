@@ -44,6 +44,8 @@ class Sources(BrowserBase):
             'size': source_utils.get_size(os.path.getsize(full_path)),
             'byte_size': os.path.getsize(full_path),
             'info': source_utils.getInfo(f),
-            'lang': source_utils.getAudio_lang(f)
+            'lang': source_utils.getAudio_lang(f),
+            'channel': source_utils.getAudio_channel(f),
+            'sub': source_utils.getSubtitle_lang(f)
         }
         return source

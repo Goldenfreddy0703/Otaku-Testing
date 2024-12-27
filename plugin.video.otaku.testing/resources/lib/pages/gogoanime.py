@@ -142,7 +142,9 @@ class Sources(BrowserBase):
                     'size': 'NA',
                     'byte_size': 0,
                     'info': source_utils.getInfo(slug) + [server],
-                    'lang': source_utils.getAudio_lang(title)
+                    'lang': source_utils.getAudio_lang(title),
+                    'channel': source_utils.getAudio_channel(title),
+                    'sub': source_utils.getSubtitle_lang(title),
                 }
                 sources.append(source)
 

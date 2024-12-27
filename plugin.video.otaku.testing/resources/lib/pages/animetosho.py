@@ -174,6 +174,8 @@ def parse_animetosho_view(res, episode, cached=True):
         'info': source_utils.getInfo(res['name']),
         'byte_size': 0,
         'lang': source_utils.getAudio_lang(res['name']),
+        'channel': source_utils.getAudio_channel(res['name']),
+        'sub': source_utils.getSubtitle_lang(res['name']),
         'cached': cached,
         'seeders': res['seeders'],
     }
