@@ -1,10 +1,10 @@
-import requests
 import pickle
 import datetime
 import time
+import json
 
 from functools import partial
-from resources.lib.ui import utils, database, control
+from resources.lib.ui import utils, database, client, control
 from resources.lib import indexers
 from resources import jz
 
@@ -14,32 +14,32 @@ class JikanAPI:
         self.baseUrl = "https://api.jikan.moe/v4"
 
     def get_anime_info(self, mal_id):
-        r = requests.get(f'{self.baseUrl}/anime/{mal_id}')
-        return r.json()['data']
+        response = client.request(f'{self.baseUrl}/anime/{mal_id}')
+        if response:
+            return json.loads(response)['data']
 
     def get_episode_meta(self, mal_id):
-        # url = f'{self.baseUrl}/anime/{mal_id}/videos/episodes'
-        url = f'{self.baseUrl}/anime/{mal_id}/episodes'  # no pictures but can handle 100 per page
-        r = requests.get(url)
-        res = r.json()
-        if not res['pagination']['has_next_page']:
-            res_data = res['data']
-        else:
-            res_data = res['data']
-            for i in range(2, res['pagination']['last_visible_page'] + 1):
-                params = {
-                    'page': i
-                }
-                r = requests.get(url, params=params)
-                if not r.ok:
-                    control.ok_dialog(control.ADDON_NAME, f"{r.json()}")
-                    return res_data
-                res = r.json()
-                res_data += res['data']
-                if not res['pagination']['has_next_page']:
-                    break
-                if i % 3 == 0:
-                    time.sleep(2)
+        url = f'{self.baseUrl}/anime/{mal_id}/episodes'
+        response = client.request(url)
+        if response:
+            res = json.loads(response)
+            if not res['pagination']['has_next_page']:
+                res_data = res['data']
+            else:
+                res_data = res['data']
+                for i in range(2, res['pagination']['last_visible_page'] + 1):
+                    params = {
+                        'page': i
+                    }
+                    response = client.request(url, params=params)
+                    if response:
+                        r = json.loads(response)
+                        if not r['pagination']['has_next_page']:
+                            res_data += r['data']
+                            break
+                        res_data += r['data']
+                        if i % 3 == 0:
+                            time.sleep(2)
         return res_data
 
     @staticmethod
@@ -167,5 +167,6 @@ class JikanAPI:
             "page": page,
             "filter": filter_type
         }
-        r = requests.get(f'{self.baseUrl}/top/anime', params)
-        return r.json()
+        response = client.request(f'{self.baseUrl}/top/anime', params=params)
+        if response:
+            return json.loads(response)

@@ -1,10 +1,10 @@
-import requests
 import pickle
 import datetime
 import time
+import json
 
 from functools import partial
-from resources.lib.ui import utils, database, control
+from resources.lib.ui import utils, database, control, client
 from resources.lib import indexers
 from resources import jz
 
@@ -17,8 +17,9 @@ class ANIZIPAPI:
         params = {
             'mal_id': mal_id
         }
-        r = requests.get(f'{self.baseUrl}/mappings', params=params)
-        return r.json()
+        response = client.request(f'{self.baseUrl}/mappings', params=params)
+        if response:
+            return json.loads(response)
 
     @staticmethod
     def parse_episode_view(res, mal_id, season, poster, fanart, eps_watched, update_time, tvshowtitle, dub_data, filler_data, episodes=None):

@@ -1,10 +1,10 @@
-import requests
 import pickle
 import datetime
 import time
+import json
 
 from functools import partial
-from resources.lib.ui import database, utils, control
+from resources.lib.ui import database, utils, control, client
 from resources.lib import indexers
 from resources import jz
 
@@ -140,9 +140,10 @@ class SIMKLAPI:
             'extended': 'full',
             'client_id': self.ClientID
         }
-        r = requests.get(f'{self.baseUrl}/anime/{simkl_id}', params=params)
-        res = r.json() if r.ok else {}
-        return res
+        response = client.request(f'{self.baseUrl}/anime/{simkl_id}', params=params)
+        if response:
+            return json.loads(response)
+        return {}
 
     def get_episode_meta(self, mal_id):
         show_ids = database.get_show(mal_id)
@@ -155,20 +156,22 @@ class SIMKLAPI:
             'extended': 'full',
             'client_id': self.ClientID
         }
-        r = requests.get(f'{self.baseUrl}/anime/episodes/{simkl_id}', params=params)
-        res = r.json()
-        return res
+        response = client.request(f'{self.baseUrl}/anime/episodes/{simkl_id}', params=params)
+        if response:
+            return json.loads(response)
+        return {}
 
     def get_id(self, send_id, anime_id):
         params = {
             send_id: anime_id,
             "client_id": self.ClientID,
         }
-        r = requests.get(f'{self.baseUrl}/search/id', params=params)
-        r = r.json()
-        if r:
-            anime_id = r[0]['ids']['simkl']
-            return anime_id
+        response = client.request(f'{self.baseUrl}/search/id', params=params)
+        if response:
+            r = json.loads(response)
+            if r:
+                anime_id = r[0]['ids']['simkl']
+                return anime_id
 
     def get_mapping_ids(self, send_id, anime_id):
         # return_id = anidb, ann, mal, offjp, wikien, wikijp, instagram, imdb, tmdb, tw, tvdbslug, anilist, animeplanet, anisearch, kitsu, livechart, traktslug
@@ -177,7 +180,7 @@ class SIMKLAPI:
             'extended': 'full',
             'client_id': self.ClientID
         }
-        r = requests.get(f'{self.baseUrl}/anime/{simkl_id}', params=params)
-        if r.ok:
-            r = r.json()
+        response = client.request(f'{self.baseUrl}/anime/{simkl_id}', params=params)
+        if response:
+            r = json.loads(response)
             return r['ids']

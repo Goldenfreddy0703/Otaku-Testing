@@ -3,7 +3,7 @@ import requests
 import os
 import json
 
-from resources.lib.ui import control, database_sync, database
+from resources.lib.ui import control, client, database_sync, database
 
 
 def refresh_apis():
@@ -73,10 +73,11 @@ def sync_watchlist(silent=False):
 def update_dub_json():
     control.log("### Updating Dub json")
     with open(control.maldubFile, 'w') as file:
-        r = requests.get('https://raw.githubusercontent.com/MAL-Dubs/MAL-Dubs/main/data/dubInfo.json')
-        mal_dub_list = r.json()["dubbed"]
-        mal_dub = {str(item): {'dub': True} for item in mal_dub_list}
-        json.dump(mal_dub, file)
+        response = client.request('https://raw.githubusercontent.com/MAL-Dubs/MAL-Dubs/main/data/dubInfo.json')
+        if response:
+            mal_dub_list = json.loads(response)["dubbed"]
+            mal_dub = {str(item): {'dub': True} for item in mal_dub_list}
+            json.dump(mal_dub, file)
 
 
 def getChangeLog():

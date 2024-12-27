@@ -38,5 +38,5 @@ def update_meta(mal_id, mtype='tv'):
     elif 'fanart' not in art.keys():
         art2 = tmdb.getArt(meta_ids, mtype)
         if art2.get('fanart'):
-            art['fanart'] = art['fanart']
+            art['fanart'] = art2['fanart']
     database.update_show_meta(mal_id, meta_ids, art)

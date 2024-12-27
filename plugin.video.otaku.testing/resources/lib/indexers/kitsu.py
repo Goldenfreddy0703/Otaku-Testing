@@ -1,12 +1,13 @@
-import requests
 import pickle
 import datetime
 import time
+import json
 
 from functools import partial
 from resources.lib.ui import utils, database, control
 from resources.lib import indexers
 from resources import jz
+from resources.lib.ui import client
 
 
 class KitsuAPI:
@@ -19,8 +20,9 @@ class KitsuAPI:
 
     def get_anime_info(self, mal_id):
         kitsu_id = self.get_kitsu_id(mal_id)
-        r = requests.get(f'{self.baseUrl}/anime/{kitsu_id}')
-        return r.json()['data']
+        response = client.request(f'{self.baseUrl}/anime/{kitsu_id}')
+        if response:
+            return json.loads(response)['data']
 
     def get_episode_meta(self, kitsu_id):
         url = f'{self.baseUrl}/anime/{kitsu_id}/episodes'
@@ -31,14 +33,15 @@ class KitsuAPI:
                 'page[limit]': 20,
                 'page[offset]': (page - 1) * 20
             }
-            r = requests.get(url, params=params)
-            res = r.json()
-            res_data.extend(res['data'])
-            if 'next' not in res['links']:
-                break
-            page += 1
-            if page % 3 == 0:
-                time.sleep(2)
+            response = client.request(url, params=params)
+            if response:
+                res = json.loads(response)
+                res_data.extend(res['data'])
+                if 'next' not in res['links']:
+                    break
+                page += 1
+                if page % 3 == 0:
+                    time.sleep(2)
         return res_data
 
     @staticmethod
@@ -171,5 +174,6 @@ class KitsuAPI:
             "page[offset]": (page - 1) * perpage,
             "filter[status]": filter_type
         }
-        r = requests.get(f'{self.baseUrl}/anime', params=params)
-        return r.json()
+        response = client.request(f'{self.baseUrl}/anime', params=params)
+        if response:
+            return json.loads(response)

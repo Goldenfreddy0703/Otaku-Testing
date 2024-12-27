@@ -1,4 +1,6 @@
-import requests
+import json
+
+from resources.lib.ui import client
 
 base_url = "https://api.anime-skip.com/graphql"
 
@@ -23,14 +25,16 @@ def get_episode_ids(anilist_id, episode):
         'serviceId': anilist_id
     }
 
-    r = requests.post(base_url, headers=headers, json={'query': query, 'variables': variables})
-    res = r.json()['data']['findShowsByExternalId']
-    id_list = []
-    for resx in res:
-        for x in resx['episodes']:
-            if x['number'] and int(x['number']) == episode:
-                id_list.append(x['id'])
-    return id_list
+    response = client.request(base_url, headers=headers, post={'query': query, 'variables': variables}, jpost=True)
+    if response:
+        res = json.loads(response)['data']['findShowsByExternalId']
+        id_list = []
+        for resx in res:
+            for x in resx['episodes']:
+                if x['number'] and int(x['number']) == episode:
+                    id_list.append(x['id'])
+        return id_list
+    return []
 
 
 def get_time_stamps(id_list):
@@ -40,21 +44,20 @@ def get_time_stamps(id_list):
                 at
                 type {
                     name
-
                 }
             }
         }
     '''
 
     variables = {}
-    res = {}
     for x in range(len(id_list)):
         variables['episodeId'] = id_list[x]
-        r = requests.post(base_url, headers=headers, json={'query': query, 'variables': variables})
-        res = r.json()['data']['findTimestampsByEpisodeId']
-        if res:
-            break
-    return res
+        response = client.request(base_url, headers=headers, post={'query': query, 'variables': variables}, jpost=True)
+        if response:
+            res = json.loads(response)['data']['findTimestampsByEpisodeId']
+            if res:
+                return res
+    return {}
 
 
 def convert_time_stamps(time_stamp, intro, outro):

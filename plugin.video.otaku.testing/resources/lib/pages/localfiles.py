@@ -1,10 +1,10 @@
 import os
 import re
-import requests
+import json
 
 from functools import partial
 from resources.lib.ui.BrowserBase import BrowserBase
-from resources.lib.ui import source_utils, control
+from resources.lib.ui import source_utils, control, client
 
 PATH = control.getSetting('folder.location')
 
@@ -19,8 +19,8 @@ class Sources(BrowserBase):
 
         clean_filenames = [re.sub(r'\[.*?]\s*', '', os.path.basename(i).replace(',', '')) for i in filenames]
         filenames_query = ','.join(clean_filenames)
-        r = requests.get('https://armkai.vercel.app/api/fuzzypacks', params={"dict": filenames_query, "match": query})
-        resp = r.json()
+        response = client.request('https://armkai.vercel.app/api/fuzzypacks', params={"dict": filenames_query, "match": query})
+        resp = json.loads(response) if response else []
         match_files = []
         for i in resp:
             if episode not in clean_filenames[i]:

@@ -1,8 +1,8 @@
 import re
-import requests
 import threading
+import json
 
-from resources.lib.ui import source_utils
+from resources.lib.ui import source_utils, client
 from resources.lib.ui.BrowserBase import BrowserBase
 from resources.lib.debrid import real_debrid, premiumize, all_debrid, torbox
 
@@ -38,8 +38,8 @@ class Sources(BrowserBase):
         torrents = api.list_torrents()
         filenames = [re.sub(r'\[.*?]\s*', '', i['filename'].replace(',', '')) for i in torrents]
         filenames_query = ','.join(filenames)
-        r = requests.get('https://armkai.vercel.app/api/fuzzypacks', params={"dict": filenames_query, "match": query})
-        resp = r.json()
+        response = client.request('https://armkai.vercel.app/api/fuzzypacks', params={"dict": filenames_query, "match": query})
+        resp = json.loads(response) if response else []
 
         for i in resp:
             torrent = torrents[i]
@@ -115,8 +115,8 @@ class Sources(BrowserBase):
         cloud_items = torbox.TorBox().list_torrents()
         filenames = [re.sub(r'\[.*?]\s*', '', i['name'].replace(',', '')) for i in cloud_items]
         filenames_query = ','.join(filenames)
-        r = requests.get('https://armkai.vercel.app/api/fuzzypacks', params={"dict": filenames_query, "match": query})
-        resp = r.json()
+        response = client.request('https://armkai.vercel.app/api/fuzzypacks', params={"dict": filenames_query, "match": query})
+        resp = json.loads(response) if response else []
         for i in resp:
             torrent = cloud_items[i]
             filename = re.sub(r'\[.*?]', '', torrent['name']).lower()
@@ -151,8 +151,8 @@ class Sources(BrowserBase):
         torrents = api.list_torrents()['links']
         filenames = [re.sub(r'\[.*?]\s*', '', i['filename'].replace(',', '')) for i in torrents]
         filenames_query = ','.join(filenames)
-        r = requests.get('https://armkai.vercel.app/api/fuzzypacks', params={"dict": filenames_query, "match": query})
-        resp = r.json()
+        response = client.request('https://armkai.vercel.app/api/fuzzypacks', params={"dict": filenames_query, "match": query})
+        resp = json.loads(response) if response else []
         for i in resp:
             torrent = torrents[i]
             filename = re.sub(r'\[.*?]', '', torrent['filename']).lower()
