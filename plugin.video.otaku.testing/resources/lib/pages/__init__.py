@@ -170,14 +170,20 @@ class Sources(GetSources):
 
     # Torrents #
     def nyaa_worker(self, query, mal_id, episode, status, media_type, rescrape):
-        all_sources = database.get(nyaa.Sources().get_sources, 8, query, mal_id, episode, status, media_type, rescrape, key='nyaa')
+        if rescrape:
+            all_sources = nyaa.Sources().get_sources(query, mal_id, episode, status, media_type, rescrape)
+        else:
+            all_sources = database.get(nyaa.Sources().get_sources, 8, query, mal_id, episode, status, media_type, rescrape, key='nyaa')
         self.torrentUnCacheSources += all_sources['uncached']
         self.torrentCacheSources += all_sources['cached']
         self.torrentSources += all_sources['cached'] + all_sources['uncached']
         self.remainingProviders.remove('nyaa')
 
     def animetosho_worker(self, query, mal_id, episode, status, media_type, rescrape):
-        all_sources = database.get(animetosho.Sources().get_sources, 8, query, mal_id, episode, status, media_type, rescrape, key='animetosho')
+        if rescrape:
+            all_sources = animetosho.Sources().get_sources(query, mal_id, episode, status, media_type, rescrape)
+        else:
+            all_sources = database.get(animetosho.Sources().get_sources, 8, query, mal_id, episode, status, media_type, rescrape, key='animetosho')
         self.torrentUnCacheSources += all_sources['uncached']
         self.torrentCacheSources += all_sources['cached']
         self.torrentSources += all_sources['cached'] + all_sources['uncached']
@@ -185,15 +191,24 @@ class Sources(GetSources):
 
     # embeds #
     def animepahe_worker(self, mal_id, episode, rescrape):
-        self.embedSources += database.get(animepahe.Sources().get_sources, 8, mal_id, episode, key='animepahe')
+        if rescrape:
+            self.embedSources += animepahe.Sources().get_sources(mal_id, episode)
+        else:
+            self.embedSources += database.get(animepahe.Sources().get_sources, 8, mal_id, episode, key='animepahe')
         self.remainingProviders.remove('animepahe')
 
     # def animix_worker(self, mal_id, episode, rescrape):
-    #     self.embedSources += database.get(animixplay.Sources().get_sources, 8, mal_id, episode, key='animixplay')
+    #     if rescrape:
+    #         self.embedSources += animixplay.Sources().get_sources(mal_id, episode)
+    #     else:
+    #         self.embedSources += database.get(animixplay.Sources().get_sources, 8, mal_id, episode, key='animixplay')
     #     self.remainingProviders.remove('animix')
 
     def aniwave_worker(self, mal_id, episode, rescrape):
-        aniwave_sources = database.get(aniwave.Sources().get_sources, 8, mal_id, episode, key='aniwave')
+        if rescrape:
+            aniwave_sources = aniwave.Sources().get_sources(mal_id, episode)
+        else:
+            aniwave_sources = database.get(aniwave.Sources().get_sources, 8, mal_id, episode, key='aniwave')
         self.embedSources += aniwave_sources
         for x in aniwave_sources:
             if x.get('skip'):
@@ -206,11 +221,17 @@ class Sources(GetSources):
         self.remainingProviders.remove('aniwave')
 
     def gogo_worker(self, mal_id, episode, rescrape):
-        self.embedSources += database.get(gogoanime.Sources().get_sources, 8, mal_id, episode, key='gogoanime')
+        if rescrape:
+            self.embedSources += gogoanime.Sources().get_sources(mal_id, episode)
+        else:
+            self.embedSources += database.get(gogoanime.Sources().get_sources, 8, mal_id, episode, key='gogoanime')
         self.remainingProviders.remove('gogo')
 
     def hianime_worker(self, mal_id, episode, rescrape):
-        hianime_sources = database.get(hianime.Sources().get_sources, 8, mal_id, episode, key='hianime')
+        if rescrape:
+            hianime_sources = hianime.Sources().get_sources(mal_id, episode)
+        else:
+            hianime_sources = database.get(hianime.Sources().get_sources, 8, mal_id, episode, key='hianime')
         self.embedSources += hianime_sources
         for x in hianime_sources:
             if x.get('skip'):

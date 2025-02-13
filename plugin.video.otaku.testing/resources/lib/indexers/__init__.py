@@ -55,7 +55,7 @@ def get_diff(episodes_0):
     return update_time, diff
 
 
-def update_database(mal_id, update_time, res, url, image, info, season, episode, episodes, title, fanart, poster, clearart, clearlogo, dub_data, filler):
+def update_database(mal_id, update_time, res, url, image, info, season, episode, episodes, title, fanart, poster, clearart, clearlogo, dub_data, filler, anidb_ep_id=None):
     code = endpoints.get_second_label(info, dub_data)
     if not code and control.settingids.filler:
         filler = code = control.colorstr(filler, color="red") if filler == 'Filler' else filler
@@ -66,7 +66,7 @@ def update_database(mal_id, update_time, res, url, image, info, season, episode,
     parsed = utils.allocate_item(title, f"play/{url}", False, True, [], image, info, fanart, poster, landscape, banner, clearart, clearlogo)
     kodi_meta = pickle.dumps(parsed)
     if not episodes or len(episodes) <= episode or kodi_meta != episodes[episode - 1]['kodi_meta']:
-        database.update_episode(mal_id, season, episode, update_time, kodi_meta, filler)
+        database.update_episode(mal_id, season, episode, update_time, kodi_meta, filler, anidb_ep_id)
 
     if control.settingids.clean_titles and info.get('playcount') != 1:
         parsed['info']['title'] = f'Episode {res["episode"]}'

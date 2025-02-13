@@ -42,11 +42,10 @@ def refresh_apis():
 
 def update_calendars():
     control.log("### Updating Calendars")
-    from resources.lib.endpoints import simkl_calendar, anilist
-    from resources.lib import MalBrowser
-    simkl_calendar.SimklCalendar().update_calendar()
+    from resources.lib.endpoints import anilist, mal, simkl
+    simkl.Simkl().update_calendar()
     anilist.Anilist().update_calendar()
-    MalBrowser.MalBrowser().update_calendar()
+    mal.Mal().update_calendar()
     control.log("### Calendars updated successfully")
 
 

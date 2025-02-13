@@ -122,9 +122,15 @@ def update_show_data(mal_id, data, last_updated=''):
         cursor.connection.commit()
 
 
-def update_episode(mal_id, season, number, update_time, kodi_meta, filler=''):
+def update_episode(mal_id, season, number, update_time, kodi_meta, filler='', anidb_ep_id=''):
     with SQL(control.malSyncDB) as cursor:
-        cursor.execute('REPLACE INTO episodes (mal_id, season, kodi_meta, last_updated, number, filler) VALUES (?, ?, ?, ?, ?, ?)', (mal_id, season, kodi_meta, update_time, number, filler))
+        cursor.execute('REPLACE INTO episodes (mal_id, season, kodi_meta, last_updated, number, filler, anidb_ep_id) VALUES (?, ?, ?, ?, ?, ?, ?)', (mal_id, season, kodi_meta, update_time, number, filler, anidb_ep_id))
+        cursor.connection.commit()
+
+
+def update_episode_column(mal_id, episode, column, value):
+    with SQL(control.malSyncDB) as cursor:
+        cursor.execute('UPDATE episodes SET %s=? WHERE mal_id=? AND number=?' % column, (value, mal_id, episode))
         cursor.connection.commit()
 
 
@@ -138,14 +144,17 @@ def get_show_data(mal_id):
 
 def get_episode_list(mal_id):
     with SQL(control.malSyncDB) as cursor:
-        cursor.execute('SELECT* FROM episodes WHERE mal_id=?', (mal_id,))
+        cursor.execute('SELECT * FROM episodes WHERE mal_id=?', (mal_id,))
         episodes = cursor.fetchall()
         return episodes
 
 
-def get_episode(mal_id):
+def get_episode(mal_id, episode=None):
     with SQL(control.malSyncDB) as cursor:
-        cursor.execute('SELECT* FROM episodes WHERE mal_id=?', (mal_id,))
+        if episode:
+            cursor.execute('SELECT * FROM episodes WHERE mal_id=? AND number=?', (mal_id, episode))
+        else:
+            cursor.execute('SELECT * FROM episodes WHERE mal_id=?', (mal_id,))
         episode = cursor.fetchone()
         return episode
 

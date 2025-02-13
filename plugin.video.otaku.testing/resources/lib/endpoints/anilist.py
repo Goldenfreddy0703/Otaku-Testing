@@ -132,7 +132,15 @@ class Anilist:
         for item in anilist_cache:
             for schedule in item['airingSchedules']:
                 if schedule['media']['id'] == anilist_id:
-                    return schedule['episode']
+                    airing_at_timestamp = schedule['airingAt']
+                    airing_at_datetime = datetime.datetime.fromtimestamp(airing_at_timestamp, datetime.timezone.utc)
+
+                    # Check if the episode has already aired
+                    if airing_at_datetime <= datetime.datetime.now(datetime.timezone.utc):
+                        return schedule['episode']
+                    else:
+                        return schedule['episode'] - 1
+
         return None
 
     def get_cached_data(self):

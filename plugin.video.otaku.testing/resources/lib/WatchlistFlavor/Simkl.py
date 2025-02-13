@@ -5,7 +5,7 @@ import json
 from resources.lib.ui import utils, database, client, control, get_meta
 from resources.lib.WatchlistFlavor.WatchlistFlavorBase import WatchlistFlavorBase
 from resources.lib.ui.divide_flavors import div_flavor
-from resources.lib.endpoints import simkl_calendar, anilist
+from resources.lib.endpoints import simkl, anilist
 
 
 class SimklWLF(WatchlistFlavorBase):
@@ -198,12 +198,12 @@ class SimklWLF(WatchlistFlavorBase):
         episode_count = res["total_episodes_count"]
 
         if not control.getBool('playlist.unaired'):
-            airing_episode = simkl_calendar.SimklCalendar().get_calendar_data(mal_id)
+            airing_episode = simkl.Simkl().get_calendar_data(mal_id)
             if not airing_episode:
                 airing_episode = anilist.Anilist().get_airing_calendar(mal_id)
 
             if airing_episode:
-                episode_count = airing_episode - 1
+                episode_count = airing_episode
 
         if 0 < episode_count < next_up:
             return

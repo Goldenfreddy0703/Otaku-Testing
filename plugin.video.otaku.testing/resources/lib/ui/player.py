@@ -5,9 +5,9 @@ import service
 import json
 
 from resources.lib.ui import control, database
-from resources.lib.endpoints import aniskip, anime_skip
+from resources.lib.endpoints import aniskip, anime_skip, simkl
 from resources.lib import WatchlistIntegration, indexers
-from resources.lib.endpoints import simkl_calendar, anilist
+from resources.lib.endpoints import anilist
 
 
 playList = control.playList
@@ -96,13 +96,12 @@ class WatchlistPlayer(player):
         episodes = database.get_episode_list(self.mal_id)
 
         if not control.getBool('playlist.unaired'):
-            airing_episode = simkl_calendar.SimklCalendar().get_calendar_data(self.mal_id)
+            airing_episode = simkl.Simkl().get_calendar_data(self.mal_id)
             if not airing_episode:
                 airing_episode = anilist.Anilist().get_airing_calendar(self.mal_id)
 
             if airing_episode:
                 if isinstance(airing_episode, int):
-                    airing_episode -= 1  # Subtract 1 from airing_episode
                     episodes = episodes[:airing_episode]
 
         video_data = indexers.process_episodes(episodes, '') if episodes else []

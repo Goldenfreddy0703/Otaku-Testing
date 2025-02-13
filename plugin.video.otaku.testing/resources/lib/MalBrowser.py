@@ -9,7 +9,7 @@ import datetime
 
 from bs4 import BeautifulSoup
 from functools import partial
-from resources.lib.endpoints.simkl_calendar import SimklCalendar
+from resources.lib.endpoints.simkl import Simkl
 from resources.lib.ui import database, control, client, utils, get_meta
 from resources.lib.ui.BrowserBase import BrowserBase
 from resources.lib.ui.divide_flavors import div_flavor
@@ -139,44 +139,6 @@ class MalBrowser(BrowserBase):
         return (season, year, year_start_date, year_end_date, season_start_date, season_end_date,
                 season_start_date_last, season_end_date_last, year_start_date_last, year_end_date_last,
                 season_start_date_next, season_end_date_next, year_start_date_next, year_end_date_next)
-
-    def update_calendar(self, page=1):
-        days_of_week = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-        list_ = []
-
-        for day in days_of_week:
-            day_results = []
-            current_page = page
-            request_count = 0
-
-            while True:
-                retries = 3
-                popular = None
-                while retries > 0:
-                    popular = self.get_airing_calendar_res(day, current_page)
-                    if popular and 'data' in popular:
-                        break
-                    retries -= 1
-                    time.sleep(1)  # Add delay before retrying
-
-                if not popular or 'data' not in popular:
-                    break
-
-                day_results.extend(popular['data'])
-
-                if not popular['pagination']['has_next_page']:
-                    break
-
-                current_page += 1
-                request_count += 1
-
-                if request_count >= 3:
-                    time.sleep(1)  # Add delay to respect API rate limit
-                    request_count = 0
-
-            day_results.reverse()
-            list_.extend(day_results)
-            self.set_cached_data(list_)
 
     def get_airing_calendar(self, page=1):
         days_of_week = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
@@ -1582,7 +1544,7 @@ class MalBrowser(BrowserBase):
         rating = res['score']
 
         # Find Simkl entry
-        simkl_entry = SimklCalendar().fetch_and_find_simkl_entry(res['mal_id'])
+        simkl_entry = Simkl().fetch_and_find_simkl_entry(res['mal_id'])
         if simkl_entry:
             episode = simkl_entry['episode']['episode']
             rating = simkl_entry['ratings']['simkl']['rating']
@@ -1638,6 +1600,8 @@ class MalBrowser(BrowserBase):
             'plot': res.get('synopsis'),
             'duration': self.duration_to_seconds(res.get('duration')),
             'genre': [x['name'] for x in res.get('genres', [])],
+            'studio': [x['name'] for x in res.get('studios', [])],
+            'mpaa': res.get('rating'),
         }
 
         if isinstance(res.get('score'), float):

@@ -19,7 +19,7 @@ class SyncDatabase:
         # You will need to update the below version number to match the new addon version
         # This will ensure that the metadata required for operations is available
         # You may also update this version number to force a rebuild of the database after updating Otaku
-        self.last_meta_update = '1.0.1'
+        self.last_meta_update = '1.0.2'
         self.refresh_activites()
         self.check_database_version()
 
@@ -81,6 +81,7 @@ class SyncDatabase:
                            'last_updated TEXT NOT NULL, '
                            'number INTEGER NOT NULL, '
                            'filler TEXT, '
+                           'anidb_ep_id INTEGER, '
                            'FOREIGN KEY(mal_id) REFERENCES shows(mal_id) ON DELETE CASCADE)')
             cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS ix_episodes ON episodes (mal_id ASC, season ASC, number ASC)')
             cursor.connection.commit()

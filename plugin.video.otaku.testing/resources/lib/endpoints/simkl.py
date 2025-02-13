@@ -1,11 +1,12 @@
 import json
 import os
+import datetime
 from resources.lib.ui import client, control
 
 baseUrl = 'https://data.simkl.in/calendar/anime.json'
 
 
-class SimklCalendar:
+class Simkl:
     def __init__(self):
         self.anime_cache = {}
 
@@ -32,9 +33,19 @@ class SimklCalendar:
 
         for item in self.simkl_cache:
             if item.get('ids', {}).get('mal') == str(mal_id):
-                airing_episode = item.get('episode', {}).get('episode')
-                self.anime_cache[mal_id] = airing_episode - 1
-                return airing_episode
+                episode_date_str = item.get('date')
+                if episode_date_str:
+                    episode_date = datetime.datetime.fromisoformat(episode_date_str)
+
+                    # Check if episode has already aired
+                    if datetime.datetime.now(datetime.timezone.utc) >= episode_date:
+                        airing_episode = item.get('episode', {}).get('episode')
+                        self.anime_cache[mal_id] = airing_episode
+                        return airing_episode
+                    else:
+                        airing_episode = item.get('episode', {}).get('episode')
+                        self.anime_cache[mal_id] = airing_episode - 1
+                        return airing_episode - 1
         return None
 
     def fetch_and_find_simkl_entry(self, mal_id):

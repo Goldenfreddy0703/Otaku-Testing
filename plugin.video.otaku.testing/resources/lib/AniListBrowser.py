@@ -83,31 +83,47 @@ class AniListBrowser(BrowserBase):
         import time
         import itertools
 
-        today = datetime.date.today()
-        today_ts = int(time.mktime(today.timetuple()))
-        weekStart = today_ts - 86400
-        weekEnd = today_ts + (86400 * 6)
-        variables = {
-            'weekStart': weekStart,
-            'weekEnd': weekEnd,
-            'page': page
-        }
+        anilist_cache = self.get_cached_data()
+        if anilist_cache:
+            list_ = anilist_cache
+        else:
+            today = datetime.date.today()
+            today_ts = int(time.mktime(today.timetuple()))
+            weekStart = today_ts - 86400
+            weekEnd = today_ts + (86400 * 6)
+            variables = {
+                'weekStart': weekStart,
+                'weekEnd': weekEnd,
+                'page': page
+            }
 
-        list_ = []
+            list_ = []
 
-        for i in range(0, 4):
-            popular = self.get_airing_calendar_res(variables, page)
-            list_.append(popular)
+            for i in range(0, 4):
+                popular = self.get_airing_calendar_res(variables, page)
+                list_.append(popular)
 
-            if not popular['pageInfo']['hasNextPage']:
-                break
+                if not popular['pageInfo']['hasNextPage']:
+                    break
 
-            page += 1
-            variables['page'] = page
+                page += 1
+                variables['page'] = page
+
+            self.set_cached_data(anilist_cache)
 
         results = list(map(self.process_airing_view, list_))
         results = list(itertools.chain(*results))
         return results
+
+    def get_cached_data(self):
+        if os.path.exists(control.anilist_calendar_json):
+            with open(control.anilist_calendar_json, 'r') as f:
+                return json.load(f)
+        return None
+
+    def set_cached_data(self, data):
+        with open(control.anilist_calendar_json, 'w') as f:
+            json.dump(data, f)
 
     def get_airing_last_season(self, page):
         season, year = self.get_season_year('last')
@@ -1310,6 +1326,12 @@ class AniListBrowser(BrowserBase):
                     duration
                     countryOfOrigin
                     averageScore
+                    stats {
+                        scoreDistribution {
+                            score
+                            amount
+                        }
+                    }
                     trailer {
                         id
                         site
@@ -1415,6 +1437,12 @@ class AniListBrowser(BrowserBase):
                     duration
                     countryOfOrigin
                     averageScore
+                    stats {
+                        scoreDistribution {
+                            score
+                            amount
+                        }
+                    }
                     trailer {
                         id
                         site
@@ -1523,6 +1551,12 @@ class AniListBrowser(BrowserBase):
                         id
                         site
                     }
+                    stats {
+                        scoreDistribution {
+                            score
+                            amount
+                        }
+                    }
                     characters (perPage: 10) {
                       edges {
                         node {
@@ -1618,6 +1652,12 @@ class AniListBrowser(BrowserBase):
                   trailer {
                     id
                     site
+                  }
+                  stats {
+                    scoreDistribution {
+                        score
+                        amount
+                    }
                   }
                   characters (perPage: 10) {
                     edges {
@@ -1733,6 +1773,12 @@ class AniListBrowser(BrowserBase):
                     id
                     site
                 }
+                stats {
+                    scoreDistribution {
+                        score
+                        amount
+                    }
+                }
             }
         }
         '''
@@ -1835,6 +1881,12 @@ class AniListBrowser(BrowserBase):
             duration
             countryOfOrigin
             averageScore
+            stats {
+                scoreDistribution {
+                    score
+                    amount
+                }
+            }
             characters (
                 page: 1,
                 sort: ROLE,
@@ -1965,7 +2017,7 @@ class AniListBrowser(BrowserBase):
             'plot': desc,
             'status': res.get('status'),
             'mediatype': 'tvshow',
-            'country': res.get('countryOfOrigin', '')
+            'country': [res.get('countryOfOrigin', '')]
         }
 
         if completed.get(str(mal_id)):
@@ -1993,8 +2045,12 @@ class AniListBrowser(BrowserBase):
 
         try:
             info['rating'] = {'score': res.get('averageScore') / 10.0}
+            if res.get('stats') and res['stats'].get('scoreDistribution'):
+                total_votes = sum([score['amount'] for score in res['stats']['scoreDistribution']])
+                info['rating']['votes'] = total_votes
         except TypeError:
             pass
+        
         try:
             info['duration'] = res['duration'] * 60
         except TypeError:
@@ -2113,10 +2169,27 @@ class AniListBrowser(BrowserBase):
             'plot': desc,
             'duration': duration,
             'genre': res.get('genres'),
+            'country': [res.get('countryOfOrigin', '')],
         }
 
         try:
+            cast = []
+            for i, x in enumerate(res['characters']['edges']):
+                role = x['node']['name']['userPreferred']
+                actor = x['voiceActors'][0]['name']['userPreferred']
+                actor_hs = x['voiceActors'][0]['image']['large']
+                cast.append({'name': actor, 'role': role, 'thumbnail': actor_hs, 'index': i})
+            kodi_meta['cast'] = cast
+        except IndexError:
+            pass
+
+        kodi_meta['studio'] = [x['node'].get('name') for x in res['studios']['edges']]
+
+        try:
             kodi_meta['rating'] = {'score': res.get('averageScore') / 10.0}
+            if res.get('stats') and res['stats'].get('scoreDistribution'):
+                total_votes = sum([score['amount'] for score in res['stats']['scoreDistribution']])
+                kodi_meta['rating']['votes'] = total_votes
         except TypeError:
             pass
 
@@ -2205,6 +2278,12 @@ class AniListBrowser(BrowserBase):
                     isAdult
                     countryOfOrigin
                     averageScore
+                    stats {
+                        scoreDistribution {
+                            score
+                            amount
+                        }
+                    }
                     trailer {
                         id
                         site

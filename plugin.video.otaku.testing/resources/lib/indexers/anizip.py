@@ -40,7 +40,12 @@ class ANIZIPAPI:
             'episode': episode,
             'tvshowtitle': tvshowtitle,
             'mediatype': 'episode',
+            'status': kodi_meta.get('status'),
             'genre': kodi_meta.get('genre'),
+            'country': kodi_meta.get('country'),
+            'cast': kodi_meta.get('cast'),
+            'studio': kodi_meta.get('studio'),
+            'mpaa': kodi_meta.get('mpaa'),
         }
 
         if eps_watched and int(eps_watched) >= episode:
@@ -61,7 +66,9 @@ class ANIZIPAPI:
         except (IndexError, TypeError):
             filler = ''
 
-        parsed = indexers.update_database(mal_id, update_time, res, url, image, info, season, episode, episodes, title, fanart, poster, clearart, clearlogo, dub_data, filler)
+        anidb_ep_id = res.get('anidbEid')
+
+        parsed = indexers.update_database(mal_id, update_time, res, url, image, info, season, episode, episodes, title, fanart, poster, clearart, clearlogo, dub_data, filler, anidb_ep_id)
         return parsed
 
     def process_episode_view(self, mal_id, poster, fanart, clearart, clearlogo, eps_watched, tvshowtitle, dub_data, filler_data):

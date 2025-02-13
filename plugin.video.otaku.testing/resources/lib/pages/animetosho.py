@@ -1,5 +1,6 @@
 import re
 import pickle
+import base64
 
 from functools import partial
 from bs4 import BeautifulSoup
@@ -7,6 +8,7 @@ from resources.lib.ui.BrowserBase import BrowserBase
 from resources.lib.ui import database, source_utils, client, control
 from resources.lib import debrid
 from resources.lib.indexers.simkl import SIMKLAPI
+from resources.lib.endpoints import anidb
 
 
 class Sources(BrowserBase):
@@ -17,35 +19,46 @@ class Sources(BrowserBase):
         self.cached = []
         self.uncached = []
         self.anidb_id = None
+        self.anidb_ep_id = None
         self.paging = control.getInt('animetosho.paging')
 
     def get_sources(self, show, mal_id, episode, status, media_type, rescrape):
-        show = self._clean_title(show)
-        query = self._sphinx_clean(show)
-        if rescrape:
-            # todo add re-scape stuff here
-            pass
-        if media_type != "movie":
-            season = database.get_episode(mal_id)['season']
-            season = str(season).zfill(2)
-            episode = episode.zfill(2)
-            query = f'{query} "\\- {episode}"'
-            query += f'|"S{season}E{episode}"'
-        else:
-            season = None
-
         show_meta = database.get_show_meta(mal_id)
-        params = {
-            'q': query,
-            'qx': 1
-        }
         if show_meta:
             meta_ids = pickle.loads(show_meta['meta_ids'])
             self.anidb_id = meta_ids.get('anidb_id')
             if not self.anidb_id:
                 ids = SIMKLAPI().get_mapping_ids('mal', mal_id)
-                self.anidb_id = meta_ids['anidb_id'] = ids['anidb']
-                database.update_show_meta(mal_id, meta_ids, pickle.loads(show_meta['art']))
+                if ids:
+                    self.anidb_id = meta_ids['anidb_id'] = ids['anidb']
+                    database.update_show_meta(mal_id, meta_ids, pickle.loads(show_meta['art']))
+        if self.anidb_id:
+            episode_meta = database.get_episode(mal_id, episode)
+            if episode_meta:
+                self.anidb_ep_id = episode_meta['anidb_ep_id']
+            if not self.anidb_ep_id:
+                anidb_meta = anidb.get_episode_meta(self.anidb_id)
+                anidb_meta = {x: v for x, v in anidb_meta.items() if x.isdigit()}
+                for anidb_ep in anidb_meta:
+                    database.update_episode_column(mal_id, anidb_ep, 'anidb_ep_id', anidb_meta[anidb_ep]['anidb_id'])
+
+        episode = episode.zfill(2)
+        self.sources += self.process_animetosho_episodes(f'{self._BASE_URL}/episode/{self.anidb_ep_id}', None, episode, None)
+
+        show = self._clean_title(show)
+        if media_type != "movie":
+            season = database.get_episode(mal_id)['season']
+            season = str(season).zfill(2)
+            episode = episode.zfill(2)
+            query = f'{show} "- {episode}"'
+        else:
+            season = None
+            query = show
+
+        params = {
+            'q': self._sphinx_clean(query),
+            'qx': 1
+        }
         if self.anidb_id:
             params['aids'] = self.anidb_id
 
@@ -55,38 +68,28 @@ class Sources(BrowserBase):
             self.sources += self.process_animetosho_episodes(f'{self._BASE_URL}/search', params, episode, season)
 
         if status == 'FINISHED':
-            query = f'{show} "Batch"|"Complete Series"'
+            batch_terms = ["Batch", "Complete Series"]
             episodes = pickle.loads(database.get_show(mal_id)['kodi_meta'])['episodes']
             if episodes:
-                query += f'|"01-{episode}"|"01~{episode}"|"01 - {episode}"|"01 ~ {episode}"'
+                episode_formats = [f'01-{episodes}', f'01~{episodes}', f'01 - {episodes}', f'01 ~ {episodes}']
+            else:
+                episode_formats = []
+            batch_query = f'{show} ("' + '"|"'.join(batch_terms + episode_formats) + '")'
+            params['q'] = self._sphinx_clean(batch_query)
+            self.sources += self.process_animetosho_episodes(f'{self._BASE_URL}/search', params, episode, season)
 
-            if season:
-                query += f'|"S{season}"|"Season {season}"'
-                query += f'|"S{season}E{episode}"'
+        show_lower = show.lower()
+        if 'season' in show_lower:
+            show_variations = re.split(r'season\s*\d+', show_lower)
+            cleaned_variations = [self._sphinx_clean(var.strip() + ')') for var in show_variations if var.strip()]
+            params['q'] = '|'.join(cleaned_variations)
+        else:
+            params['q'] = self._sphinx_clean(show)
 
-            query = self._sphinx_clean(show)
-            params['q'] = query
-
-            # Add paging using self.paging
-            for page in range(1, self.paging + 1):
-                params['page'] = page
-                self.sources += self.process_animetosho_episodes(f'{self._BASE_URL}/search', params, episode, season)
-
-        show = show.lower()
-        if 'season' in show:
-            query1, query2 = show.rsplit('|', 2)
-            match_1 = re.match(r'.+?(?=season)', query1)
-            if match_1:
-                match_1 = match_1.group(0).strip() + ')'
-            match_2 = re.match(r'.+?(?=season)', query2)
-            if match_2:
-                match_2 = match_2.group(0).strip() + ')'
-            params['q'] = self._sphinx_clean(f'{match_1}|{match_2}')
-
-            # Add paging using self.paging
-            for page in range(1, self.paging + 1):
-                params['page'] = page
-                self.sources += self.process_animetosho_episodes(f'{self._BASE_URL}/search', params, episode, season)
+        # Add paging using self.paging
+        for page in range(1, self.paging + 1):
+            params['page'] = page
+            self.sources += self.process_animetosho_episodes(f'{self._BASE_URL}/search', params, episode, season)
 
         # remove any duplicate sources
         self.append_cache_uncached_noduplicates()
@@ -111,7 +114,18 @@ class Sources(BrowserBase):
                 try:
                     list_item['seeders'] = int(re.match(r'Seeders: (\d+)', soup.find('span', {'title': re.compile(r'Seeders')}).get('title')).group(1))
                 except AttributeError:
-                    list_item['seeders'] = 0
+                    list_item['seeders'] = -1
+
+                # Extract hash
+                try:
+                    list_item['hash'] = re.match(r'https://animetosho.org/storage/torrent/([^/]+)', list_item['torrent']).group(1)
+                except AttributeError:
+                    try:
+                        hash_32 = re.search(r'btih:(\w+)&tr=http', list_item['magnet']).group(1)
+                        list_item['hash'] = base64.b16encode(base64.b32decode(hash_32)).decode().lower()
+                    except AttributeError:
+                        continue  # Skip this list item if no valid hash is found
+
                 list_.append(list_item)
 
             if season:
@@ -120,7 +134,7 @@ class Sources(BrowserBase):
                 filtered_list = list_
 
             cache_list, uncashed_list_ = debrid.torrentCacheCheck(filtered_list)
-            uncashed_list = [i for i in uncashed_list_ if i['seeders'] > 0]
+            uncashed_list = [i for i in uncashed_list_ if i['seeders'] != 0]
 
             uncashed_list = sorted(uncashed_list, key=lambda k: k['seeders'], reverse=True)
             cache_list = sorted(cache_list, key=lambda k: k['downloads'], reverse=True)
@@ -131,6 +145,7 @@ class Sources(BrowserBase):
                 mapfunc2 = partial(parse_animetosho_view, episode=episode, cached=False)
                 all_results += list(map(mapfunc2, uncashed_list))
             return all_results
+        return []
 
     def append_cache_uncached_noduplicates(self):
         seen_sources = []

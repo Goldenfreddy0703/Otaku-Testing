@@ -285,6 +285,8 @@ def set_videotags(li, info):
         vinfo.setStudios(studio)
     if cast := info.get('cast'):
         vinfo.setCast([xbmc.Actor(c['name'], c['role'], c['index'], c['thumbnail']) for c in cast])
+    if country := info.get('country'):
+        vinfo.setCountries(country)
     if originaltitle := info.get('OriginalTitle'):
         vinfo.setOriginalTitle(originaltitle)
     if trailer := info.get('trailer'):

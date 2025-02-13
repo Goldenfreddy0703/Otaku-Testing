@@ -1,13 +1,25 @@
+Changelog v5.1.67 (2024-02-16):
+- Improved Scraping for Animetosho
+- Rescrape works as intended now
+
+Changelog v5.1.66 (2024-02-13):
+- Added Votes with Ratings for Anilist
+
+Changelog v5.1.65 (2024-02-13):
+- Fixed UpNext Stuff
+- Added Some Stuff to Episode Meta
+- Made Anilist Calendar load faster
+
 Changelog v5.1.64 (2024-02-13):
 - Small Fix with New Playback Setting
 - Added Genres to Episode Meta
 
 Changelog v5.1.63 (2024-02-11):
 - Added New Playback Setting for Playlist
-- Made Calendars loading Faster
+- Made Mal Calendars load faster
 
 Changelog v5.1.62 (2024-02-10):
-- Added ability to change Anilist Posters to Mal Posters
+- Added the ability to change Anilist Posters to Mal Posters
 
 Changelog v5.1.61 (2024-02-09):
 - Added Clearlogos to Episode Meta

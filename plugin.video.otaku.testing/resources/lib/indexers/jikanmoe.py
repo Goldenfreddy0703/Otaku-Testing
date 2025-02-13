@@ -62,7 +62,12 @@ class JikanAPI:
             'plot': 'No plot available',
             'tvshowtitle': tvshowtitle,
             'mediatype': 'episode',
+            'status': kodi_meta.get('status'),
             'genre': kodi_meta.get('genre'),
+            'country': kodi_meta.get('country'),
+            'cast': kodi_meta.get('cast'),
+            'studio': kodi_meta.get('studio'),
+            'mpaa': kodi_meta.get('mpaa'),
         }
 
         if eps_watched and int(eps_watched) >= episode:

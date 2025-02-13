@@ -2,6 +2,7 @@ import re
 import string
 import xbmc
 
+
 from resources.lib.ui import control
 
 res = ['EQ', '480p', '720p', '1080p', '4k']
@@ -269,10 +270,8 @@ def filter_sources(provider, list_, season, episode, anidb_id=None, part=None):
     filtered_list = []
     for torrent in list_:
         if provider == 'animetosho':
-            try:
-                torrent['hash'] = re.match(r'https://animetosho.org/storage/torrent/([^/]+)', torrent['torrent']).group(1)
-            except AttributeError:
-                continue
+            if 'hash' not in torrent:
+                continue  # Skip this torrent if no valid hash is found
         elif provider == 'nyaa':
             torrent['hash'] = re.findall(r'btih:(.*?)(?:&|$)', torrent['magnet'])[0]
         elif provider == 'realdebrid':

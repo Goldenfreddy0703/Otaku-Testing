@@ -9,7 +9,7 @@ Please note that this version is still in development, so you may encounter a fe
 New in this version:
 
     - Every Debrid and Cloud Service are now Fixed thanks to @joezito129 and @adamosborne83
-    - Flitering has been improved significantly to help with scrapping
+    - Flitering has been improved significantly to help with scraping
     - MyAnimeList (MAL) menus (AniList menus are still available)
     - New sorting system for more precise control over your content
     - Reuse Language Invoker support for faster, more efficient performance
