@@ -950,6 +950,25 @@ def INPUTSTREAMHELPER(payload, params):
         xbmc.executebuiltin('InstallAddon(inputstream.adaptive)')
 
 
+@Route('trakt_settings')
+def TRAKT_SETTINGS(payload, params):
+    import xbmcaddon
+    try:
+        xbmcaddon.Addon('script.trakt').openSettings()
+    except RuntimeError:
+        control.notify(control.ADDON_NAME, "Trakt Script is not installed.")
+
+
+@Route('trakt_script')
+def TRAKT_SCRIPT(payload, params):
+    import xbmcaddon
+    try:
+        xbmcaddon.Addon('script.trakt')
+        control.ok_dialog(control.ADDON_NAME, "Trakt Script is already installed.")
+    except RuntimeError:
+        xbmc.executebuiltin('InstallAddon(script.trakt)')
+
+
 if __name__ == "__main__":
     plugin_url = control.get_plugin_url()
     plugin_params = control.get_plugin_params()

@@ -2146,6 +2146,35 @@
                     </dependencies>
                 </setting>
             </group>
+
+            <!-- Trakt -->
+            <group id="6" label="30647" help="">
+                <setting id="trakt.enabled" type="boolean" label="30648" help="30649">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="trakt.settings" type="action" label="30650" help="" parent="trakt.enabled">
+                    <level>0</level>
+                    <dependencies>
+                        <dependency type="visible" setting="trakt.enabled">true</dependency>
+                    </dependencies>
+                    <data>RunPlugin(plugin://plugin.video.otaku.testing/trakt_settings?setting=true)</data>
+                    <control type="button" format="action">
+                        <close>true</close>
+                    </control>
+                </setting>
+                <setting id="trakt.script" type="action" label="30651" help="" parent="trakt.enabled">
+                    <level>0</level>
+                    <dependencies>
+                        <dependency type="visible" setting="trakt.enabled">true</dependency>
+                    </dependencies>
+                    <data>RunPlugin(plugin://plugin.video.otaku.testing/trakt_script?setting=true)</data>
+                    <control type="button" format="action">
+                        <close>true</close>
+                    </control>
+                </setting>
+            </group>
         </category>
 
         <!-- Menu Customization -->

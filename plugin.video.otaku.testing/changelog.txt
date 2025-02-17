@@ -1,3 +1,6 @@
+Changelog v5.1.68 (2024-02-17):
+- Added Trakt Scrobbler Settings to Watchlist
+
 Changelog v5.1.67 (2024-02-16):
 - Improved Scraping for Animetosho
 - Rescrape works as intended now

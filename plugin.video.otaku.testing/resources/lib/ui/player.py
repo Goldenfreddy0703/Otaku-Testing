@@ -148,8 +148,9 @@ class WatchlistPlayer(player):
         unique_ids = database.get_mapping_ids(self.mal_id, 'mal_id')
 
         # Trakt scrobbling support
-        control.clearGlobalProp('script.trakt.ids')
-        control.setGlobalProp('script.trakt.ids', json.dumps(unique_ids))
+        if control.getBool('trakt.enabled'):
+            control.clearGlobalProp('script.trakt.ids')
+            control.setGlobalProp('script.trakt.ids', json.dumps(unique_ids))
 
         # Set the last watched episode
         control.setSetting('addon.last_watched', self.mal_id)

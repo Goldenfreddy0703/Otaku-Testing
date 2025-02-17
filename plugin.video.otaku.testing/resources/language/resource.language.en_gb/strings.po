@@ -594,7 +594,7 @@ msgid "Set Percent to Mark as Watched"
 msgstr ""
 
 msgctxt "#30367"
-msgid "NOTE:   Next up Dialog will not begin until this percentage is met"
+msgid "NOTE: Next up Dialog will not begin until this percentage is met"
 msgstr ""
 
 msgctxt "#30368"
@@ -1519,4 +1519,24 @@ msgstr ""
 
 msgctxt "#30646"
 msgid "Allow Unaired Episodes in the Playlist"
+msgstr ""
+
+msgctxt "#30647"
+msgid "Trakt"
+msgstr ""
+
+msgctxt "#30648"
+msgid "Enable Trakt Scrobbling"
+msgstr ""
+
+msgctxt "#30649"
+msgid "Note: Will only scrobble certain animes that support trakt."
+msgstr ""
+
+msgctxt "#30650"
+msgid "Configure Trakt Script"
+msgstr ""
+
+msgctxt "#30651"
+msgid "Install Trakt Script"
 msgstr ""
