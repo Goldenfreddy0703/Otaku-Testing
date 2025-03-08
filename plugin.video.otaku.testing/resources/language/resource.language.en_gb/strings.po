@@ -952,6 +952,10 @@ msgctxt "#30406"
 msgid "AniWave"
 msgstr ""
 
+msgctxt "#30407"
+msgid "Watchnixtoons2"
+msgstr ""
+
 msgctxt "#30410"
 msgid "Scrape Local Files"
 msgstr ""
