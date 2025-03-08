@@ -779,6 +779,11 @@
 						<dependency type="visible" setting="provider.hianime">true</dependency>
 					</dependencies>
 				</setting>
+				<setting id="provider.watchnixtoons2" type="boolean" label="30381" help="">
+					<level>0</level>
+					<default>true</default>
+					<control type="toggle"/>
+				</setting>
 			</group>
 		</category>
 

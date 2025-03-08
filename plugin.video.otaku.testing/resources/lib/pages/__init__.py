@@ -1,7 +1,7 @@
 import threading
 import time
 
-from resources.lib.pages import nyaa, animetosho, debrid_cloudfiles, animixplay, aniwave, animepahe, hianime, localfiles
+from resources.lib.pages import nyaa, animetosho, debrid_cloudfiles, animixplay, aniwave, animepahe, hianime, watchnixtoons2, localfiles
 from resources.lib.ui import control, database
 from resources.lib.windows.get_sources_window import GetSources
 from resources.lib.windows import sort_select
@@ -20,7 +20,7 @@ class Sources(GetSources):
     def __init__(self, xml_file, location, actionArgs=None):
         super(Sources, self).__init__(xml_file, location, actionArgs)
         self.torrentProviders = ['nyaa', 'animetosho']
-        self.embedProviders = ['animepahe', 'animix', 'aniwave', 'hianime']
+        self.embedProviders = ['animepahe', 'animix', 'aniwave', 'hianime', 'watchnixtoons2']
         self.CloudProviders = ['Cloud Inspection']
         self.localProviders = ['Local Inspection']
         self.remainingProviders = self.embedProviders + self.torrentProviders + self.localProviders + self.CloudProviders
@@ -142,6 +142,13 @@ class Sources(GetSources):
         else:
             self.remainingProviders.remove('hianime')
 
+        if control.getBool('provider.watchnixtoons2'):
+            t = threading.Thread(target=self.watchnixtoons2_worker, args=(mal_id, episode, rescrape))
+            t.start()
+            self.threads.append(t)
+        else:
+            self.remainingProviders.remove('watchnixtoons2')
+
         timeout = 60 if rescrape else control.getInt('general.timeout')
         start_time = time.perf_counter()
         runtime = 0
@@ -250,6 +257,13 @@ class Sources(GetSources):
                     control.setInt('hianime.skipoutro.start', int(x['skip']['outro']['start']))
                     control.setInt('hianime.skipoutro.end', int(x['skip']['outro']['end']))
         self.remainingProviders.remove('hianime')
+
+    def watchnixtoons2_worker(self, mal_id, episode, rescrape):
+        if rescrape:
+            self.embedSources += watchnixtoons2.Sources().get_sources(mal_id, episode)
+        else:
+            self.embedSources += database.get(watchnixtoons2.Sources().get_sources, 8, mal_id, episode, key='watchnixtoons2')
+        self.remainingProviders.remove('watchnixtoons2')
 
     # Local & Cloud #
     def user_local_inspection(self, query, mal_id, episode):
