@@ -7,7 +7,7 @@ import urllib.parse
 import urllib.request
 
 from bs4 import BeautifulSoup, SoupStrainer
-from resources.lib.ui import control, database, client
+from resources.lib.ui import control, database, client, source_utils
 from resources.lib.ui.BrowserBase import BrowserBase
 
 
@@ -19,40 +19,71 @@ class Sources(BrowserBase):
         kodi_meta = pickle.loads(show.get('kodi_meta'))
         title = kodi_meta.get('name')
         clean_title = self._clean_title(title)
-
-        control.print(title, clean_title, mal_id, episode)
-
-        # Fetch the list of available anime from WCO.
-        anime_list = self.fetch_anime_list()
-        control.print(anime_list)
-        if not anime_list:
-            return []
-
-        # Build a comma-separated string of show names for fuzzy matching.
-        names_query = ','.join([item['name'] for item in anime_list])
-        fuzzy_resp = client.request('https://armkai.vercel.app/api/fuzzypacks',
-                                    params={"dict": names_query, "match": clean_title})
-        try:
-            indices = json.loads(fuzzy_resp)
-        except Exception:
-            indices = []
-        if indices:
-            best_index = indices[0]
-            matched_anime = anime_list[best_index]
-            # Pass episode to parse_sources_from_anime_page so that we only pick the correct episode link.
-            return self.parse_sources_from_anime_page(matched_anime['url'], episode)
-        return []
     
-    def fetch_anime_list(self):
-        """
-        Retrieve and parse the list of anime from the website based on user setting.
-        The setting 'general.source' can be "Sub", "Dub", or "Both".
-        For "Dub", we use the dubbed anime list. For "Sub" or "Both", we use the subbed list.
-        Instead of relying on a fixed container, we look for anchor tags whose href attribute
-        starts with "/anime/".
-        """
+        control.print(title, clean_title, mal_id, episode)
         source_setting = control.getSetting('general.source').lower()
-        if source_setting == 'dub':
+        sources = []
+    
+        if source_setting == "both":
+            # Process subbed list
+            sub_list = self.fetch_anime_list_by_type("sub")
+            control.print("Subbed list:", sub_list)
+            if sub_list:
+                names_query = ','.join([item['name'] for item in sub_list])
+                fuzzy_resp = client.request('https://armkai.vercel.app/api/fuzzypacks',
+                                            params={"dict": names_query, "match": clean_title})
+                try:
+                    indices = json.loads(fuzzy_resp)
+                except Exception:
+                    indices = []
+                if indices:
+                    best_index = indices[0]
+                    matched_anime = sub_list[best_index]
+                    sources.extend(self.parse_sources_from_anime_page(matched_anime['url'], episode))
+            
+            # Process dubbed list
+            dub_list = self.fetch_anime_list_by_type("dub")
+            control.print("Dubbed list:", dub_list)
+            if dub_list:
+                names_query = ','.join([item['name'] for item in dub_list])
+                fuzzy_resp = client.request('https://armkai.vercel.app/api/fuzzypacks',
+                                            params={"dict": names_query, "match": clean_title})
+                try:
+                    indices = json.loads(fuzzy_resp)
+                except Exception:
+                    indices = []
+                if indices:
+                    best_index = indices[0]
+                    matched_anime = dub_list[best_index]
+                    sources.extend(self.parse_sources_from_anime_page(matched_anime['url'], episode))
+        else:
+            # Use the default list based on the user's setting ("sub" or "dub")
+            anime_list = self.fetch_anime_list_by_type(source_setting)
+            control.print(anime_list)
+            if not anime_list:
+                return []
+            names_query = ','.join([item['name'] for item in anime_list])
+            fuzzy_resp = client.request('https://armkai.vercel.app/api/fuzzypacks',
+                                        params={"dict": names_query, "match": clean_title})
+            try:
+                indices = json.loads(fuzzy_resp)
+            except Exception:
+                indices = []
+            if indices:
+                best_index = indices[0]
+                matched_anime = anime_list[best_index]
+                sources = self.parse_sources_from_anime_page(matched_anime['url'], episode)
+        
+        return sources
+    
+    
+    def fetch_anime_list_by_type(self, list_type):
+        """
+        Retrieve and parse the list of anime from the website for a specific type:
+        "dub" or "sub". If list_type is "sub" (or any value other than "dub"),
+        we use the subbed anime list.
+        """
+        if list_type == 'dub':
             url = urllib.parse.urljoin(self._BASE_URL, "dubbed-anime-list")
         else:
             url = urllib.parse.urljoin(self._BASE_URL, "subbed-anime-list")
@@ -68,7 +99,6 @@ class Sources(BrowserBase):
         
         control.print(html)
         soup = BeautifulSoup(html, "html.parser")
-        # Iterate over all <a> tags and filter those starting with '/anime/'
         anime_items = [a for a in soup.find_all('a', href=True) if a['href'].startswith("/anime/")]
         
         anime_list = []
