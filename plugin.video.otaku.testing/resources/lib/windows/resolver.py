@@ -237,7 +237,16 @@ class Resolver(BaseWindow):
             del monitor
             self.close()
             if not self.abort:
-                player.WatchlistPlayer().handle_player(self.mal_id, watchlist_update_episode, self.episode, self.resume, self.params.get('path', ''), self.context)
+                player.WatchlistPlayer().handle_player(
+                    self.mal_id,
+                    watchlist_update_episode,
+                    self.episode,
+                    self.resume,
+                    self.params.get('path', ''),
+                    self.return_data['source']['type'] if 'type' in self.return_data['source'] else '',
+                    self.return_data['source']['provider'] if 'provider' in self.return_data['source'] else '',
+                    self.context
+                )
         else:
             self.close()
 

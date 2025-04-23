@@ -31,10 +31,10 @@ pathExists = xbmcvfs.exists
 dataPath = xbmcvfs.translatePath(addonInfo('profile'))
 kodi_version = float(xbmcaddon.Addon('xbmc.addon').getAddonInfo('version')[:4])
 
-context_addon_id = 'context.otaku.testing'
-context_addon = xbmcaddon.Addon(context_addon_id)
-context_addon_path = context_addon.getAddonInfo('path')
-infoDB = os.path.join(context_addon_path, 'info.db')
+CONTEXT_ADDON_ID = 'context.otaku.testing'
+CONTEXT_ADDON = xbmcaddon.Addon(CONTEXT_ADDON_ID)
+CONTEXT_ADDON_PATH = CONTEXT_ADDON.getAddonInfo('path')
+infoDB = os.path.join(CONTEXT_ADDON_PATH, 'info.db')
 
 cacheFile = os.path.join(dataPath, 'cache.db')
 searchHistoryDB = os.path.join(dataPath, 'search.db')
@@ -56,8 +56,8 @@ IMAGES_PATH = os.path.join(ADDON_PATH, 'resources', 'images')
 OTAKU_LOGO_PATH = os.path.join(ADDON_PATH, 'resources', 'images', 'trans-goku.png')
 OTAKU_LOGO2_PATH = os.path.join(ADDON_PATH, 'resources', 'images', 'trans-goku-small.png')
 OTAKU_LOGO3_PATH = os.path.join(ADDON_PATH, 'resources', 'images', 'trans-goku-large.png')
-OTAKU_ICONS_PATH = os.path.join(ADDON_PATH, 'resources', 'images', 'icons', ADDON.getSetting("interface.icons"))
-OTAKU_GENRE_PATH = os.path.join(ADDON_PATH, 'resources', 'images', 'genres')
+OTAKU_ICONS_PATH = os.path.join(CONTEXT_ADDON_PATH, 'resources', 'images', 'icons', ADDON.getSetting("interface.icons"))
+OTAKU_GENRE_PATH = os.path.join(CONTEXT_ADDON_PATH, 'resources', 'images', 'genres')
 
 dialogWindow = xbmcgui.WindowDialog
 homeWindow = xbmcgui.Window(10000)

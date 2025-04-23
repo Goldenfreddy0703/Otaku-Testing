@@ -1,3 +1,8 @@
+Changelog v5.2.8 (2025-04-23):
+- Fixed Skipping Bug with Embeds
+- Moved Icons to Context Addon
+- Added extra settings in General Category
+
 Changelog v5.2.7 (2025-04-19):
 - Animix will fail gracefully.
 - Cleaned up settings.xml

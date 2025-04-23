@@ -50,12 +50,14 @@ class WatchlistPlayer(player):
         self.preferred_subtitle_setting = control.getInt('general.subtitles')
         self.preferred_subtitle_keyword = control.getInt('subtitles.keywords')
 
-    def handle_player(self, mal_id, watchlist_update, episode, resume, path, context):
+    def handle_player(self, mal_id, watchlist_update, episode, resume, path, type, provider, context):
         self.mal_id = mal_id
         self._watchlist_update = watchlist_update
         self.episode = episode
         self.resume = resume
         self.path = path
+        self.type = type
+        self.provider = provider
         self.context = context
 
         # Start processing skip times immediately before playback starts
@@ -180,7 +182,10 @@ class WatchlistPlayer(player):
         control.setSetting('addon.last_watched', self.mal_id)
 
         # Continue with audio/subtitle setup which is needed immediately
-        self.setup_audio_and_subtitles()
+        if self.type not in ['embed', 'direct']:
+            self.setup_audio_and_subtitles()
+        elif self.provider in ['aniwave', 'hianime']:
+            self.setup_audio_and_subtitles()
 
         # Handle different media types
         if self.media_type == 'movie':

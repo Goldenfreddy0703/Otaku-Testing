@@ -12,6 +12,20 @@
 						<close>true</close>
 					</control>
 				</setting>
+				<setting id="clear_cache_wizard" type="action" label="30013" help="">
+					<level>1</level>
+					<data>RunPlugin(plugin://plugin.video.otaku.testing/clear_cache?setting=true)</data>
+					<control type="button" format="action">
+						<close>true</close>
+					</control>
+				</setting>
+				<setting id="rebuild_database_wizard" type="action" label="30015" help="">
+					<level>2</level>
+					<data>RunPlugin(plugin://plugin.video.otaku.testing/rebuild_database?setting=true)</data>
+					<control type="button" format="action">
+						<close>true</close>
+					</control>
+				</setting>
 			</group>
 
 			<!-- General Customization -->
