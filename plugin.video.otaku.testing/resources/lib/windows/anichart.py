@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import default
-
 from resources.lib.ui import control
 from resources.lib.windows.anichart_window import BaseWindow
 from resources.lib import OtakuBrowser, WatchlistIntegration
@@ -82,8 +80,6 @@ class Anichart(BaseWindow):
                 context_menu_options.append("Find Relations")
             if control.getBool('context.otaku.testing.getwatchorder'):
                 context_menu_options.append("Get Watch Order")
-            if control.getBool('context.otaku.testing.deletefromdatabase'):
-                context_menu_options.append("Delete From Database")
             if control.getBool('context.otaku.testing.watchlist'):
                 context_menu_options.append("WatchList Manager")
 
@@ -101,11 +97,7 @@ class Anichart(BaseWindow):
             elif context == 2 and control.getBool('context.otaku.testing.getwatchorder'):  # Get Watch Order
                 control.draw_items(BROWSER.get_watch_order(anime), 'tvshows')
                 self.close()
-            elif context == 3 and control.getBool('context.otaku.testing.deletefromdatabase'):  # Delete From Database
-                payload = f"some_path/{anime}/0"
-                params = {}
-                default.DELETE_ANIME_DATABASE(payload, params)
-            elif context == 4 and control.getBool('context.otaku.testing.watchlist'):  # WatchList Manager
+            elif context == 3 and control.getBool('context.otaku.testing.watchlist'):  # WatchList Manager
                 payload = f"some_path/{anime}/0"  # Construct the payload, replace 'some/path' with actual path if needed
                 params = {}  # Construct the params if needed
                 WatchlistIntegration.CONTEXT_MENU(payload, params)
