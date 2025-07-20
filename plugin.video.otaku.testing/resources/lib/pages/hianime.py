@@ -12,7 +12,7 @@ from resources.lib.endpoints import malsync
 class Sources(BrowserBase):
     _BASE_URL = 'https://hianime.sx/' if control.getBool('provider.hianimealt') else 'https://hianime.to/'
     _KEY_URL = 'https://megacloud.blog/js/player/a/v2/pro/embed-1.min.js?v={0}'
-    _DECODE_URL = "https://script.google.com/macros/s/AKfycbwSUvTtQrYJlFQUvp143oKp_C4iua0sw2SiMIb2Xa5az2I647_yHxlqnsc19qUSts6Zpw/exec"
+    _DECODE_URL = "https://script.google.com/macros/s/AKfycbx-yHTwupis_JD0lNzoOnxYcEYeXmJZrg7JeMxYnEZnLBy5V0--UxEvP-y9txHyy1TX9Q/exec"
 
     def get_sources(self, mal_id, episode):
         show = database.get_show(mal_id)
