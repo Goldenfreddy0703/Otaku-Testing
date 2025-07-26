@@ -35,7 +35,9 @@ class WatchlistPlayer(player):
         self.total_time = None
         self.delay_time = control.getInt('skipintro.delay')
         self.skipintro_aniskip_enable = control.getBool('skipintro.aniskip.enable')
+        self.skipintro_aniskip_auto = control.getBool('skipintro.aniskip.auto')
         self.skipoutro_aniskip_enable = control.getBool('skipoutro.aniskip.enable')
+        self.skipoutro_aniskip_auto = control.getBool('skipoutro.aniskip.auto')
 
         self.skipintro_aniskip = False
         self.skipoutro_aniskip = False
@@ -210,8 +212,8 @@ class WatchlistPlayer(player):
             if self.media_type == 'episode' and playList.size() == 1:
                 self.build_playlist()
 
-            # Handle skip intro dialog
-            if control.getBool('smartplay.skipintrodialog'):
+            # Handle skip intro - auto skip or show dialog
+            if control.getBool('smartplay.skipintrodialog') or (self.skipintro_aniskip and self.skipintro_aniskip_auto):
                 if self.skipintro_start < 1:
                     self.skipintro_start = 1
                 while self.isPlaying():
@@ -219,7 +221,13 @@ class WatchlistPlayer(player):
                     if self.current_time > self.skipintro_end:
                         break
                     elif self.current_time > self.skipintro_start:
-                        PlayerDialogs().show_skip_intro(self.skipintro_aniskip, self.skipintro_end)
+                        # Auto skip if enabled and skip times are available
+                        if self.skipintro_aniskip and self.skipintro_aniskip_auto:
+                            self.seekTime(self.skipintro_end)
+                            control.log(f'Auto-skipped intro: {self.skipintro_start}-{self.skipintro_end}', 'info')
+                        else:
+                            # Show dialog if auto skip is not enabled
+                            PlayerDialogs().show_skip_intro(self.skipintro_aniskip, self.skipintro_end)
                         break
                     xbmc.sleep(1000)
 
@@ -228,10 +236,21 @@ class WatchlistPlayer(player):
 
             # Handle playing next or skip outro dialog
             endpoint = control.getInt('playingnext.time') if control.getBool('smartplay.playingnextdialog') else 0
-            if endpoint != 0:
+            if endpoint != 0 or (self.skipoutro_aniskip and self.skipoutro_aniskip_auto):
                 while self.isPlaying():
                     self.current_time = int(self.getTime())
-                    if (not self.skipoutro_aniskip and self.total_time - self.current_time <= endpoint) or self.current_time > self.skipoutro_start != 0:
+
+                    # Check for auto skip outro condition
+                    if self.skipoutro_aniskip and self.skipoutro_aniskip_auto and self.current_time >= self.skipoutro_start and self.skipoutro_start != 0:
+                        # Auto skip outro by seeking to the end of the outro
+                        if self.skipoutro_end != 0:
+                            self.seekTime(self.skipoutro_end)
+                            control.log(f'Auto-skipped outro: {self.skipoutro_start}-{self.skipoutro_end}', 'info')
+                        break
+
+                    # Show dialog conditions (only if auto skip is not active)
+                    elif ((not self.skipoutro_aniskip and self.total_time - self.current_time <= endpoint) or 
+                          (self.skipoutro_aniskip and not self.skipoutro_aniskip_auto and self.current_time >= self.skipoutro_start and self.skipoutro_start != 0)):
                         PlayerDialogs().display_dialog(self.skipoutro_aniskip, self.skipoutro_end)
                         break
                     xbmc.sleep(5000)

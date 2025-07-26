@@ -1700,3 +1700,11 @@ msgstr ""
 msgctxt "#30425"
 msgid "Play smarter: manually select a source once and let Smart Play auto-play the rest using that source."
 msgstr ""
+
+msgctxt "#30426"
+msgid "Enable Automatic Intro Skip"
+msgstr ""
+
+msgctxt "#30427"
+msgid "Enable Automatic Outro Skip"
+msgstr ""
