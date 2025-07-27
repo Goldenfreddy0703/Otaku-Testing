@@ -1,3 +1,6 @@
+Changelog v5.2.37 (2025-07-27):
+- Fix Quick Setting Default
+
 Changelog v5.2.36 (2025-07-27):
 - Recoded Smart Skip
 - Added Auto Skip Settings
