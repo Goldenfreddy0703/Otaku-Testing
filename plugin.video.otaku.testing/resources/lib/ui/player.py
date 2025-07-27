@@ -35,7 +35,9 @@ class WatchlistPlayer(player):
         self.total_time = None
         self.delay_time = control.getInt('skipintro.delay')
         self.skipintro_aniskip_enable = control.getBool('skipintro.aniskip.enable')
+        self.skipintro_aniskip_auto = control.getBool('skipintro.aniskip.auto')
         self.skipoutro_aniskip_enable = control.getBool('skipoutro.aniskip.enable')
+        self.skipoutro_aniskip_auto = control.getBool('skipoutro.aniskip.auto')
 
         self.skipintro_aniskip = False
         self.skipoutro_aniskip = False
@@ -210,35 +212,102 @@ class WatchlistPlayer(player):
             if self.media_type == 'episode' and playList.size() == 1:
                 self.build_playlist()
 
-            # Handle skip intro dialog
-            if control.getBool('smartplay.skipintrodialog'):
-                if self.skipintro_start < 1:
-                    self.skipintro_start = 1
-                while self.isPlaying():
-                    self.current_time = int(self.getTime())
-                    if self.current_time > self.skipintro_end:
-                        break
-                    elif self.current_time > self.skipintro_start:
-                        PlayerDialogs().show_skip_intro(self.skipintro_aniskip, self.skipintro_end)
-                        break
-                    xbmc.sleep(1000)
+            # Handle skip intro functionality
+            self._handle_skip_intro()
 
             # Handle watchlist updates for episodes
             self.onWatchedPercent()
 
-            # Handle playing next or skip outro dialog
-            endpoint = control.getInt('playingnext.time') if control.getBool('smartplay.playingnextdialog') else 0
-            if endpoint != 0:
-                while self.isPlaying():
-                    self.current_time = int(self.getTime())
-                    if (not self.skipoutro_aniskip and self.total_time - self.current_time <= endpoint) or self.current_time > self.skipoutro_start != 0:
-                        PlayerDialogs().display_dialog(self.skipoutro_aniskip, self.skipoutro_end)
-                        break
-                    xbmc.sleep(5000)
+            # Handle outro/playing next functionality
+            self._handle_outro_and_playing_next()
 
         while self.isPlaying():
             self.current_time = int(self.getTime())
             xbmc.sleep(5000)
+
+    def _handle_skip_intro(self):
+        """Handle skip intro functionality with fallbacks"""
+        # Only proceed if skip intro dialog is enabled OR auto-skip is enabled
+        if not (control.getBool('smartplay.skipintrodialog') or self.skipintro_aniskip_auto):
+            return
+
+        # Determine intro times and whether we have aniskip data
+        intro_start = self.skipintro_start
+        intro_end = self.skipintro_end
+        has_aniskip_data = self.skipintro_aniskip
+
+        # If no aniskip data found, use default user settings
+        if not has_aniskip_data:
+            intro_start = control.getInt('skipintro.delay')
+            if intro_start < 1:
+                intro_start = 1
+            intro_end = intro_start + (control.getInt('skipintro.duration') * 60)
+            control.log('Using default intro skip times - no aniskip data found', 'info')
+
+        # Monitor for intro skip opportunity
+        while self.isPlaying():
+            self.current_time = int(self.getTime())
+            if self.current_time > intro_end:
+                break
+            elif self.current_time > intro_start:
+                # Auto skip ONLY if enabled AND we have aniskip data
+                if self.skipintro_aniskip_auto and has_aniskip_data:
+                    self.seekTime(intro_end)
+                    control.log(f'Auto-skipped intro: {intro_start}-{intro_end}', 'info')
+                else:
+                    # Show skip intro dialog (works for both aniskip data and default times)
+                    PlayerDialogs().show_skip_intro(has_aniskip_data, intro_end)
+                break
+            xbmc.sleep(1000)
+
+    def _handle_outro_and_playing_next(self):
+        """Handle outro skip and playing next functionality with fallbacks"""
+        # Get user's playing next setting
+        playnext_enabled = control.getBool('smartplay.playingnextdialog')
+        playnext_time = control.getInt('playingnext.time') if playnext_enabled else 0
+
+        # Check if we should handle any outro/playnext functionality
+        has_aniskip_outro = self.skipoutro_aniskip
+
+        # Proceed if: playnext is enabled OR outro auto-skip is enabled
+        if not (playnext_time > 0 or self.skipoutro_aniskip_auto):
+            return
+
+        while self.isPlaying():
+            self.current_time = int(self.getTime())
+            time_remaining = self.total_time - self.current_time
+
+            # Handle auto skip outro (only if we have aniskip data)
+            if self.skipoutro_aniskip_auto and has_aniskip_outro and self.current_time >= self.skipoutro_start and self.skipoutro_start > 0:
+                if self.skipoutro_end > 0:
+                    self.seekTime(self.skipoutro_end)
+                    control.log(f'Auto-skipped outro: {self.skipoutro_start}-{self.skipoutro_end}', 'info')
+                break
+
+            # Handle dialog display
+            elif self._should_show_dialog(time_remaining, playnext_time, has_aniskip_outro):
+                if has_aniskip_outro:
+                    # Show skip outro dialog (has skip outro button)
+                    PlayerDialogs().display_dialog(True, self.skipoutro_end)
+                else:
+                    # Show regular playing next dialog (no skip outro button)
+                    PlayerDialogs().display_dialog(False, 0)
+                break
+
+            xbmc.sleep(5000)
+
+    def _should_show_dialog(self, time_remaining, playnext_time, has_aniskip_outro):
+        """Determine if we should show a dialog"""
+        # Show dialog if:
+        # 1. We have aniskip outro data and we're at the outro start time (but auto-skip is disabled)
+        # 2. We don't have aniskip outro data but playnext is enabled and time remaining <= playnext_time
+
+        if has_aniskip_outro and not self.skipoutro_aniskip_auto:
+            return self.current_time >= self.skipoutro_start and self.skipoutro_start > 0
+        elif not has_aniskip_outro and playnext_time > 0:
+            return time_remaining <= playnext_time
+
+        return False
 
     def setup_audio_and_subtitles(self):
         """Handle audio and subtitle setup"""

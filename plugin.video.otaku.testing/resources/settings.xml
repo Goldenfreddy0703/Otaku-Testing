@@ -1110,6 +1110,14 @@
 						<dependency type="visible" setting="smartplay.skipintrodialog">true</dependency>
 					</dependencies>
 				</setting>
+				<setting id="skipintro.aniskip.auto" type="boolean" label="30426" help="">
+					<level>0</level>
+					<default>true</default>
+					<control type="toggle"/>
+					<dependencies>
+						<dependency type="visible" setting="skipintro.aniskip.enable">true</dependency>
+					</dependencies>
+				</setting>
 				<setting id="skipintro.aniskip.offset" type="integer" label="30192" help="">
 					<level>0</level>
 					<default>-3</default>
@@ -1190,6 +1198,14 @@
 					<control type="toggle"/>
 					<dependencies>
 						<dependency type="visible" setting="smartplay.playingnextdialog">true</dependency>
+					</dependencies>
+				</setting>
+				<setting id="skipoutro.aniskip.auto" type="boolean" label="30427" help="">
+					<level>0</level>
+					<default>true</default>
+					<control type="toggle"/>
+					<dependencies>
+						<dependency type="visible" setting="skipoutro.aniskip.enable">true</dependency>
 					</dependencies>
 				</setting>
 				<setting id="skipoutro.aniskip.offset" type="integer" label="30192" help="">

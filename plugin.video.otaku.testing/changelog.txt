@@ -1,3 +1,7 @@
+Changelog v5.2.36 (2025-07-27):
+- Recoded Smart Skip
+- Added Auto Skip Settings
+
 Changelog v5.2.35 (2025-07-20):
 - Updated embed extractor
 - Fail gracefully when no sources are found
