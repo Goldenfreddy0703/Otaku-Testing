@@ -55,75 +55,93 @@ class Sources(BrowserBase):
         # Use the new search and episode matching system
         sources = []
 
-        # Try with title first, then english_title if no results
-        search_title = title if title else english_title
-        if not search_title:
-            return []
+        # Search for SUB version using title (romaji/japanese)
+        if title:
+            control.log(f"Searching for SUB version with title: {title}")
+            sub_episode = self._search_and_get_episode(title, season, mapped_episode, "SUB")
+            if sub_episode:
+                control.log(f"Found SUB episode: {sub_episode['title']} ({sub_episode['match_type']})")
+                # source = {
+                #     'release_title': f'{title} - Season {season} Episode {mapped_episode} (SUB)',
+                #     'hash': sub_episode['url'],
+                #     'type': 'embed',
+                #     'quality': 0,
+                #     'debrid_provider': '',
+                #     'provider': 'watchnixtoons2',
+                #     'size': 'NA',
+                #     'seeders': 0,
+                #     'byte_size': 0,
+                #     'info': [sub_episode['match_type'], 'SUB'],
+                #     'lang': 2,  # Sub
+                #     'channel': 3,
+                #     'sub': 1
+                # }
+                # sources.append(source)
 
-        series_results = self.search_series(search_title)
-
-        # If no results with main title, try english title
-        if not series_results and english_title and english_title != title:
-            series_results = self.search_series(english_title)
-
-        if series_results:
-            # Get episodes from the first (best match) series
-            episodes = self.get_episodes_from_series(series_results[0]['url'])
-
-            if episodes:
-                # Find matching episode using season and mapped_episode
-                episode_matches = self.find_episode_match(episodes, season, mapped_episode)
-
-                if episode_matches:
-                    control.log(f"\nFOUND EPISODE MATCHES:")
-                    for i, match in enumerate(episode_matches):
-                        control.log(f"{i+1}. ✓ {match['match_type']}: {match['title']}")
-                        control.log(f"   URL: {match['url']}")
-                        control.log(f"   Href: {match['href']}")
-
-                    # Show the best match
-                    best_match = episode_matches[0]
-                    control.log(f"BEST EPISODE MATCH:")
-                    control.log(f"Title: {best_match['title']}")
-                    control.log(f"Match type: {best_match['match_type']}")
-                    control.log(f"URL: {best_match['url']}")
-                    control.log(f"Href: {best_match['href']}")
-                else:
-                    control.log(f"\nNo matching episode found for Season {season} Episode {episode}")
-                    control.log("Here are the first 10 episodes:")
-                    for i, ep in enumerate(episodes[:10]):
-                        control.log(f"{i+1}. {ep['title']}")
-                        control.log(f"   URL: {ep['url']}")
-
-
-
-
-
-
-
-
-
-
-                    # best_match = episode_matches[0]
-                    # # Create source from the best match
-                    # source = {
-                    #     'release_title': f'{search_title} - Season {season} Episode {mapped_episode}',
-                    #     'hash': best_match['url'],
-                    #     'type': 'embed',
-                    #     'quality': 0,
-                    #     'debrid_provider': '',
-                    #     'provider': 'watchnixtoons2',
-                    #     'size': 'NA',
-                    #     'seeders': 0,
-                    #     'byte_size': 0,
-                    #     'info': [best_match['match_type']],
-                    #     'lang': 3 if "dub" in best_match['title'].lower() else 2,
-                    #     'channel': 3,
-                    #     'sub': 1
-                    # }
-                    # sources.append(source)
+        # Search for DUB version using english_title
+        if english_title and english_title != title:
+            control.log(f"Searching for DUB version with english title: {english_title}")
+            dub_episode = self._search_and_get_episode(english_title, season, mapped_episode, "DUB")
+            if dub_episode:
+                control.log(f"Found DUB episode: {dub_episode['title']} ({dub_episode['match_type']})")
+                # source = {
+                #     'release_title': f'{english_title} - Season {season} Episode {mapped_episode} (DUB)',
+                #     'hash': dub_episode['url'],
+                #     'type': 'embed',
+                #     'quality': 0,
+                #     'debrid_provider': '',
+                #     'provider': 'watchnixtoons2',
+                #     'size': 'NA',
+                #     'seeders': 0,
+                #     'byte_size': 0,
+                #     'info': [dub_episode['match_type'], 'DUB'],
+                #     'lang': 3,  # Dub
+                #     'channel': 3,
+                #     'sub': 1
+                # }
+                # sources.append(source)
 
         return sources
+    
+
+    def _search_and_get_episode(self, search_title, season, mapped_episode, version_type):
+        """
+        Search for a series and get the matching episode
+        Returns the episode dict if found, None if not found
+        """
+        try:
+            # Search for the series
+            series_results = self.search_series(search_title)
+            
+            if not series_results:
+                control.log(f"No series found for {version_type} search: {search_title}")
+                return None
+
+            # Get episodes from the first (best match) series
+            episodes = self.get_episodes_from_series(series_results[0]['url'])
+            
+            if not episodes:
+                control.log(f"No episodes found for {version_type} series: {series_results[0]['title']}")
+                return None
+
+            # Find matching episode using season and mapped_episode
+            episode_matches = self.find_episode_match(episodes, season, mapped_episode)
+            
+            if episode_matches:
+                best_match = episode_matches[0]
+                control.log(f"Found {version_type} episode: {best_match['title']} ({best_match['match_type']})")
+                return best_match
+            else:
+                control.log(f"No matching {version_type} episode found for Season {season} Episode {mapped_episode}")
+                control.log(f"Available episodes in {version_type} series:")
+                for i, ep in enumerate(episodes[:5]):  # Show first 5 episodes
+                    control.log(f"  {i+1}. {ep['title']}")
+                return None
+
+        except Exception as e:
+            control.log(f"Error in {version_type} search: {e}")
+            return None
+    
 
     def truncate_search_query(self, title, max_length=40):
         """Truncate search query to fit character limit while keeping important info"""
