@@ -14,16 +14,16 @@ from resources.lib.ui.BrowserBase import BrowserBase
 class Sources(BrowserBase):
     _BASE_URL = 'https://www.wcostream.tv'
 
-    def get_sources(self, mal_id, episode):
+    def get_sources(self, mal_id, episode, media_type):
         show = database.get_show(mal_id)
         database_meta = database.get_mappings(mal_id, 'mal_id')
         kodi_meta = pickle.loads(show.get('kodi_meta'))
         season = database.get_episode(mal_id)['season']
         anime_media_episodes = database_meta.get('anime_media_episodes', {})
         global_media_episodes = database_meta.get('globel_media_episodes', {})
-        title = kodi_meta.get('name')
+        romaji_title = kodi_meta.get('name')
         english_title = kodi_meta.get('ename')
-        clean_title = self._clean_title(title)
+        clean_title = self._clean_title(romaji_title)
 
         if season == 1:
             if database_meta and 'thetvdb_season' in database_meta:
@@ -52,57 +52,62 @@ class Sources(BrowserBase):
                     mapped_episode = global_start + offset
                     control.log(f"Mapped episode {episode} to {mapped_episode}")
 
-        # Use the new search and episode matching system
+        # Collect all unique search titles
+        search_titles = []
+        if romaji_title:
+            search_titles.append(("romaji", romaji_title))
+        if english_title:
+            search_titles.append(("english", english_title))
+        if clean_title:
+            search_titles.append(("clean", clean_title))
+
+        # Search for episodes using all titles and collect unique results
+        found_episodes = {}  # Use dict to avoid duplicates by URL
+
+        for search_type, search_title in search_titles:
+            control.log(f"Searching for {search_type} version with title: {search_title}")
+            episode_result = self._search_and_get_episode(search_title, season, mapped_episode, search_type)
+
+            if episode_result:
+                # Use URL as key to avoid duplicates
+                episode_url = episode_result['url']
+                if episode_url not in found_episodes:
+                    found_episodes[episode_url] = episode_result
+                    control.log(f"Added {search_type} episode: {episode_result['title']}")
+                else:
+                    control.log(f"Duplicate episode found for {search_type}, skipping")
+
+        # Convert found episodes to sources
         sources = []
+        for episode_data in found_episodes.values():
+            # Determine if it's SUB or DUB based on title/series
+            episode_title = episode_data.get('title', '').lower()
 
-        # Search for SUB version using title (romaji/japanese)
-        if title:
-            control.log(f"Searching for SUB version with title: {title}")
-            sub_episode = self._search_and_get_episode(title, season, mapped_episode, "SUB")
-            if sub_episode:
-                control.log(f"Found SUB episode: {sub_episode['title']} ({sub_episode['match_type']})")
-                # source = {
-                #     'release_title': f'{title} - Season {season} Episode {mapped_episode} (SUB)',
-                #     'hash': sub_episode['url'],
-                #     'type': 'embed',
-                #     'quality': 0,
-                #     'debrid_provider': '',
-                #     'provider': 'watchnixtoons2',
-                #     'size': 'NA',
-                #     'seeders': 0,
-                #     'byte_size': 0,
-                #     'info': [sub_episode['match_type'], 'SUB'],
-                #     'lang': 2,  # Sub
-                #     'channel': 3,
-                #     'sub': 1
-                # }
-                # sources.append(source)
+            is_dub = ('english dubbed' in episode_title)
 
-        # Search for DUB version using english_title
-        if english_title and english_title != title:
-            control.log(f"Searching for DUB version with english title: {english_title}")
-            dub_episode = self._search_and_get_episode(english_title, season, mapped_episode, "DUB")
-            if dub_episode:
-                control.log(f"Found DUB episode: {dub_episode['title']} ({dub_episode['match_type']})")
-                # source = {
-                #     'release_title': f'{english_title} - Season {season} Episode {mapped_episode} (DUB)',
-                #     'hash': dub_episode['url'],
-                #     'type': 'embed',
-                #     'quality': 0,
-                #     'debrid_provider': '',
-                #     'provider': 'watchnixtoons2',
-                #     'size': 'NA',
-                #     'seeders': 0,
-                #     'byte_size': 0,
-                #     'info': [dub_episode['match_type'], 'DUB'],
-                #     'lang': 3,  # Dub
-                #     'channel': 3,
-                #     'sub': 1
-                # }
-                # sources.append(source)
+            version_type = "DUB" if is_dub else "SUB"
+            lang = 3 if is_dub else 2
 
+            source = {
+                'release_title': episode_data['title'],
+                'hash': episode_data['url'],
+                'type': 'embed',
+                'quality': 0,
+                'debrid_provider': '',
+                'provider': 'watchnixtoons2',
+                'size': 'NA',
+                'seeders': 0,
+                'byte_size': 0,
+                'info': [episode_data['match_type'], version_type],
+                'lang': lang,
+                'channel': 3,
+                'sub': 1
+            }
+            sources.append(source)
+
+        control.log(f"Found {len(sources)} unique episodes")
         return sources
-    
+
 
     def _search_and_get_episode(self, search_title, season, mapped_episode, version_type):
         """
@@ -112,36 +117,80 @@ class Sources(BrowserBase):
         try:
             # Search for the series
             series_results = self.search_series(search_title)
-            
+
             if not series_results:
                 control.log(f"No series found for {version_type} search: {search_title}")
                 return None
 
-            # Get episodes from the first (best match) series
-            episodes = self.get_episodes_from_series(series_results[0]['url'])
-            
-            if not episodes:
-                control.log(f"No episodes found for {version_type} series: {series_results[0]['title']}")
+            # Get the first series as the base
+            first_series = series_results[0]
+            first_title = first_series['title'].strip()
+
+            # Look for additional series with "English Subbed" or "English Dubbed"
+            series_to_check = [first_series]
+
+            for series in series_results[1:]:  # Check remaining series
+                series_title = series['title'].strip()
+
+                # Check if this series is the same base title with English Subbed/Dubbed
+                if (series_title.lower().startswith(first_title.lower()) and
+                    ("english subbed" in series_title.lower() or "english dubbed" in series_title.lower())):
+                    control.log(f"Found additional series variant: {series_title}")
+                    series_to_check.append(series)
+
+            # Prioritize series based on version_type
+            if version_type == "romaji":
+                # For romaji, prioritize "English Subbed" variants first
+                series_to_check.sort(key=lambda x: 0 if "english subbed" in x['title'].lower() else 1)
+            elif version_type == "english":
+                # For english, prioritize "English Dubbed" variants second
+                series_to_check.sort(key=lambda x: 0 if "english dubbed" in x['title'].lower() else 1)
+            elif version_type == "raw":
+                # For raw, prioritize "Raw" variants third
+                series_to_check.sort(key=lambda x: x['index'])
+
+            # Collect all episodes from all series variants
+            all_episodes = []
+
+            for series in series_to_check:
+                control.log(f"Getting episodes from: {series['title']}")
+                episodes = self.get_episodes_from_series(series['url'])
+
+                if not episodes:
+                    control.log(f"No episodes found in series: {series['title']}")
+                    continue
+
+                # Add series info to each episode for tracking
+                for episode in episodes:
+                    episode['series_title'] = series['title']
+                    episode['series_url'] = series['url']
+
+                all_episodes.extend(episodes)
+
+            if not all_episodes:
+                control.log(f"No episodes found in any series variant")
                 return None
 
-            # Find matching episode using season and mapped_episode
-            episode_matches = self.find_episode_match(episodes, season, mapped_episode)
-            
+            # Find matching episodes from all collected episodes
+            episode_matches = self.find_episode_match(all_episodes, season, mapped_episode)
+
             if episode_matches:
                 best_match = episode_matches[0]
-                control.log(f"Found {version_type} episode: {best_match['title']} ({best_match['match_type']})")
+                control.log(f"Found {version_type} episode in '{best_match['series_title']}': {best_match['title']} ({best_match['match_type']})")
                 return best_match
             else:
-                control.log(f"No matching {version_type} episode found for Season {season} Episode {mapped_episode}")
-                control.log(f"Available episodes in {version_type} series:")
-                for i, ep in enumerate(episodes[:5]):  # Show first 5 episodes
-                    control.log(f"  {i+1}. {ep['title']}")
+                control.log(f"No matching episode found in any series variant for Season {season} Episode {mapped_episode}")
+                # Show some examples of available episodes
+                if all_episodes:
+                    control.log(f"Sample episodes found:")
+                    for i, ep in enumerate(all_episodes[:5]):
+                        control.log(f"  {i+1}. {ep['title']} (from {ep['series_title']})")
                 return None
 
         except Exception as e:
             control.log(f"Error in {version_type} search: {e}")
             return None
-    
+
 
     def truncate_search_query(self, title, max_length=40):
         """Truncate search query to fit character limit while keeping important info"""

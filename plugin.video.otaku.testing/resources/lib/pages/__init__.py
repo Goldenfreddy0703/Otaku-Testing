@@ -143,7 +143,7 @@ class Sources(GetSources):
             self.remainingProviders.remove('hianime')
 
         if control.getBool('provider.watchnixtoons2'):
-            t = threading.Thread(target=self.watchnixtoons2_worker, args=(mal_id, episode, rescrape))
+            t = threading.Thread(target=self.watchnixtoons2_worker, args=(mal_id, episode, media_type, rescrape))
             t.start()
             self.threads.append(t)
         else:
@@ -258,11 +258,11 @@ class Sources(GetSources):
                     control.setInt('hianime.skipoutro.end', int(x['skip']['outro']['end']))
         self.remainingProviders.remove('hianime')
 
-    def watchnixtoons2_worker(self, mal_id, episode, rescrape):
+    def watchnixtoons2_worker(self, mal_id, episode, media_type, rescrape):
         if rescrape:
-            self.embedSources += watchnixtoons2.Sources().get_sources(mal_id, episode)
+            self.embedSources += watchnixtoons2.Sources().get_sources(mal_id, episode, media_type)
         else:
-            self.embedSources += database.get(watchnixtoons2.Sources().get_sources, 8, mal_id, episode, key='watchnixtoons2')
+            self.embedSources += database.get(watchnixtoons2.Sources().get_sources, 8, mal_id, episode, media_type, key='watchnixtoons2')
         self.remainingProviders.remove('watchnixtoons2')
 
     # Local & Cloud #
