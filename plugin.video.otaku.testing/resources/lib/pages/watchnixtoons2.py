@@ -10,6 +10,7 @@ from resources.lib.ui.BrowserBase import BrowserBase
 
 class Sources(BrowserBase):
     _BASE_URL = 'https://www.wcostream.tv/'
+    _WNT2_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36'
 
     def get_sources(self, mal_id, episode, media_type):
         show = database.get_show(mal_id)
@@ -88,11 +89,16 @@ class Sources(BrowserBase):
             r = re.search(r'<iframe.+?src="([^"]+)', resp)
             if r:
                 eurl = r.group(1)
-                eresp = self._get_request(eurl, headers={'Referer': self._BASE_URL})
+                wnt2_hdrs = {
+                    'User-Agent': self._WNT2_UA,
+                    'Referer': self._BASE_URL
+                }
+                eresp = self._get_request(eurl, headers=wnt2_hdrs)
                 r1 = re.search(r'getJSON\("([^"]+)', eresp)
                 if r1:
                     eurl2 = urllib.parse.urljoin(eurl, r1.group(1))
-                    eresp2 = self._get_request(eurl2, headers={'Referer': eurl}, XHR=True)
+                    wnt2_hdrs.update({'Referer': eurl})
+                    eresp2 = self._get_request(eurl2, headers=wnt2_hdrs, XHR=True)
                     if eresp2:
                         eresp2 = json.loads(eresp2)
                         server = eresp2.get('server')
@@ -104,13 +110,9 @@ class Sources(BrowserBase):
                         if eresp2.get('fhd'):
                             items.append((eresp2.get('fhd'), 3))
                         ref = urllib.parse.urljoin(eurl2, '/')
-                        shdr = {
-                            'User-Agent': 'iPad',
-                            'Referer': ref,
-                            'Origin': ref[:-1]
-                        }
+                        wnt2_hdrs.update({'Referer': ref, 'Origin': ref[:-1]})
                         for item in items:
-                            hash = f'{server}/getvid?evid={item[0]}|{urllib.parse.urlencode(shdr)}'
+                            hash = f'{server}/getvid?evid={item[0]}|{urllib.parse.urlencode(wnt2_hdrs)}'
                             source = {
                                 'release_title': episode_data['title'],
                                 'hash': hash,
