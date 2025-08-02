@@ -1,18 +1,15 @@
-import base64
-import codecs
-import json
 import pickle
 import re
 import urllib.parse
-import urllib.request
+import json
 
-from bs4 import BeautifulSoup, SoupStrainer
-from resources.lib.ui import control, database, client, source_utils
+from bs4 import BeautifulSoup
+from resources.lib.ui import control, database
 from resources.lib.ui.BrowserBase import BrowserBase
 
 
 class Sources(BrowserBase):
-    _BASE_URL = 'https://www.wcostream.tv'
+    _BASE_URL = 'https://www.wcostream.tv/'
 
     def get_sources(self, mal_id, episode, media_type):
         show = database.get_show(mal_id)
@@ -87,27 +84,51 @@ class Sources(BrowserBase):
 
             version_type = "DUB" if is_dub else "SUB"
             lang = 3 if is_dub else 2
+            resp = self._get_request(episode_data['url'])
+            r = re.search(r'<iframe.+?src="([^"]+)', resp)
+            if r:
+                eurl = r.group(1)
+                eresp = self._get_request(eurl, headers={'Referer': self._BASE_URL})
+                r1 = re.search(r'getJSON\("([^"]+)', eresp)
+                if r1:
+                    eurl2 = urllib.parse.urljoin(eurl, r1.group(1))
+                    eresp2 = self._get_request(eurl2, headers={'Referer': eurl}, XHR=True)
+                    if eresp2:
+                        eresp2 = json.loads(eresp2)
+                        server = eresp2.get('server')
+                        items = []
+                        if eresp2.get('enc'):
+                            items.append((eresp2.get('enc'), 1))
+                        if eresp2.get('hd'):
+                            items.append((eresp2.get('hd'), 2))
+                        if eresp2.get('fhd'):
+                            items.append((eresp2.get('fhd'), 3))
+                        ref = urllib.parse.urljoin(eurl2, '/')
+                        shdr = {
+                            'User-Agent': 'iPad',
+                            'Referer': ref,
+                            'Origin': ref[:-1]
+                        }
+                        for item in items:
+                            hash = f'{server}/getvid?evid={item[0]}|{urllib.parse.urlencode(shdr)}'
+                            source = {
+                                'release_title': episode_data['title'],
+                                'hash': hash,
+                                'type': 'direct',
+                                'quality': item[1],
+                                'debrid_provider': '',
+                                'provider': 'watchnixtoons2',
+                                'size': 'NA',
+                                'seeders': 0,
+                                'byte_size': 0,
+                                'info': [episode_data['match_type'], version_type],
+                                'lang': lang,
+                                'channel': 3,
+                                'sub': 1
+                            }
+                            sources.append(source)
 
-            source = {
-                'release_title': episode_data['title'],
-                'hash': episode_data['url'],
-                'type': 'embed',
-                'quality': 0,
-                'debrid_provider': '',
-                'provider': 'watchnixtoons2',
-                'size': 'NA',
-                'seeders': 0,
-                'byte_size': 0,
-                'info': [episode_data['match_type'], version_type],
-                'lang': lang,
-                'channel': 3,
-                'sub': 1
-            }
-            sources.append(source)
-
-        control.log(f"Found {len(sources)} unique episodes")
         return sources
-
 
     def _search_and_get_episode(self, search_title, season, mapped_episode, version_type):
         """
@@ -133,8 +154,8 @@ class Sources(BrowserBase):
                 series_title = series['title'].strip()
 
                 # Check if this series is the same base title with English Subbed/Dubbed
-                if (series_title.lower().startswith(first_title.lower()) and
-                    ("english subbed" in series_title.lower() or "english dubbed" in series_title.lower())):
+                if (series_title.lower().startswith(first_title.lower())
+                        and ("english subbed" in series_title.lower() or "english dubbed" in series_title.lower())):
                     control.log(f"Found additional series variant: {series_title}")
                     series_to_check.append(series)
 
@@ -168,7 +189,7 @@ class Sources(BrowserBase):
                 all_episodes.extend(episodes)
 
             if not all_episodes:
-                control.log(f"No episodes found in any series variant")
+                control.log("No episodes found in any series variant")
                 return None
 
             # Find matching episodes from all collected episodes
@@ -182,19 +203,18 @@ class Sources(BrowserBase):
                 control.log(f"No matching episode found in any series variant for Season {season} Episode {mapped_episode}")
                 # Show some examples of available episodes
                 if all_episodes:
-                    control.log(f"Sample episodes found:")
+                    control.log("Sample episodes found:")
                     for i, ep in enumerate(all_episodes[:5]):
-                        control.log(f"  {i+1}. {ep['title']} (from {ep['series_title']})")
+                        control.log(f"{i + 1}. {ep['title']} (from {ep['series_title']})")
                 return None
 
         except Exception as e:
             control.log(f"Error in {version_type} search: {e}")
             return None
 
-
     def truncate_search_query(self, title, max_length=40):
         """Truncate search query to fit character limit while keeping important info"""
-        query = title.replace(" ", "+")
+        query = urllib.parse.quote_plus(title)
 
         if len(query) <= max_length:
             return query, title
@@ -204,7 +224,7 @@ class Sources(BrowserBase):
         while len(words) > 1:
             words = words[1:]
             test_title = ' '.join(words)
-            test_query = test_title.replace(" ", "+")
+            test_query = urllib.parse.quote_plus(test_title)
             if len(test_query) <= max_length:
                 return test_query, test_title
 
@@ -226,7 +246,7 @@ class Sources(BrowserBase):
         }
 
         try:
-            response = client.request(f'{self._BASE_URL}/search', post=data)
+            response = self._post_request(f'{self._BASE_URL}search', data=data)
             if not response:
                 return []
 
@@ -250,7 +270,7 @@ class Sources(BrowserBase):
                             'index': i,
                             'title': title_text,
                             'href': href,
-                            'url': f"{self._BASE_URL}/{href}",
+                            'url': f"{self._BASE_URL}{href}",
                             'search_used': search_title
                         })
 
@@ -267,7 +287,7 @@ class Sources(BrowserBase):
         """Get all episodes from a series page"""
         try:
             control.log(f"Getting episodes from: {series_url}")
-            response = client.request(series_url)
+            response = self._get_request(series_url)
             if not response:
                 return []
 
@@ -284,7 +304,7 @@ class Sources(BrowserBase):
                     episodes.append({
                         'title': title_text,
                         'href': href,
-                        'url': f"{self._BASE_URL}/{href}" if not href.startswith('http') else href
+                        'url': f"{self._BASE_URL}{href}" if not href.startswith('http') else href
                     })
 
             return episodes
