@@ -160,6 +160,90 @@ default_dub_options = {
     'subtitles.2': 1,  # none
 }
 
+# Define default multi-audio options
+default_multi_audio_options = {
+    'sortmethod.1': 1,  # type
+    'sortmethod.2': 5,  # resolution
+    'sortmethod.3': 2,  # debrid provider
+    'sortmethod.4': 3,  # audio
+    'sortmethod.5': 4,  # subtitles
+    'sortmethod.6': 8,  # audio channels
+    'sortmethod.7': 6,  # size
+    'sortmethod.8': 0,  # none
+    'sortmethod.9': 0,  # none
+    'sortmethod.1.reverse': False,
+    'sortmethod.2.reverse': False,
+    'sortmethod.3.reverse': False,
+    'sortmethod.4.reverse': False,
+    'sortmethod.5.reverse': False,
+    'sortmethod.6.reverse': False,
+    'sortmethod.7.reverse': False,
+    'sortmethod.8.reverse': False,
+    'sortmethod.9.reverse': False,
+    'source type.1': 0,  # files
+    'source type.2': 1,  # cloud
+    'source type.3': 2,  # torrent
+    'source type.4': 3,  # hoster
+    'source type.5': 4,  # embeds
+    'source type.6': 5,  # none
+    'debrid provider.1': 0,  # Real-Debrid
+    'debrid provider.2': 1,  # Premiumize
+    'debrid provider.3': 2,  # Alldebrid
+    'debrid provider.4': 3,  # Debrid-Link
+    'debrid provider.5': 4,  # Torbox
+    'debrid provider.6': 5,  # EasyDebrid
+    'debrid provider.7': 6,  # none
+    'audio.1': 0,  # multi-audio
+    'audio.2': 1,  # dual-audio
+    'audio.3': 4,  # none
+    'audio.4': 4,  # none
+    'audio.5': 4,  # none
+    'subtitles.1': 0,  # multi-subs
+    'subtitles.2': 1,  # none
+}
+
+# Define default multi-sub options
+default_multi_sub_options = {
+    'sortmethod.1': 1,  # type
+    'sortmethod.2': 5,  # resolution
+    'sortmethod.3': 2,  # debrid provider
+    'sortmethod.4': 4,  # subtitles
+    'sortmethod.5': 3,  # audio
+    'sortmethod.6': 8,  # audio channels
+    'sortmethod.7': 6,  # size
+    'sortmethod.8': 0,  # none
+    'sortmethod.9': 0,  # none
+    'sortmethod.1.reverse': False,
+    'sortmethod.2.reverse': False,
+    'sortmethod.3.reverse': False,
+    'sortmethod.4.reverse': False,
+    'sortmethod.5.reverse': False,
+    'sortmethod.6.reverse': False,
+    'sortmethod.7.reverse': False,
+    'sortmethod.8.reverse': False,
+    'sortmethod.9.reverse': False,
+    'source type.1': 0,  # files
+    'source type.2': 1,  # cloud
+    'source type.3': 2,  # torrent
+    'source type.4': 3,  # hoster
+    'source type.5': 4,  # embeds
+    'source type.6': 5,  # none
+    'debrid provider.1': 0,  # Real-Debrid
+    'debrid provider.2': 1,  # Premiumize
+    'debrid provider.3': 2,  # Alldebrid
+    'debrid provider.4': 3,  # Debrid-Link
+    'debrid provider.5': 4,  # Torbox
+    'debrid provider.6': 5,  # EasyDebrid
+    'debrid provider.7': 6,  # none
+    'audio.1': 0,  # multi-audio
+    'audio.2': 1,  # dual-audio
+    'audio.3': 4,  # none
+    'audio.4': 4,  # none
+    'audio.5': 4,  # none
+    'subtitles.1': 0,  # multi-subs
+    'subtitles.2': 1,  # none
+}
+
 try:
     with open(os.path.join(control.dataPath, 'sort_options.json')) as f:
         sort_options = json.load(f)
@@ -167,6 +251,8 @@ except FileNotFoundError:
     sort_options = default_sort_options
     sort_options = default_sub_options
     sort_options = default_dub_options
+    sort_options = default_multi_audio_options
+    sort_options = default_multi_sub_options
 
 
 class SortSelect(BaseWindow):
@@ -194,6 +280,10 @@ class SortSelect(BaseWindow):
             sort_options = default_sub_options
         elif preset == 1:
             sort_options = default_dub_options
+        elif preset == 2:
+            sort_options = default_multi_audio_options
+        elif preset == 3:
+            sort_options = default_multi_sub_options
         # Save settings without needing self reference
         with open(os.path.join(control.dataPath, 'sort_options.json'), 'w') as file:
             json.dump(sort_options, file)
@@ -238,6 +328,26 @@ class SortSelect(BaseWindow):
                 control.setSetting('general.source', '0')
                 control.setSetting('divflavors.showdub', 'true')
                 control.setSetting('jz.dub', 'true')
+                self.save_settings()
+                self.close()
+                control.execute('RunPlugin(plugin://plugin.video.otaku.testing/sort_select)')
+                control.sleep(1000)
+                control.ok_dialog(control.ADDON_NAME, 'Saved Sort Configuration')
+        elif control_id == 9006:  # set Multi-Audio Preset
+            self.sort_options = default_multi_audio_options
+            yesno = control.yesno_dialog(control.ADDON_NAME, "Warning: This Preset is for people who are searching for anime in foreign audio languages other than Japanese or English. Continue?")
+            if yesno:
+                control.setSetting('general.source', '0')
+                self.save_settings()
+                self.close()
+                control.execute('RunPlugin(plugin://plugin.video.otaku.testing/sort_select)')
+                control.sleep(1000)
+                control.ok_dialog(control.ADDON_NAME, 'Saved Sort Configuration')
+        elif control_id == 9007:  # set Multi-Sub Preset
+            self.sort_options = default_multi_sub_options
+            yesno = control.yesno_dialog(control.ADDON_NAME, "Warning: This Preset is for people who are searching for anime in foreign subtitle languages other than Japanese or English. Continue?")
+            if yesno:
+                control.setSetting('general.source', '0')
                 self.save_settings()
                 self.close()
                 control.execute('RunPlugin(plugin://plugin.video.otaku.testing/sort_select)')

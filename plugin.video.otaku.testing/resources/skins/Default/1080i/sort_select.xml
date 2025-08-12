@@ -1987,7 +1987,7 @@
 			<top>110</top>
 			<right>20</right>
 			<width>500</width>
-			<height>550</height>
+			<height>790</height>
 			<control type="group">
 
 				<!-- Card -->
@@ -2044,6 +2044,24 @@
 						<texturefocus colordiffuse="deepskyblue">white.png</texturefocus>
 						<texturenofocus colordiffuse="AA212121">white.png</texturenofocus>
 						<label>Load Dub Anime Preset</label>
+						<align>right</align>
+						<textcolor>FFFFFFFF</textcolor>
+					</control>
+					<control type="button" id="9006">
+						<height>80</height>
+						<textoffsetx>20</textoffsetx>
+						<texturefocus colordiffuse="deepskyblue">white.png</texturefocus>
+						<texturenofocus colordiffuse="AA212121">white.png</texturenofocus>
+						<label>Load Multi-Audio Preset</label>
+						<align>right</align>
+						<textcolor>FFFFFFFF</textcolor>
+					</control>
+					<control type="button" id="9007">
+						<height>80</height>
+						<textoffsetx>20</textoffsetx>
+						<texturefocus colordiffuse="deepskyblue">white.png</texturefocus>
+						<texturenofocus colordiffuse="AA212121">white.png</texturenofocus>
+						<label>Load Multi-Sub Preset</label>
 						<align>right</align>
 						<textcolor>FFFFFFFF</textcolor>
 					</control>
