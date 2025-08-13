@@ -195,8 +195,23 @@ class WatchlistPlayer(player):
             control.clearGlobalProp('script.trakt.ids')
             control.setGlobalProp('script.trakt.ids', json.dumps(unique_ids))
 
-        # Set the last watched episode
-        control.setSetting('addon.last_watched', self.mal_id)
+        # Check if we need to refresh the menu (smart refresh logic)
+        previous_last_watched = control.getSetting('addon.last_watched')
+        current_mal_id = str(self.mal_id)
+
+        # Set the new last watched episode
+        control.setSetting('addon.last_watched', current_mal_id)
+
+        # Add to the watch history
+        from resources.lib import Main
+        Main.save_to_watch_history(self.mal_id)
+
+        # Only refresh if the last watched item actually changed
+        if previous_last_watched != current_mal_id:
+            control.log(f'Last watched changed from {previous_last_watched} to {current_mal_id} - refreshing menu', 'info')
+            control.refresh()
+        else:
+            control.log(f'Last watched unchanged ({current_mal_id}) - no refresh needed', 'info')
 
         # Continue with audio/subtitle setup which is needed immediately
         if self.type not in ['embed', 'direct']:

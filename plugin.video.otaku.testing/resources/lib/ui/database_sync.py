@@ -19,7 +19,7 @@ class SyncDatabase:
         # You will need to update the below version number to match the new addon version
         # This will ensure that the metadata required for operations is available
         # You may also update this version number to force a rebuild of the database after updating Otaku
-        self.last_meta_update = '1.0.7'
+        self.last_meta_update = '1.0.8'
         self.refresh_activites()
         self.check_database_version()
 
@@ -75,6 +75,37 @@ class SyncDatabase:
                     control.setSetting('first_time', 'false')
 
             self.re_build_database(True)
+
+            # Clear last_watched setting
+            control.setSetting('addon.last_watched', '')
+
+            # Update menu configurations with last_watched and watch_history items
+            self._update_menu_config('menu.mainmenu.config', 'last_watched', 'watch_history')
+            self._update_menu_config('movie.mainmenu.config', 'last_watched_movie', 'watch_history_movie')
+            self._update_menu_config('tv_show.mainmenu.config', 'last_watched_tv_show', 'watch_history_tv_show')
+            self._update_menu_config('tv_short.mainmenu.config', 'last_watched_tv_short', 'watch_history_tv_short')
+            self._update_menu_config('special.mainmenu.config', 'last_watched_special', 'watch_history_special')
+            self._update_menu_config('ova.mainmenu.config', 'last_watched_ova', 'watch_history_ova')
+            self._update_menu_config('ona.mainmenu.config', 'last_watched_ona', 'watch_history_ona')
+            self._update_menu_config('music.mainmenu.config', 'last_watched_music', 'watch_history_music')
+
+    def _update_menu_config(self, config_key, last_watched_item, watch_history_item):
+        """Helper method to update menu configurations with last_watched and watch_history items"""
+        menu = control.getStringList(config_key)
+        if menu:
+            # Add last_watched item if not already in the list
+            if last_watched_item not in menu:
+                menu.insert(0, last_watched_item)
+
+            # Add watch_history item if not already in the list
+            if watch_history_item not in menu:
+                # Insert watch_history after last_watched if last_watched exists
+                if last_watched_item in menu:
+                    insert_index = menu.index(last_watched_item) + 1
+                    menu.insert(insert_index, watch_history_item)
+                else:
+                    menu.insert(0, watch_history_item)
+            control.setStringList(config_key, menu)
 
     @staticmethod
     def build_show_table():

@@ -337,7 +337,7 @@ class SortSelect(BaseWindow):
             self.sort_options = default_multi_audio_options
             yesno = control.yesno_dialog(control.ADDON_NAME, "Warning: This Preset is for people who are searching for anime in foreign audio languages other than Japanese or English. Continue?")
             if yesno:
-                control.setSetting('general.source', '0')
+                control.setSetting('general.source', '1')
                 self.save_settings()
                 self.close()
                 control.execute('RunPlugin(plugin://plugin.video.otaku.testing/sort_select)')
@@ -347,7 +347,7 @@ class SortSelect(BaseWindow):
             self.sort_options = default_multi_sub_options
             yesno = control.yesno_dialog(control.ADDON_NAME, "Warning: This Preset is for people who are searching for anime in foreign subtitle languages other than Japanese or English. Continue?")
             if yesno:
-                control.setSetting('general.source', '0')
+                control.setSetting('general.source', '1')
                 self.save_settings()
                 self.close()
                 control.execute('RunPlugin(plugin://plugin.video.otaku.testing/sort_select)')

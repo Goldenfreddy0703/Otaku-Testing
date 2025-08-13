@@ -284,25 +284,33 @@ msgctxt "#30967"
 msgid "Search Music Videos"
 msgstr ""
 
+msgctxt "#30968"
+msgid "Watch History"
+msgstr ""
+
 ######TOOLS & SEARCH DIRECTORY#######
-msgctxt "#30010"
+msgctxt "#30009"
 msgid "Setup Wizard"
 msgstr ""
 
-msgctxt "#30011"
+msgctxt "#30010"
 msgid "View Changelog"
 msgstr ""
 
-msgctxt "#30012"
+msgctxt "#30011"
 msgid "Open Settings Menu"
 msgstr ""
 
-msgctxt "#30013"
+msgctxt "#30012"
 msgid "Clear Cache"
 msgstr ""
 
-msgctxt "#30014"
+msgctxt "#30013"
 msgid "Clear Search History"
+msgstr ""
+
+msgctxt "#30014"
+msgid "Clear Watch History"
 msgstr ""
 
 msgctxt "#30015"
@@ -369,6 +377,10 @@ msgstr ""
 
 msgctxt "#30034"
 msgid "[COLOR red]WARNING[/COLOR]\nThis will completely clear your addon settings. Are you sure you want to do this?"
+msgstr ""
+
+msgctxt "#30036"
+msgid "[COLOR red]WARNING[/COLOR]\nThis will clear all Watch History, are you sure?"
 msgstr ""
 
 ######SKINS DIRECTORY######

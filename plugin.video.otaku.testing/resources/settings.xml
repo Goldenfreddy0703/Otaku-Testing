@@ -12,7 +12,7 @@
 						<close>true</close>
 					</control>
 				</setting>
-				<setting id="clear_cache_wizard" type="action" label="30013" help="">
+				<setting id="clear_cache_wizard" type="action" label="30012" help="">
 					<level>1</level>
 					<data>RunPlugin(plugin://plugin.video.otaku.testing/clear_cache?setting=true)</data>
 					<control type="button" format="action">
@@ -2382,10 +2382,11 @@
 			<group id="1" label="30409" help="">
 				<setting id="menu.mainmenu.config" type="list[string]" label="30406" help="">
 					<level>0</level>
-					<default>last_watched,airing_calendar,airing_last_season,airing_this_season,airing_next_season,trending,popular,voted,favourites,top_100,genres,search,tools</default>
+					<default>last_watched,watch_history,airing_calendar,airing_last_season,airing_this_season,airing_next_season,trending,popular,voted,favourites,top_100,genres,search,tools</default>
 					<constraints>
 						<options>
 							<option label="30900">last_watched</option>
+							<option label="30968">watch_history</option>
 							<option label="30901">airing_calendar</option>
 							<option label="30902">airing_last_season</option>
 							<option label="30903">airing_this_season</option>
@@ -2491,10 +2492,11 @@
 			<group id="2" label="30410" help="">
 				<setting id="movie.mainmenu.config" type="list[string]" label="30406" help="">
 					<level>0</level>
-					<default>last_watched_movie,airing_last_season_movie,airing_this_season_movie,airing_next_season_movie,trending_movie,popular_movie,voted_movie,favourites_movie,top_100_movie,genres_movie,search_history_movie</default>
+					<default>last_watched_movie,watch_history_movie,airing_last_season_movie,airing_this_season_movie,airing_next_season_movie,trending_movie,popular_movie,voted_movie,favourites_movie,top_100_movie,genres_movie,search_history_movie</default>
 					<constraints>
 						<options>
 							<option label="30900">last_watched_movie</option>
+							<option label="30968">watch_history_movie</option>
 							<option label="30902">airing_last_season_movie</option>
 							<option label="30903">airing_this_season_movie</option>
 							<option label="30904">airing_next_season_movie</option>
@@ -2590,12 +2592,13 @@
 
 			<!-- TV Shows -->
 			<group id="3" label="30411" help="">
-				<setting id="tvshow.mainmenu.config" type="list[string]" label="30406" help="">
+				<setting id="tv_show.mainmenu.config" type="list[string]" label="30406" help="">
 					<level>0</level>
-					<default>last_watched_tv_show,airing_last_season_tv_show,airing_this_season_tv_show,airing_next_season_tv_show,trending_tv_show,popular_tv_show,voted_tv_show,favourites_tv_show,top_100_tv_show,genres_tv_show,search_history_tv_show</default>
+					<default>last_watched_tv_show,watch_history_tv_show,airing_last_season_tv_show,airing_this_season_tv_show,airing_next_season_tv_show,trending_tv_show,popular_tv_show,voted_tv_show,favourites_tv_show,top_100_tv_show,genres_tv_show,search_history_tv_show</default>
 					<constraints>
 						<options>
 							<option label="30900">last_watched_tv_show</option>
+							<option label="30968">watch_history_tv_show</option>
 							<option label="30902">airing_last_season_tv_show</option>
 							<option label="30903">airing_this_season_tv_show</option>
 							<option label="30904">airing_next_season_tv_show</option>
@@ -2616,7 +2619,7 @@
 						<hidevalue>true</hidevalue>
 					</control>
 				</setting>
-				<setting id="tvshow.submenu.config" type="list[string]" label="30407" help="">
+				<setting id="tv_show.submenu.config" type="list[string]" label="30407" help="">
 					<level>0</level>
 					<default>trending_last_year_tv_show,trending_this_year_tv_show,trending_last_season_tv_show,trending_this_season_tv_show,all_time_trending_tv_show,popular_last_year_tv_show,popular_this_year_tv_show,popular_last_season_tv_show,popular_this_season_tv_show,all_time_popular_tv_show,voted_last_year_tv_show,voted_this_year_tv_show,voted_last_season_tv_show,voted_this_season_tv_show,all_time_voted_tv_show,favourites_last_year_tv_show,favourites_this_year_tv_show,favourites_last_season_tv_show,favourites_this_season_tv_show,all_time_favourites_tv_show</default>
 					<constraints>
@@ -2651,7 +2654,7 @@
 						<hidevalue>true</hidevalue>
 					</control>
 				</setting>
-				<setting id="tvshow.genres.config" type="list[string]" label="30408" help="">
+				<setting id="tv_show.genres.config" type="list[string]" label="30408" help="">
 					<level>0</level>
 					<default>genres_tv_show//,genre_action_tv_show,genre_adventure_tv_show,genre_comedy_tv_show,genre_drama_tv_show,genre_ecchi_tv_show,genre_fantasy_tv_show,genre_horror_tv_show,genre_shoujo_tv_show,genre_mecha_tv_show,genre_music_tv_show,genre_mystery_tv_show,genre_psychological_tv_show,genre_romance_tv_show,genre_sci_fi_tv_show,genre_slice_of_life_tv_show,genre_sports_tv_show,genre_supernatural_tv_show,genre_thriller_tv_show</default>
 					<constraints>
@@ -2690,12 +2693,13 @@
 
 			<!-- TV Shorts -->
 			<group id="4" label="30412" help="">
-				<setting id="tvshort.mainmenu.config" type="list[string]" label="30406" help="">
+				<setting id="tv_short.mainmenu.config" type="list[string]" label="30406" help="">
 					<level>0</level>
-					<default>last_watched_tv_short,airing_last_season_tv_short,airing_this_season_tv_short,airing_next_season_tv_short,trending_tv_short,popular_tv_short,voted_tv_short,favourites_tv_short,top_100_tv_short,genres_tv_short,search_history_tv_short</default>
+					<default>last_watched_tv_short,watch_history_tv_short,airing_last_season_tv_short,airing_this_season_tv_short,airing_next_season_tv_short,trending_tv_short,popular_tv_short,voted_tv_short,favourites_tv_short,top_100_tv_short,genres_tv_short,search_history_tv_short</default>
 					<constraints>
 						<options>
 							<option label="30900">last_watched_tv_short</option>
+							<option label="30968">watch_history_tv_short</option>
 							<option label="30902">airing_last_season_tv_short</option>
 							<option label="30903">airing_this_season_tv_short</option>
 							<option label="30904">airing_next_season_tv_short</option>
@@ -2716,7 +2720,7 @@
 						<hidevalue>true</hidevalue>
 					</control>
 				</setting>
-				<setting id="tvshorts.submenu.config" type="list[string]" label="30407" help="">
+				<setting id="tv_short.submenu.config" type="list[string]" label="30407" help="">
 					<level>0</level>
 					<default>trending_last_year_tv_short,trending_this_year_tv_short,trending_last_season_tv_short,trending_this_season_tv_short,all_time_trending_tv_short,popular_last_year_tv_short,popular_this_year_tv_short,popular_last_season_tv_short,popular_this_season_tv_short,all_time_popular_tv_short,voted_last_year_tv_short,voted_this_year_tv_short,voted_last_season_tv_short,voted_this_season_tv_short,all_time_voted_tv_short,favourites_last_year_tv_short,favourites_this_year_tv_short,favourites_last_season_tv_short,favourites_this_season_tv_short,all_time_favourites_tv_short</default>
 					<constraints>
@@ -2751,7 +2755,7 @@
 						<hidevalue>true</hidevalue>
 					</control>
 				</setting>
-				<setting id="tvshorts.genres.config" type="list[string]" label="30408" help="">
+				<setting id="tv_short.genres.config" type="list[string]" label="30408" help="">
 					<level>0</level>
 					<default>genres_tv_short//,genre_action_tv_short,genre_adventure_tv_short,genre_comedy_tv_short,genre_drama_tv_short,genre_ecchi_tv_short,genre_fantasy_tv_short,genre_horror_tv_short,genre_shoujo_tv_short,genre_mecha_tv_short,genre_music_tv_short,genre_mystery_tv_short,genre_psychological_tv_short,genre_romance_tv_short,genre_sci_fi_tv_short,genre_slice_of_life_tv_short,genre_sports_tv_short,genre_supernatural_tv_short,genre_thriller_tv_short</default>
 					<constraints>
@@ -2792,10 +2796,11 @@
 			<group id="5" label="30413" help="">
 				<setting id="special.mainmenu.config" type="list[string]" label="30406" help="">
 					<level>0</level>
-					<default>last_watched_special,airing_last_season_special,airing_this_season_special,airing_next_season_special,trending_special,popular_special,voted_special,favourites_special,top_100_special,genres_special,search_history_special</default>
+					<default>last_watched_special,watch_history_special,airing_last_season_special,airing_this_season_special,airing_next_season_special,trending_special,popular_special,voted_special,favourites_special,top_100_special,genres_special,search_history_special</default>
 					<constraints>
 						<options>
 							<option label="30900">last_watched_special</option>
+							<option label="30968">watch_history_special</option>
 							<option label="30902">airing_last_season_special</option>
 							<option label="30903">airing_this_season_special</option>
 							<option label="30904">airing_next_season_special</option>
@@ -2816,7 +2821,7 @@
 						<hidevalue>true</hidevalue>
 					</control>
 				</setting>
-				<setting id="specials.submenu.config" type="list[string]" label="30407" help="">
+				<setting id="special.submenu.config" type="list[string]" label="30407" help="">
 					<level>0</level>
 					<default>trending_last_year_special,trending_this_year_special,trending_last_season_special,trending_this_season_special,all_time_trending_special,popular_last_year_special,popular_this_year_special,popular_last_season_special,popular_this_season_special,all_time_popular_special,voted_last_year_special,voted_this_year_special,voted_last_season_special,voted_this_season_special,all_time_voted_special,favourites_last_year_special,favourites_this_year_special,favourites_last_season_special,favourites_this_season_special,all_time_favourites_special</default>
 					<constraints>
@@ -2851,7 +2856,7 @@
 						<hidevalue>true</hidevalue>
 					</control>
 				</setting>
-				<setting id="specials.genres.config" type="list[string]" label="30408" help="">
+				<setting id="special.genres.config" type="list[string]" label="30408" help="">
 					<level>0</level>
 					<default>genres_special//,genre_action_special,genre_adventure_special,genre_comedy_special,genre_drama_special,genre_ecchi_special,genre_fantasy_special,genre_horror_special,genre_shoujo_special,genre_mecha_special,genre_music_special,genre_mystery_special,genre_psychological_special,genre_romance_special,genre_sci_fi_special,genre_slice_of_life_special,genre_sports_special,genre_supernatural_special,genre_thriller_special</default>
 					<constraints>
@@ -2892,10 +2897,11 @@
 			<group id="6" label="30414" help="">
 				<setting id="ova.mainmenu.config" type="list[string]" label="30406" help="">
 					<level>0</level>
-					<default>last_watched_ova,airing_last_season_ova,airing_this_season_ova,airing_next_season_ova,trending_ova,popular_ova,voted_ova,favourites_ova,top_100_ova,genres_ova,search_history_ova</default>
+					<default>last_watched_ova,watch_history_ova,airing_last_season_ova,airing_this_season_ova,airing_next_season_ova,trending_ova,popular_ova,voted_ova,favourites_ova,top_100_ova,genres_ova,search_history_ova</default>
 					<constraints>
 						<options>
 							<option label="30900">last_watched_ova</option>
+							<option label="30968">watch_history_ova</option>
 							<option label="30902">airing_last_season_ova</option>
 							<option label="30903">airing_this_season_ova</option>
 							<option label="30904">airing_next_season_ova</option>
@@ -2992,10 +2998,11 @@
 			<group id="7" label="30415" help="">
 				<setting id="ona.mainmenu.config" type="list[string]" label="30406" help="">
 					<level>0</level>
-					<default>last_watched_ona,airing_last_season_ona,airing_this_season_ona,airing_next_season_ona,trending_ona,popular_ona,voted_ona,favourites_ona,top_100_ona,genres_ona,search_history_ona</default>
+					<default>last_watched_ona,watch_history_ona,airing_last_season_ona,airing_this_season_ona,airing_next_season_ona,trending_ona,popular_ona,voted_ona,favourites_ona,top_100_ona,genres_ona,search_history_ona</default>
 					<constraints>
 						<options>
 							<option label="30900">last_watched_ona</option>
+							<option label="30968">watch_history_ona</option>
 							<option label="30902">airing_last_season_ona</option>
 							<option label="30903">airing_this_season_ona</option>
 							<option label="30904">airing_next_season_ona</option>
@@ -3092,10 +3099,11 @@
 			<group id="8" label="30416" help="">
 				<setting id="music.mainmenu.config" type="list[string]" label="30406" help="">
 					<level>0</level>
-					<default>last_watched_music,airing_last_season_music,airing_this_season_music,airing_next_season_music,trending_music,popular_music,voted_music,favourites_music,top_100_music,genres_music,search_history_music</default>
+					<default>last_watched_music,watch_history_music,airing_last_season_music,airing_this_season_music,airing_next_season_music,trending_music,popular_music,voted_music,favourites_music,top_100_music,genres_music,search_history_music</default>
 					<constraints>
 						<options>
 							<option label="30900">last_watched_music</option>
+							<option label="30968">watch_history_music</option>
 							<option label="30902">airing_last_season_music</option>
 							<option label="30903">airing_this_season_music</option>
 							<option label="30904">airing_next_season_music</option>
@@ -3249,23 +3257,30 @@
 		<category id="Maintenance" label="30179" help="">
 			<!-- Tools -->
 			<group id="1" label="30179" help="">
-				<setting id="change_log" type="action" label="30011" help="">
+				<setting id="change_log" type="action" label="30010" help="">
 					<level>1</level>
 					<data>RunPlugin(plugin://plugin.video.otaku.testing/change_log?setting=true)</data>
 					<control type="button" format="action">
 						<close>true</close>
 					</control>
 				</setting>
-				<setting id="clear_cache" type="action" label="30013" help="">
+				<setting id="clear_cache" type="action" label="30012" help="">
 					<level>1</level>
 					<data>RunPlugin(plugin://plugin.video.otaku.testing/clear_cache?setting=true)</data>
 					<control type="button" format="action">
 						<close>true</close>
 					</control>
 				</setting>
-				<setting id="clear_search_history" type="action" label="30014" help="">
+				<setting id="clear_search_history" type="action" label="30013" help="">
 					<level>2</level>
 					<data>RunPlugin(plugin://plugin.video.otaku.testing/clear_search_history?setting=true)</data>
+					<control type="button" format="action">
+						<close>true</close>
+					</control>
+				</setting>
+				<setting id="clear_watch_history" type="action" label="30014" help="">
+					<level>2</level>
+					<data>RunPlugin(plugin://plugin.video.otaku.testing/clear_watch_history?setting=true)</data>
 					<control type="button" format="action">
 						<close>true</close>
 					</control>

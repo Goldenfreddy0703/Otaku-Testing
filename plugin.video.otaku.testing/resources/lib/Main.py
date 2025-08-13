@@ -31,6 +31,10 @@ plugin_url = control.get_plugin_url(sys.argv[0])
 
 
 def add_last_watched(items):
+    # # Check if last watched feature is enabled
+    # if not control.getBool("interface.show_last_watched"):
+    #     return items
+
     mal_id = control.getSetting("addon.last_watched")
     try:
         kodi_meta = pickle.loads(database.get_show(mal_id)['kodi_meta'])
@@ -54,11 +58,125 @@ def add_last_watched(items):
             'trailer': kodi_meta.get('trailer', ''),
             'year': kodi_meta.get('year', ''),
             'premiered': kodi_meta.get('premiered', ''),
+            'episodes': kodi_meta.get('episodes', 0),
         }
-        items.append((last_watched, f'animes/{mal_id}/', kodi_meta['poster'], info))
+
+        # Simple movie detection: if episodes == 1, treat as movie
+        episodes = kodi_meta.get('episodes', 0)
+        if episodes == 1:
+            url = f'play_movie/{mal_id}/'
+            info['mediatype'] = 'movie'
+        else:
+            url = f'animes/{mal_id}/'
+
+        # Return tuple with special marker for last_watched items
+        items.append(('LAST_WATCHED_ITEM', last_watched, url, kodi_meta.get('poster', ''), info, kodi_meta))
+
     except TypeError:
         pass
     return items
+
+
+def add_watch_history(items):
+    # # Check if watch history feature is enabled
+    # if not control.getBool("interface.show_watch_history"):
+    #     return items
+
+    try:
+        # Load watch history from JSON file
+        if not control.pathExists(control.watch_history_json):
+            return items
+
+        with open(control.watch_history_json, 'r', encoding='utf-8') as f:
+            history_data = json.load(f)
+
+        # Get the most recent entries (limit to last 10 for menu)
+        recent_history = history_data.get('history', [])[:10]
+
+        if recent_history:
+            # Add a "Watch History" menu item that shows recent watches
+            history_title = "%s[I]%s[/I]" % (control.lang(30001), "Watch History")  # You may need to add this lang string
+
+            # Use a generic anime icon or create a custom one for history
+            history_info = {
+                'title': 'Watch History',
+                'plot': 'View your recently watched anime',
+                'mediatype': 'tvshow',
+            }
+
+            items.append((history_title, 'watch_history/', 'watch_history.png', history_info))
+
+    except (FileNotFoundError, json.JSONDecodeError, KeyError):
+        pass
+
+    return items
+
+
+def save_to_watch_history(mal_id):
+    """Save an anime to watch history"""
+    # if not control.getBool("interface.show_watch_history"):
+    #     return
+
+    try:
+        # Load existing history or create new
+        if control.pathExists(control.watch_history_json):
+            with open(control.watch_history_json, 'r', encoding='utf-8') as f:
+                history_data = json.load(f)
+        else:
+            history_data = {'history': []}
+
+        # Get anime metadata
+        anime_data = database.get_show(mal_id)
+        if not anime_data:
+            return
+
+        kodi_meta = pickle.loads(anime_data['kodi_meta'])
+
+        # Create history entry with the same info as add_last_watched
+        history_entry = {
+            'UniqueIDs': {
+                'mal_id': mal_id,
+                **database.get_mapping_ids(mal_id, 'mal_id')
+            },
+            'title': kodi_meta.get('title_userPreferred', ''),
+            'plot': kodi_meta.get('plot', ''),
+            'mpaa': kodi_meta.get('mpaa', ''),
+            'duration': kodi_meta.get('duration', 0),
+            'genre': kodi_meta.get('genre', []),
+            'studio': kodi_meta.get('studio', []),
+            'status': kodi_meta.get('status', ''),
+            'mediatype': 'tvshow',
+            'rating': kodi_meta.get('rating', {}),
+            'cast': kodi_meta.get('cast', []),
+            'country': kodi_meta.get('country', []),
+            'trailer': kodi_meta.get('trailer', ''),
+            'year': kodi_meta.get('year', ''),
+            'premiered': kodi_meta.get('premiered', ''),
+            'episodes': kodi_meta.get('episodes', 0),
+            # Artwork
+            'poster': kodi_meta.get('poster', ''),
+            'tvshow.poster': kodi_meta.get('poster', ''),
+            'icon': kodi_meta.get('poster', ''),
+            'thumb': kodi_meta.get('thumb', ''),
+            'fanart': kodi_meta.get('fanart', ''),
+            'landscape': kodi_meta.get('landscape', ''),
+            'banner': kodi_meta.get('banner', ''),
+            'clearart': kodi_meta.get('clearart', ''),
+            'clearlogo': kodi_meta.get('clearlogo', '')
+        }
+
+        # Remove any existing entry for this anime to avoid duplicates
+        history_data['history'] = [h for h in history_data['history'] if str(h.get('UniqueIDs', {}).get('mal_id')) != str(mal_id)]
+
+        # Add new entry at the beginning
+        history_data['history'].insert(0, history_entry)
+
+        # Save back to file
+        with open(control.watch_history_json, 'w', encoding='utf-8') as f:
+            json.dump(history_data, f, ensure_ascii=False, indent=2)
+
+    except Exception as e:
+        control.log(f"Error saving to watch history: {str(e)}", "error")
 
 
 @Route('animes/*')
@@ -85,6 +203,87 @@ def FIND_RELATIONS(payload, params):
 def WATCH_ORDER(payload, params):
     path, mal_id, eps_watched = payload.rsplit("/")
     control.draw_items(BROWSER.get_watch_order(mal_id), 'tvshows')
+
+
+@Route('watch_history/')
+def WATCH_HISTORY(payload, params):
+    """Display watch history"""
+    try:
+        if not control.pathExists(control.watch_history_json):
+            control.draw_items([], 'tvshows')
+            return
+
+        with open(control.watch_history_json, 'r', encoding='utf-8') as f:
+            history_data = json.load(f)
+
+        history_items = []
+        for entry in history_data.get('history', []):
+            try:
+                # Get the mal_id from the correct location
+                mal_id = entry['UniqueIDs']['mal_id']
+
+                # Format title
+                title = entry.get('title', '')
+
+                info = {
+                    'UniqueIDs': entry.get('UniqueIDs', {}),
+                    'title': entry.get('title', ''),
+                    'plot': entry.get('plot', ''),
+                    'mpaa': entry.get('mpaa', ''),
+                    'duration': entry.get('duration', 0),
+                    'genre': entry.get('genre', []),
+                    'studio': entry.get('studio', []),
+                    'status': entry.get('status', ''),
+                    'mediatype': 'tvshow',  # Default to tvshow
+                    'rating': entry.get('rating', {}),
+                    'cast': entry.get('cast', []),
+                    'country': entry.get('country', []),
+                    'trailer': entry.get('trailer', ''),
+                    'year': entry.get('year', ''),
+                    'premiered': entry.get('premiered', ''),
+                    'episodes': entry.get('episodes', 0),
+                }
+
+                # Build the base item like MalBrowser does
+                base = {
+                    'name': title,
+                    'url': f'animes/{mal_id}/',
+                    'image': entry.get('poster', ''),
+                    'poster': entry.get('poster', ''),
+                    'fanart': entry.get('fanart', ''),
+                    'banner': entry.get('poster', ''),  # Use poster as fallback for banner
+                    'info': info
+                }
+
+                import random
+                if entry.get('thumb'):
+                    base['landscape'] = random.choice(entry['thumb'])
+                if entry.get('clearart'):
+                    base['clearart'] = random.choice(entry['clearart'])
+                if entry.get('clearlogo'):
+                    base['clearlogo'] = random.choice(entry['clearlogo'])
+
+                # Simple movie detection: if episodes == 1, treat as movie
+                episodes = entry.get('episodes', 0)
+
+                if episodes == 1:
+                    base['url'] = f'play_movie/{mal_id}/'
+                    base['info']['mediatype'] = 'movie'
+                    parsed_item = utils.parse_view(base, False, True, False)  # dub = False for now
+                else:
+                    parsed_item = utils.parse_view(base, True, False, False)   # dub = False for now
+
+                history_items.append(parsed_item)
+
+            except Exception as e:
+                control.log(f"Error processing history entry: {str(e)}", "error")
+                continue
+
+        control.draw_items(history_items, 'tvshows')
+
+    except Exception as e:
+        control.log(f"Error loading watch history: {str(e)}", "error")
+        control.draw_items([], 'tvshows')
 
 
 @Route('airing_calendar')
@@ -2180,11 +2379,12 @@ def get_menu_items(menu_type):
             (control.lang(30967), "search_history_music", 'search.png', {}),
         ],
         'tools': [
-            (control.lang(30010), "setup_wizard", 'tools.png', {}),
-            (control.lang(30011), "change_log", 'changelog.png', {}),
-            (control.lang(30012), "settings", 'open_settings_menu.png', {}),
-            (control.lang(30013), "clear_cache", 'clear_cache.png', {}),
-            (control.lang(30014), "clear_search_history", 'clear_search_history.png', {}),
+            (control.lang(30009), "setup_wizard", 'tools.png', {}),
+            (control.lang(30010), "change_log", 'changelog.png', {}),
+            (control.lang(30011), "settings", 'open_settings_menu.png', {}),
+            (control.lang(30012), "clear_cache", 'clear_cache.png', {}),
+            (control.lang(30013), "clear_search_history", 'clear_search_history.png', {}),
+            (control.lang(30014), "clear_watch_history", 'clear_watch_history.png', {}),
             (control.lang(30015), "rebuild_database", 'rebuild_database.png', {}),
             (control.lang(30016), "wipe_addon_data", 'wipe_addon_data.png', {}),
             (control.lang(30017), "completed_sync", 'sync_completed.png', {}),
@@ -2209,12 +2409,52 @@ def LIST_MENU(payload, params):
     if "last_watched" in enabled_ids:
         enabled_menu_items = add_last_watched(enabled_menu_items)
 
+    if "watch_history" in enabled_ids:
+        enabled_menu_items = add_watch_history(enabled_menu_items)
+
     for item in MENU_ITEMS:
         if item[1] in enabled_ids:
             enabled_menu_items.append(item)
 
+    # Process items, handling special last_watched items
+    processed_items = []
+    for item in enabled_menu_items:
+        if len(item) == 6 and item[0] == 'LAST_WATCHED_ITEM':
+            # This is a last_watched item - use utils.parse_view
+            _, name, url, image, info, kodi_meta = item
+
+            base = {
+                'name': name,
+                'url': url,
+                'image': image,
+                'poster': image,
+                'fanart': kodi_meta.get('fanart', ''),
+                'banner': image,
+                'info': info
+            }
+
+            # Add artwork
+            import random
+            if kodi_meta.get('thumb'):
+                base['landscape'] = random.choice(kodi_meta['thumb'])
+            if kodi_meta.get('clearart'):
+                base['clearart'] = random.choice(kodi_meta['clearart'])
+            if kodi_meta.get('clearlogo'):
+                base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+
+            # Determine if it's a movie or TV show
+            episodes = kodi_meta.get('episodes', 0)
+            if episodes == 1:
+                processed_items.append(utils.parse_view(base, False, True, False))  # Movie
+            else:
+                processed_items.append(utils.parse_view(base, True, False, False))   # TV Show
+        else:
+            # Regular menu item
+            name, url, image, info = item
+            processed_items.append(utils.allocate_item(name, url, True, False, [], image, info))
+
     view_type = 'addons' if control.getBool('interface.content_type') else ''
-    control.draw_items([utils.allocate_item(name, url, True, False, [], image, info) for name, url, image, info in enabled_menu_items], view_type)
+    control.draw_items(processed_items, view_type)
 
 
 @Route('movies')
@@ -2230,12 +2470,52 @@ def MOVIES_MENU(payload, params):
     if "last_watched_movie" in enabled_ids:
         enabled_movies_items = add_last_watched(enabled_movies_items)
 
+    if "watch_history_movie" in enabled_ids:
+        enabled_movies_items = add_watch_history(enabled_movies_items)
+
     for item in MOVIES_ITEMS:
         if item[1] in enabled_ids:
             enabled_movies_items.append(item)
 
+    # Process items, handling special last_watched items
+    processed_items = []
+    for item in enabled_movies_items:
+        if len(item) == 6 and item[0] == 'LAST_WATCHED_ITEM':
+            # This is a last_watched item - use utils.parse_view
+            _, name, url, image, info, kodi_meta = item
+
+            base = {
+                'name': name,
+                'url': url,
+                'image': image,
+                'poster': image,
+                'fanart': kodi_meta.get('fanart', ''),
+                'banner': image,
+                'info': info
+            }
+
+            # Add artwork
+            import random
+            if kodi_meta.get('thumb'):
+                base['landscape'] = random.choice(kodi_meta['thumb'])
+            if kodi_meta.get('clearart'):
+                base['clearart'] = random.choice(kodi_meta['clearart'])
+            if kodi_meta.get('clearlogo'):
+                base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+
+            # Determine if it's a movie or TV show
+            episodes = kodi_meta.get('episodes', 0)
+            if episodes == 1:
+                processed_items.append(utils.parse_view(base, False, True, False))  # Movie
+            else:
+                processed_items.append(utils.parse_view(base, True, False, False))   # TV Show
+        else:
+            # Regular menu item
+            name, url, image, info = item
+            processed_items.append(utils.allocate_item(name, url, True, False, [], image, info))
+
     view_type = 'addons' if control.getBool('interface.content_type') else ''
-    control.draw_items([utils.allocate_item(name, url, True, False, [], image, info) for name, url, image, info in enabled_movies_items], view_type)
+    control.draw_items(processed_items, view_type)
 
 
 @Route('tv_shows')
@@ -2246,17 +2526,57 @@ def TV_SHOWS_MENU(payload, params):
     enabled_tv_show_items = add_watchlist(enabled_tv_show_items)
 
     # Retrieve the list from your settings list control
-    enabled_ids = control.getStringList('tvshow.mainmenu.config')
+    enabled_ids = control.getStringList('tv_show.mainmenu.config')
 
     if "last_watched_tv_show" in enabled_ids:
         enabled_tv_show_items = add_last_watched(enabled_tv_show_items)
+
+    if "watch_history_tv_show" in enabled_ids:
+        enabled_tv_show_items = add_watch_history(enabled_tv_show_items)
 
     for item in TV_SHOWS_ITEMS:
         if item[1] in enabled_ids:
             enabled_tv_show_items.append(item)
 
+    # Process items, handling special last_watched items
+    processed_items = []
+    for item in enabled_tv_show_items:
+        if len(item) == 6 and item[0] == 'LAST_WATCHED_ITEM':
+            # This is a last_watched item - use utils.parse_view
+            _, name, url, image, info, kodi_meta = item
+
+            base = {
+                'name': name,
+                'url': url,
+                'image': image,
+                'poster': image,
+                'fanart': kodi_meta.get('fanart', ''),
+                'banner': image,
+                'info': info
+            }
+
+            # Add artwork
+            import random
+            if kodi_meta.get('thumb'):
+                base['landscape'] = random.choice(kodi_meta['thumb'])
+            if kodi_meta.get('clearart'):
+                base['clearart'] = random.choice(kodi_meta['clearart'])
+            if kodi_meta.get('clearlogo'):
+                base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+
+            # Determine if it's a movie or TV show
+            episodes = kodi_meta.get('episodes', 0)
+            if episodes == 1:
+                processed_items.append(utils.parse_view(base, False, True, False))  # Movie
+            else:
+                processed_items.append(utils.parse_view(base, True, False, False))   # TV Show
+        else:
+            # Regular menu item
+            name, url, image, info = item
+            processed_items.append(utils.allocate_item(name, url, True, False, [], image, info))
+
     view_type = 'addons' if control.getBool('interface.content_type') else ''
-    control.draw_items([utils.allocate_item(name, url, True, False, [], image, info) for name, url, image, info in enabled_tv_show_items], view_type)
+    control.draw_items(processed_items, view_type)
 
 
 @Route('tv_shorts')
@@ -2267,17 +2587,57 @@ def TV_SHORTS_MENU(payload, params):
     enabled_tv_short_items = add_watchlist(enabled_tv_short_items)
 
     # Retrieve the list from your settings list control
-    enabled_ids = control.getStringList('tvshort.mainmenu.config')
+    enabled_ids = control.getStringList('tv_short.mainmenu.config')
 
     if "last_watched_tv_short" in enabled_ids:
         enabled_tv_short_items = add_last_watched(enabled_tv_short_items)
+
+    if "watch_history_tv_short" in enabled_ids:
+        enabled_tv_short_items = add_watch_history(enabled_tv_short_items)
 
     for item in TV_SHORTS_ITEMS:
         if item[1] in enabled_ids:
             enabled_tv_short_items.append(item)
 
+    # Process items, handling special last_watched items
+    processed_items = []
+    for item in enabled_tv_short_items:
+        if len(item) == 6 and item[0] == 'LAST_WATCHED_ITEM':
+            # This is a last_watched item - use utils.parse_view
+            _, name, url, image, info, kodi_meta = item
+
+            base = {
+                'name': name,
+                'url': url,
+                'image': image,
+                'poster': image,
+                'fanart': kodi_meta.get('fanart', ''),
+                'banner': image,
+                'info': info
+            }
+
+            # Add artwork
+            import random
+            if kodi_meta.get('thumb'):
+                base['landscape'] = random.choice(kodi_meta['thumb'])
+            if kodi_meta.get('clearart'):
+                base['clearart'] = random.choice(kodi_meta['clearart'])
+            if kodi_meta.get('clearlogo'):
+                base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+
+            # Determine if it's a movie or TV show
+            episodes = kodi_meta.get('episodes', 0)
+            if episodes == 1:
+                processed_items.append(utils.parse_view(base, False, True, False))  # Movie
+            else:
+                processed_items.append(utils.parse_view(base, True, False, False))   # TV Show
+        else:
+            # Regular menu item
+            name, url, image, info = item
+            processed_items.append(utils.allocate_item(name, url, True, False, [], image, info))
+
     view_type = 'addons' if control.getBool('interface.content_type') else ''
-    control.draw_items([utils.allocate_item(name, url, True, False, [], image, info) for name, url, image, info in enabled_tv_short_items], view_type)
+    control.draw_items(processed_items, view_type)
 
 
 @Route('specials')
@@ -2293,12 +2653,52 @@ def SPECIALS_MENU(payload, params):
     if "last_watched_special" in enabled_ids:
         enabled_special_items = add_last_watched(enabled_special_items)
 
+    if "watch_history_special" in enabled_ids:
+        enabled_special_items = add_watch_history(enabled_special_items)
+
     for item in SPECIALS_ITEMS:
         if item[1] in enabled_ids:
             enabled_special_items.append(item)
 
+    # Process items, handling special last_watched items
+    processed_items = []
+    for item in enabled_special_items:
+        if len(item) == 6 and item[0] == 'LAST_WATCHED_ITEM':
+            # This is a last_watched item - use utils.parse_view
+            _, name, url, image, info, kodi_meta = item
+
+            base = {
+                'name': name,
+                'url': url,
+                'image': image,
+                'poster': image,
+                'fanart': kodi_meta.get('fanart', ''),
+                'banner': image,
+                'info': info
+            }
+
+            # Add artwork
+            import random
+            if kodi_meta.get('thumb'):
+                base['landscape'] = random.choice(kodi_meta['thumb'])
+            if kodi_meta.get('clearart'):
+                base['clearart'] = random.choice(kodi_meta['clearart'])
+            if kodi_meta.get('clearlogo'):
+                base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+
+            # Determine if it's a movie or TV show
+            episodes = kodi_meta.get('episodes', 0)
+            if episodes == 1:
+                processed_items.append(utils.parse_view(base, False, True, False))  # Movie
+            else:
+                processed_items.append(utils.parse_view(base, True, False, False))   # TV Show
+        else:
+            # Regular menu item
+            name, url, image, info = item
+            processed_items.append(utils.allocate_item(name, url, True, False, [], image, info))
+
     view_type = 'addons' if control.getBool('interface.content_type') else ''
-    control.draw_items([utils.allocate_item(name, url, True, False, [], image, info) for name, url, image, info in enabled_special_items], view_type)
+    control.draw_items(processed_items, view_type)
 
 
 @Route('ovas')
@@ -2314,12 +2714,52 @@ def OVAs_MENU(payload, params):
     if "last_watched_ova" in enabled_ids:
         enabled_ova_items = add_last_watched(enabled_ova_items)
 
+    if "watch_history_ova" in enabled_ids:
+        enabled_ova_items = add_watch_history(enabled_ova_items)
+
     for item in OVAs_ITEMS:
         if item[1] in enabled_ids:
             enabled_ova_items.append(item)
 
+    # Process items, handling special last_watched items
+    processed_items = []
+    for item in enabled_ova_items:
+        if len(item) == 6 and item[0] == 'LAST_WATCHED_ITEM':
+            # This is a last_watched item - use utils.parse_view
+            _, name, url, image, info, kodi_meta = item
+
+            base = {
+                'name': name,
+                'url': url,
+                'image': image,
+                'poster': image,
+                'fanart': kodi_meta.get('fanart', ''),
+                'banner': image,
+                'info': info
+            }
+
+            # Add artwork
+            import random
+            if kodi_meta.get('thumb'):
+                base['landscape'] = random.choice(kodi_meta['thumb'])
+            if kodi_meta.get('clearart'):
+                base['clearart'] = random.choice(kodi_meta['clearart'])
+            if kodi_meta.get('clearlogo'):
+                base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+
+            # Determine if it's a movie or TV show
+            episodes = kodi_meta.get('episodes', 0)
+            if episodes == 1:
+                processed_items.append(utils.parse_view(base, False, True, False))  # Movie
+            else:
+                processed_items.append(utils.parse_view(base, True, False, False))   # TV Show
+        else:
+            # Regular menu item
+            name, url, image, info = item
+            processed_items.append(utils.allocate_item(name, url, True, False, [], image, info))
+
     view_type = 'addons' if control.getBool('interface.content_type') else ''
-    control.draw_items([utils.allocate_item(name, url, True, False, [], image, info) for name, url, image, info in enabled_ova_items], view_type)
+    control.draw_items(processed_items, view_type)
 
 
 @Route('onas')
@@ -2335,12 +2775,52 @@ def ONAs_MENU(payload, params):
     if "last_watched_ona" in enabled_ids:
         enabled_ona_items = add_last_watched(enabled_ona_items)
 
+    if "watch_history_ona" in enabled_ids:
+        enabled_ona_items = add_watch_history(enabled_ona_items)
+
     for item in ONAs_ITEMS:
         if item[1] in enabled_ids:
             enabled_ona_items.append(item)
 
+    # Process items, handling special last_watched items
+    processed_items = []
+    for item in enabled_ona_items:
+        if len(item) == 6 and item[0] == 'LAST_WATCHED_ITEM':
+            # This is a last_watched item - use utils.parse_view
+            _, name, url, image, info, kodi_meta = item
+
+            base = {
+                'name': name,
+                'url': url,
+                'image': image,
+                'poster': image,
+                'fanart': kodi_meta.get('fanart', ''),
+                'banner': image,
+                'info': info
+            }
+
+            # Add artwork
+            import random
+            if kodi_meta.get('thumb'):
+                base['landscape'] = random.choice(kodi_meta['thumb'])
+            if kodi_meta.get('clearart'):
+                base['clearart'] = random.choice(kodi_meta['clearart'])
+            if kodi_meta.get('clearlogo'):
+                base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+
+            # Determine if it's a movie or TV show
+            episodes = kodi_meta.get('episodes', 0)
+            if episodes == 1:
+                processed_items.append(utils.parse_view(base, False, True, False))  # Movie
+            else:
+                processed_items.append(utils.parse_view(base, True, False, False))   # TV Show
+        else:
+            # Regular menu item
+            name, url, image, info = item
+            processed_items.append(utils.allocate_item(name, url, True, False, [], image, info))
+
     view_type = 'addons' if control.getBool('interface.content_type') else ''
-    control.draw_items([utils.allocate_item(name, url, True, False, [], image, info) for name, url, image, info in enabled_ona_items], view_type)
+    control.draw_items(processed_items, view_type)
 
 
 @Route('music')
@@ -2356,12 +2836,52 @@ def MUSIC_MENU(payload, params):
     if "last_watched_music" in enabled_ids:
         enabled_music_items = add_last_watched(enabled_music_items)
 
+    if "watch_history_music" in enabled_ids:
+        enabled_music_items = add_watch_history(enabled_music_items)
+
     for item in MUSIC_ITEMS:
         if item[1] in enabled_ids:
             enabled_music_items.append(item)
 
+    # Process items, handling special last_watched items
+    processed_items = []
+    for item in enabled_music_items:
+        if len(item) == 6 and item[0] == 'LAST_WATCHED_ITEM':
+            # This is a last_watched item - use utils.parse_view
+            _, name, url, image, info, kodi_meta = item
+
+            base = {
+                'name': name,
+                'url': url,
+                'image': image,
+                'poster': image,
+                'fanart': kodi_meta.get('fanart', ''),
+                'banner': image,
+                'info': info
+            }
+
+            # Add artwork
+            import random
+            if kodi_meta.get('thumb'):
+                base['landscape'] = random.choice(kodi_meta['thumb'])
+            if kodi_meta.get('clearart'):
+                base['clearart'] = random.choice(kodi_meta['clearart'])
+            if kodi_meta.get('clearlogo'):
+                base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+
+            # Determine if it's a movie or TV show
+            episodes = kodi_meta.get('episodes', 0)
+            if episodes == 1:
+                processed_items.append(utils.parse_view(base, False, True, False))  # Movie
+            else:
+                processed_items.append(utils.parse_view(base, True, False, False))   # TV Show
+        else:
+            # Regular menu item
+            name, url, image, info = item
+            processed_items.append(utils.allocate_item(name, url, True, False, [], image, info))
+
     view_type = 'addons' if control.getBool('interface.content_type') else ''
-    control.draw_items([utils.allocate_item(name, url, True, False, [], image, info) for name, url, image, info in enabled_music_items], view_type)
+    control.draw_items(processed_items, view_type)
 
 
 @Route('trending')
@@ -2405,7 +2925,7 @@ def TRENDING_TV_SHOW_MENU(payload, params):
     enabled_trending_tv_show_items = []
 
     # Retrieve the list from your settings list control
-    enabled_ids = control.getStringList('tvshow.submenu.config')
+    enabled_ids = control.getStringList('tv_show.submenu.config')
 
     for item in TRENDING_TV_SHOW_ITEMS:
         if item[1] in enabled_ids:
@@ -2422,7 +2942,7 @@ def TRENDING_TV_SHORT_MENU(payload, params):
     enabled_trending_tv_short_items = []
 
     # Retrieve the list from your settings list control
-    enabled_ids = control.getStringList('tvshort.submenu.config')
+    enabled_ids = control.getStringList('tv_short.submenu.config')
 
     for item in TRENDING_TV_SHORT_ITEMS:
         if item[1] in enabled_ids:
@@ -2541,7 +3061,7 @@ def POPULAR_TV_SHOW_MENU(payload, params):
     enabled_popular_tv_show_items = []
 
     # Retrieve the list from your settings list control
-    enabled_ids = control.getStringList('tvshow.submenu.config')
+    enabled_ids = control.getStringList('tv_show.submenu.config')
 
     for item in POPULAR_TV_SHOW_ITEMS:
         if item[1] in enabled_ids:
@@ -2558,7 +3078,7 @@ def POPULAR_TV_SHORT_MENU(payload, params):
     enabled_popular_tv_short_items = []
 
     # Retrieve the list from your settings list control
-    enabled_ids = control.getStringList('tvshort.submenu.config')
+    enabled_ids = control.getStringList('tv_short.submenu.config')
 
     for item in POPULAR_TV_SHORT_ITEMS:
         if item[1] in enabled_ids:
@@ -2677,7 +3197,7 @@ def VOTED_TV_SHOW_MENU(payload, params):
     enabled_voted_tv_show_items = []
 
     # Retrieve the list from your settings list control
-    enabled_ids = control.getStringList('tvshow.submenu.config')
+    enabled_ids = control.getStringList('tv_show.submenu.config')
 
     for item in VOTED_TV_SHOW_ITEMS:
         if item[1] in enabled_ids:
@@ -2694,7 +3214,7 @@ def VOTED_TV_SHORT_MENU(payload, params):
     enabled_voted_tv_short_items = []
 
     # Retrieve the list from your settings list control
-    enabled_ids = control.getStringList('tvshort.submenu.config')
+    enabled_ids = control.getStringList('tv_short.submenu.config')
 
     for item in VOTED_TV_SHORT_ITEMS:
         if item[1] in enabled_ids:
@@ -2813,7 +3333,7 @@ def FAVOURITES_TV_SHOW_MENU(payload, params):
     enabled_favourites_tv_show_items = []
 
     # Retrieve the list from your settings list control
-    enabled_ids = control.getStringList('tvshow.submenu.config')
+    enabled_ids = control.getStringList('tv_show.submenu.config')
 
     for item in FAVOURITES_TV_SHOW_ITEMS:
         if item[1] in enabled_ids:
@@ -2830,7 +3350,7 @@ def FAVOURITES_TV_SHORT_MENU(payload, params):
     enabled_favourites_tv_short_items = []
 
     # Retrieve the list from your settings list control
-    enabled_ids = control.getStringList('tvshort.submenu.config')
+    enabled_ids = control.getStringList('tv_short.submenu.config')
 
     for item in FAVOURITES_TV_SHORT_ITEMS:
         if item[1] in enabled_ids:
@@ -2949,7 +3469,7 @@ def GENRE_TV_SHOW_MENU(payload, params):
     enabled_genre_tv_show_items = []
 
     # Retrieve the list from your settings list control
-    enabled_ids = control.getStringList('tvshow.genres.config')
+    enabled_ids = control.getStringList('tv_show.genres.config')
 
     for item in GENRE_TV_SHOW_ITEMS:
         if item[1] in enabled_ids:
@@ -2966,7 +3486,7 @@ def GENRE_TV_SHORT_MENU(payload, params):
     enabled_genre_tv_short_items = []
 
     # Retrieve the list from your settings list control
-    enabled_ids = control.getStringList('tvshort.genres.config')
+    enabled_ids = control.getStringList('tv_short.genres.config')
 
     for item in GENRE_TV_SHORT_ITEMS:
         if item[1] in enabled_ids:
@@ -3114,6 +3634,23 @@ def CLEAR_SEARCH_HISTORY(payload, params):
         database.clearSearchCatagory(format)
 
     control.refresh()
+
+
+@Route('clear_watch_history')
+def CLEAR_WATCH_HISTORY(payload, params):
+    import os
+    silent = False
+
+    if not silent:
+        confirm = control.yesno_dialog(control.ADDON_NAME, control.lang(30036))
+    if confirm == 0:
+        return
+
+    if os.path.exists(control.watch_history_json):
+        os.remove(control.watch_history_json)
+    control.refresh()
+    if not silent:
+        control.notify(f'{control.ADDON_NAME}: Watch History', 'Watch History Successfully Cleared', sound=False)
 
 
 @Route('clear_selected_fanart')
@@ -3450,11 +3987,11 @@ def SETUP_WIZARD(payload, params):
 
     # Yes selected
     if choice == 1:
-        control.setStringList('menu.mainmenu.config', ['last_watched', 'airing_calendar', 'airing_last_season', 'airing_this_season', 'airing_next_season', 'movies', 'tv_shows', 'tv_shorts', 'specials', 'ovas', 'onas', 'music', 'trending', 'popular', 'voted', 'favourites', 'top_100', 'genres', 'search', 'tools'])
+        control.setStringList('menu.mainmenu.config', ['last_watched', 'watch_history', 'airing_calendar', 'airing_last_season', 'airing_this_season', 'airing_next_season', 'movies', 'tv_shows', 'tv_shorts', 'specials', 'ovas', 'onas', 'music', 'trending', 'popular', 'voted', 'favourites', 'top_100', 'genres', 'search', 'tools'])
 
     # No selected
     elif choice == 0:
-        control.setStringList('menu.mainmenu.config', ['last_watched', 'airing_calendar', 'airing_last_season', 'airing_this_season', 'airing_next_season', 'trending', 'popular', 'voted', 'favourites', 'top_100', 'genres', 'search', 'tools'])
+        control.setStringList('menu.mainmenu.config', ['last_watched', 'watch_history', 'airing_calendar', 'airing_last_season', 'airing_this_season', 'airing_next_season', 'trending', 'popular', 'voted', 'favourites', 'top_100', 'genres', 'search', 'tools'])
 
     # Ask the user to select between Subs or Dubs
     # Here the button labels are:
