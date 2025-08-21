@@ -569,7 +569,7 @@ class PlayerDialogs(xbmc.Player):
                 '6': 'skip_outro_tb.xml'
             }
 
-            setting_value = control.getSetting('general.dialog')
+            setting_value = control.getInt('general.dialog')
             xml_file = dialog_mapping.get(setting_value)
 
             # Call PlayingNext with the retrieved XML file
@@ -586,7 +586,7 @@ class PlayerDialogs(xbmc.Player):
                 '6': 'playing_next_tb.xml'
             }
 
-            setting_value = control.getSetting('general.dialog')
+            setting_value = control.getInt('general.dialog')
             xml_file = dialog_mapping.get(setting_value)
 
             # Call PlayingNext with the retrieved XML file
@@ -612,7 +612,7 @@ class PlayerDialogs(xbmc.Player):
             '6': 'skip_intro_tb.xml'
         }
 
-        setting_value = control.getSetting('general.dialog')
+        setting_value = control.getInt('general.dialog')
         xml_file = dialog_mapping.get(setting_value)
 
         # Call SkipIntro with the retrieved XML file

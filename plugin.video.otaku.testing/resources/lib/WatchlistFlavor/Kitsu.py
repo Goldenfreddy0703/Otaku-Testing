@@ -132,7 +132,7 @@ class KitsuWLF(WatchlistFlavorBase):
             "filter[kind]": "anime",
             "filter[status]": status,
             "include": "anime,anime.mappings,anime.mappings.item",
-            "page[limit]": control.getSetting('interface.perpage.watchlist'),
+            "page[limit]": control.getInt('interface.perpage.watchlist'),
             "page[offset]": offset,
             "sort": self.__get_sort(),
         }

@@ -161,7 +161,7 @@ class SourceSelect(BaseWindow):
                     self.close()
                     source = [self.displayed_sources[self.display_list.getSelectedPosition()]]
                     self.actionArgs['play'] = False
-                    if control.getSetting('general.dialog') in (5, 6):
+                    if control.getInt('general.dialog') in (5, 6):
                         return_data = Resolver('resolver_alt.xml', control.ADDON_PATH, actionArgs=self.actionArgs, source_select=True).doModal(source, {}, False)
                     else:
                         return_data = Resolver('resolver.xml', control.ADDON_PATH, actionArgs=self.actionArgs, source_select=True).doModal(source, {}, False)
@@ -183,7 +183,7 @@ class SourceSelect(BaseWindow):
             selected_source = self.displayed_sources[self.position]
             selected_source['name'] = selected_source['release_title']
         self.actionArgs['close'] = self.close
-        if control.getSetting('general.dialog') in (5, 6):
+        if control.getInt('general.dialog') in (5, 6):
             self.stream_link = Resolver('resolver_alt.xml', control.ADDON_PATH, actionArgs=self.actionArgs, source_select=True).doModal(sources, {}, pack_select)
         else:
             self.stream_link = Resolver('resolver.xml', control.ADDON_PATH, actionArgs=self.actionArgs, source_select=True).doModal(sources, {}, pack_select)

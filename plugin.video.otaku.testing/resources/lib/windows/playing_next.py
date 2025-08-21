@@ -14,7 +14,7 @@ class PlayingNext(BaseWindow):
         self.total_time = int(self.player.getTotalTime())
         self.duration = int(self.total_time - self.player.getTime())
         self.skipoutro_end = actionArgs['skipoutro_end']
-        self.default_action = control.getSetting('playingnext.defaultaction')
+        self.default_action = control.getInt('playingnext.defaultaction')
 
     def onInit(self):
         self.background_tasks()
