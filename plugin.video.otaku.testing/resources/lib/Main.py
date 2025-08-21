@@ -1670,14 +1670,14 @@ def PLAY(payload, params):
                 # If the same series is being watched, check if the last played source is available
                 if last_played == "None" or source_select or rescrape:
                     from resources.lib.windows.source_select import SourceSelect
-                    if control.getSetting('general.dialog') in (5, 6):
+                    if control.getInt('general.dialog') in (5, 6):
                         SourceSelect('source_select_alt.xml', control.ADDON_PATH, actionArgs=_mock_args, sources=sources, rescrape=rescrape).doModal()
                     else:
                         SourceSelect('source_select.xml', control.ADDON_PATH, actionArgs=_mock_args, sources=sources, rescrape=rescrape).doModal()
                 else:
                     # If the last played source is available, resolve it directly
                     from resources.lib.windows.resolver import Resolver
-                    if control.getSetting('general.dialog') in (5, 6):
+                    if control.getInt('general.dialog') in (5, 6):
                         Resolver('resolver_alt.xml', control.ADDON_PATH, actionArgs=_mock_args).doModal(sources, {}, False)
                     else:
                         Resolver('resolver.xml', control.ADDON_PATH, actionArgs=_mock_args).doModal(sources, {}, False)
@@ -1685,21 +1685,21 @@ def PLAY(payload, params):
                 # If a different series is being watched, prompt for source selection and update last watched Series
                 control.setSetting('last_watched_series', mal_id)
                 from resources.lib.windows.source_select import SourceSelect
-                if control.getSetting('general.dialog') in (5, 6):
+                if control.getInt('general.dialog') in (5, 6):
                     SourceSelect('source_select_alt.xml', control.ADDON_PATH, actionArgs=_mock_args, sources=sources, rescrape=rescrape).doModal()
                 else:
                     SourceSelect('source_select.xml', control.ADDON_PATH, actionArgs=_mock_args, sources=sources, rescrape=rescrape).doModal()
         # SmartPlay Disabled
         else:
-            if control.getSetting('general.playstyle.episode') == '1' or source_select or rescrape:
+            if control.getInt('general.playstyle.episode') == 1 or source_select or rescrape:
                 from resources.lib.windows.source_select import SourceSelect
-                if control.getSetting('general.dialog') in (5, 6):
+                if control.getInt('general.dialog') in (5, 6):
                     SourceSelect('source_select_alt.xml', control.ADDON_PATH, actionArgs=_mock_args, sources=sources, rescrape=rescrape).doModal()
                 else:
                     SourceSelect('source_select.xml', control.ADDON_PATH, actionArgs=_mock_args, sources=sources, rescrape=rescrape).doModal()
             else:
                 from resources.lib.windows.resolver import Resolver
-                if control.getSetting('general.dialog') in (5, 6):
+                if control.getInt('general.dialog') in (5, 6):
                     Resolver('resolver_alt.xml', control.ADDON_PATH, actionArgs=_mock_args).doModal(sources, {}, False)
                 else:
                     Resolver('resolver.xml', control.ADDON_PATH, actionArgs=_mock_args).doModal(sources, {}, False)
@@ -1726,15 +1726,15 @@ def PLAY_MOVIE(payload, params):
     sources = OtakuBrowser.get_sources(mal_id, 1, 'movie', rescrape, source_select)
     if sources:
         _mock_args = {'mal_id': mal_id, 'play': True, 'resume': resume, 'context': rescrape or source_select, 'params': params}
-        if control.getSetting('general.playstyle.movie') == '1' or source_select or rescrape:
+        if control.getInt('general.playstyle.movie') == 1 or source_select or rescrape:
             from resources.lib.windows.source_select import SourceSelect
-            if control.getSetting('general.dialog') in (5, 6):
+            if control.getInt('general.dialog') in (5, 6):
                 SourceSelect('source_select_alt.xml', control.ADDON_PATH, actionArgs=_mock_args, sources=sources, rescrape=rescrape).doModal()
             else:
                 SourceSelect('source_select.xml', control.ADDON_PATH, actionArgs=_mock_args, sources=sources, rescrape=rescrape).doModal()
         else:
             from resources.lib.windows.resolver import Resolver
-            if control.getSetting('general.dialog') in (5, 6):
+            if control.getInt('general.dialog') in (5, 6):
                 Resolver('resolver_alt.xml', control.ADDON_PATH, actionArgs=_mock_args).doModal(sources, {}, False)
             else:
                 Resolver('resolver.xml', control.ADDON_PATH, actionArgs=_mock_args).doModal(sources, {}, False)
@@ -3902,11 +3902,11 @@ def SETUP_WIZARD(payload, params):
 
     # Yes selected
     if choice == 1:
-        control.setSetting('searchhistory', '0')
+        control.setInt('searchhistory', 0)
 
     # No selected
     elif choice == 0:
-        control.setSetting('searchhistory', '1')
+        control.setInt('searchhistory', 1)
 
     # Ask the user if they would like to show change log every update
     # Here the button labels are:
@@ -3919,11 +3919,11 @@ def SETUP_WIZARD(payload, params):
 
     # Yes selected
     if choice == 1:
-        control.setSetting('showchangelog', '0')
+        control.setInt('showchangelog', 0)
 
     # No selected
     elif choice == 0:
-        control.setSetting('showchangelog', '1')
+        control.setInt('showchangelog', 1)
 
     # Ask the user to select between Romaji or English
     # Here the button labels are:
@@ -3936,11 +3936,11 @@ def SETUP_WIZARD(payload, params):
 
     # Romaji selected
     if choice == 1:
-        control.setSetting('titlelanguage', '0')
+        control.setInt('titlelanguage', 0)
 
     # English selected
     elif choice == 0:
-        control.setSetting('titlelanguage', '1')
+        control.setInt('titlelanguage', 1)
 
     # Ask the user to select between Mal or Anilist
     # Here the button labels are:
@@ -3970,11 +3970,11 @@ def SETUP_WIZARD(payload, params):
 
         # Yes selected
         if choice == 1:
-            control.setSetting('general.malposters', 'true')
+            control.setBool('general.malposters', True)
 
         # No selected
         elif choice == 0:
-            control.setSetting('general.malposters', 'false')
+            control.setBool('general.malposters', False)
 
     # Ask the user if they would like to have all the menus enabled
     # Here the button labels are:
@@ -4004,30 +4004,30 @@ def SETUP_WIZARD(payload, params):
 
     # Subs selected
     if choice == 1:
-        control.setSetting('general.audio', '0')
-        control.setSetting('general.subtitles', '1')
-        control.setSetting('general.subtitles.type', 'true')
-        control.setSetting('subtitles.type', '1')
-        control.setSetting('general.subtitles.keyword', 'true')
-        control.setSetting('subtitles.keywords', '1')
-        control.setSetting('general.dubsubtitles', 'false')
-        control.setSetting('general.source', '1')
-        control.setSetting('divflavors.showdub', 'false')
-        control.setSetting('jz.dub', 'false')
+        control.setInt('general.audio', 0)
+        control.setInt('general.subtitles', 1)
+        control.setBool('general.subtitles.type', True)
+        control.setInt('subtitles.types', 1)
+        control.setBool('general.subtitles.keyword', True)
+        control.setInt('subtitles.keywords', 1)
+        control.setBool('general.dubsubtitles', False)
+        control.setInt('general.source', 1)
+        control.setBool('divflavors.showdub', False)
+        control.setBool('jz.dub', False)
         SortSelect.auto_action(0)
         control.log("Subs settings applied.")
     # Dubs selected
     elif choice == 0:
-        control.setSetting('general.audio', '1')
-        control.setSetting('general.subtitles', '0')
-        control.setSetting('general.subtitles.type', 'true')
-        control.setSetting('subtitles.types', '1')
-        control.setSetting('general.subtitles.keyword', 'true')
-        control.setSetting('subtitles.keywords', '2')
-        control.setSetting('general.dubsubtitles', 'false')
-        control.setSetting('general.source', '2')
-        control.setSetting('divflavors.showdub', 'true')
-        control.setSetting('jz.dub', 'true')
+        control.setInt('general.audio', 1)
+        control.setInt('general.subtitles', 0)
+        control.setBool('general.subtitles.type', True)
+        control.setInt('subtitles.types', 1)
+        control.setBool('general.subtitles.keyword', True)
+        control.setInt('subtitles.keywords', 2)
+        control.setBool('general.dubsubtitles', False)
+        control.setInt('general.source', 2)
+        control.setBool('divflavors.showdub', True)
+        control.setBool('jz.dub', True)
         SortSelect.auto_action(1)
         control.log("Dubs settings applied.")
 
@@ -4042,10 +4042,10 @@ def SETUP_WIZARD(payload, params):
 
         # Yes selected
         if choice == 1:
-            control.setSetting('general.dubsubtitles', 'true')
-            control.setSetting('general.subtitles', '1')
-            control.setSetting('subtitles.types', '1')
-            control.setSetting('subtitles.keywords', '1')
+            control.setBool('general.dubsubtitles', True)
+            control.setInt('general.subtitles', 1)
+            control.setInt('subtitles.types', 1)
+            control.setInt('subtitles.keywords', 1)
 
 
 @Route('toggleLanguageInvoker')

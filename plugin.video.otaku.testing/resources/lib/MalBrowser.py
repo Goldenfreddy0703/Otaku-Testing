@@ -26,7 +26,7 @@ class MalBrowser(BrowserBase):
         self.format_in_type = ['tv', 'movie', 'tv_special', 'special', 'ova', 'ona', 'music'][control.getInt('contentformat.menu')] if control.getBool('contentformat.bool') else ''
         self.status = ['airing', 'complete', 'upcoming'][control.getInt('contentstatus.menu.mal')] if control.getBool('contentstatus.bool') else ''
         self.rating = ['g', 'pg', 'pg13', 'r17', 'r', 'rx'][control.getInt('contentrating.menu.mal')] if control.getBool('contentrating.bool') else ''
-        self.adult = 'true' if control.getSetting('search.adult') == "false" else 'false'
+        self.adult = 'false' if control.getBool('search.adult') else 'true'
         self.genre = self.load_genres_from_json() if control.getBool('contentgenre.bool') else ''
 
     def load_genres_from_json(self):

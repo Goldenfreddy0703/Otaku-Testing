@@ -232,7 +232,7 @@ class Sources(BrowserBase):
             return all_results
         return []
 
-    def process_animetosho_movie(self, url, params):
+    def process_animetosho_movie(self, url, params, mal_id):
         response = client.request(url, params=params)
         if response:
             html = response
@@ -266,7 +266,7 @@ class Sources(BrowserBase):
                 list_.append(list_item)
 
             # For movies we don't filter by season/episode
-            filtered_list = source_utils.filter_sources('animetosho', list_)
+            filtered_list = source_utils.filter_sources('animetosho', list_, mal_id)
             cache_list, uncashed_list_ = Debrid().torrentCacheCheck(filtered_list)
             cache_list = sorted(cache_list, key=lambda k: k['downloads'], reverse=True)
             uncashed_list = sorted([i for i in uncashed_list_ if i['seeders'] != 0], key=lambda k: k['seeders'], reverse=True)

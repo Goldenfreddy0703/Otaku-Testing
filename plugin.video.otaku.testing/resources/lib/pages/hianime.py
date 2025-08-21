@@ -22,9 +22,9 @@ class Sources(BrowserBase):
 
         all_results = []
         srcs = ['sub', 'dub', 'raw']
-        if control.getSetting('general.source') == 'Sub':
+        if control.getInt('general.source') == 1:
             srcs.remove('dub')
-        elif control.getSetting('general.source') == 'Dub':
+        elif control.getInt('general.source') == 2:
             srcs.remove('sub')
 
         items = malsync.get_slugs(mal_id=mal_id, site='Zoro')

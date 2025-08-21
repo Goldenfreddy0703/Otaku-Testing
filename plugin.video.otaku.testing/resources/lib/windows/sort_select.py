@@ -303,14 +303,14 @@ class SortSelect(BaseWindow):
             self.sort_options = default_sub_options
             yesno = control.yesno_dialog(control.ADDON_NAME, "Warning: This will change your audio and subtitle playback settings including your souce type and customization settings to prioritize content. Continue?")
             if yesno:
-                control.setSetting('general.audio', '0')
-                control.setSetting('general.subtitles', '1')
-                control.setSetting('general.subtitles.keyword', 'true')
-                control.setSetting('subtitles.keywords', '1')
-                control.setSetting('general.dubsubtitles', 'false')
-                control.setSetting('general.source', '0')
-                control.setSetting('divflavors.showdub', 'false')
-                control.setSetting('jz.dub', 'false')
+                control.setInt('general.audio', 0)
+                control.setInt('general.subtitles', 1)
+                control.setBool('general.subtitles.keyword', True)
+                control.setInt('subtitles.keywords', 1)
+                control.setBool('general.dubsubtitles', False)
+                control.setInt('general.source', 0)
+                control.setBool('divflavors.showdub', False)
+                control.setBool('jz.dub', False)
                 self.save_settings()
                 self.close()
                 control.execute('RunPlugin(plugin://plugin.video.otaku.testing/sort_select)')
@@ -320,14 +320,14 @@ class SortSelect(BaseWindow):
             self.sort_options = default_dub_options
             yesno = control.yesno_dialog(control.ADDON_NAME, "Warning: This will change your audio and subtitle playback settings including souce type and customization settings to prioritize content. Continue?")
             if yesno:
-                control.setSetting('general.audio', '1')
-                control.setSetting('general.subtitles', '0')
-                control.setSetting('general.subtitles.keyword', 'true')
-                control.setSetting('subtitles.keywords', '2')
-                control.setSetting('general.dubsubtitles', 'false')
-                control.setSetting('general.source', '0')
-                control.setSetting('divflavors.showdub', 'true')
-                control.setSetting('jz.dub', 'true')
+                control.setInt('general.audio', 1)
+                control.setInt('general.subtitles', 0)
+                control.setBool('general.subtitles.keyword', True)
+                control.setInt('subtitles.keywords', 2)
+                control.setBool('general.dubsubtitles', False)
+                control.setInt('general.source', 0)
+                control.setBool('divflavors.showdub', True)
+                control.setBool('jz.dub', True)
                 self.save_settings()
                 self.close()
                 control.execute('RunPlugin(plugin://plugin.video.otaku.testing/sort_select)')
@@ -337,7 +337,7 @@ class SortSelect(BaseWindow):
             self.sort_options = default_multi_audio_options
             yesno = control.yesno_dialog(control.ADDON_NAME, "Warning: This Preset is for people who are searching for anime in foreign audio languages other than Japanese or English. Continue?")
             if yesno:
-                control.setSetting('general.source', '1')
+                control.setInt('general.source', 1)
                 self.save_settings()
                 self.close()
                 control.execute('RunPlugin(plugin://plugin.video.otaku.testing/sort_select)')
@@ -347,7 +347,7 @@ class SortSelect(BaseWindow):
             self.sort_options = default_multi_sub_options
             yesno = control.yesno_dialog(control.ADDON_NAME, "Warning: This Preset is for people who are searching for anime in foreign subtitle languages other than Japanese or English. Continue?")
             if yesno:
-                control.setSetting('general.source', '1')
+                control.setInt('general.source', 1)
                 self.save_settings()
                 self.close()
                 control.execute('RunPlugin(plugin://plugin.video.otaku.testing/sort_select)')

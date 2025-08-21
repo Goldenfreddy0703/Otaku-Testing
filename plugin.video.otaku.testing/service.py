@@ -199,7 +199,7 @@ if __name__ == "__main__":
     version_check()
     database_sync.SyncDatabase()
     refresh_apis()
-    if control.getSetting('update.time.30') == '' or control.getSetting('update.time.7') == '':
+    if control.getInt('update.time.30') == 0 or control.getInt('update.time.7') == 0:
         update_mappings_db()
         update_dub_json()
         sync_watchlist(True)

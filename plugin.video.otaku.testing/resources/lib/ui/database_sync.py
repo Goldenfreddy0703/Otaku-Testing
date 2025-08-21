@@ -55,7 +55,7 @@ class SyncDatabase:
                     self.migration_process()
 
             if first_time:
-                control.setSetting('showchangelog', '1')
+                control.setInt('showchangelog', 1)
                 # Ask the user if they would like to go throught the setup wizard
                 # Here the button labels are:
                 # Button 0: "Yes"   | Button 1: "No"
@@ -67,12 +67,12 @@ class SyncDatabase:
 
                 # Yes selected
                 if choice == 1:
-                    control.setSetting('first_time', 'false')
+                    control.setBool('first_time', False)
                     control.execute('RunPlugin(plugin://plugin.video.otaku.testing/setup_wizard)')
 
                 # No selected
                 elif choice == 0:
-                    control.setSetting('first_time', 'false')
+                    control.setBool('first_time', False)
 
             self.re_build_database(True)
 
@@ -190,32 +190,32 @@ class SyncDatabase:
         import xbmc
 
         # Retrieve current settings
-        watchlist_update_enabled = control.getSetting('watchlist.update.enabled')
+        watchlist_update_enabled = control.getBool('watchlist.update.enabled')
         watchlist_update_flavor = control.getSetting('watchlist.update.flavor')
-        watchlist_update_percent = control.getSetting('watchlist.update.percent')
-        watchlist_sync_enabled = control.getSetting('watchlist.sync.enabled')
-        anilist_enabled = control.getSetting('anilist.enabled')
+        watchlist_update_percent = control.getInt('watchlist.update.percent')
+        watchlist_sync_enabled = control.getBool('watchlist.sync.enabled')
+        anilist_enabled = control.getBool('anilist.enabled')
         anilist_username = control.getSetting('anilist.username')
         anilist_token = control.getSetting('anilist.token')
         anilist_userid = control.getSetting('anilist.userid')
-        mal_enabled = control.getSetting('mal.enabled')
+        mal_enabled = control.getBool('mal.enabled')
         mal_username = control.getSetting('mal.username')
         mal_authvar = control.getSetting('mal.authvar')
         mal_refresh = control.getSetting('mal.refresh')
         mal_token = control.getSetting('mal.token')
-        mal_expiry = control.getSetting('mal.expiry')
-        kitsu_enabled = control.getSetting('kitsu.enabled')
+        mal_expiry = control.getInt('mal.expiry')
+        kitsu_enabled = control.getBool('kitsu.enabled')
         kitsu_username = control.getSetting('kitsu.username')
         kitsu_authvar = control.getSetting('kitsu.authvar')
         kitsu_password = control.getSetting('kitsu.password')
         kitsu_refresh = control.getSetting('kitsu.refresh')
         kitsu_token = control.getSetting('kitsu.token')
         kitsu_userid = control.getSetting('kitsu.userid')
-        kitsu_expiry = control.getSetting('kitsu.expiry')
-        simkl_enabled = control.getSetting('simkl.enabled')
+        kitsu_expiry = control.getInt('kitsu.expiry')
+        simkl_enabled = control.getBool('simkl.enabled')
         simkl_username = control.getSetting('simkl.username')
         simkl_token = control.getSetting('simkl.token')
-        first_time = 'false'
+        first_time = False
         version = control.ADDON_VERSION
 
         # First, clear existing settings

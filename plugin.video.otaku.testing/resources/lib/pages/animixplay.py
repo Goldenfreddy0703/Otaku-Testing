@@ -17,9 +17,9 @@ class Sources(BrowserBase):
         show = database.get_show(mal_id)
         kodi_meta = pickle.loads(show.get('kodi_meta'))
         srcs = ['sub', 'dub']
-        if control.getSetting('general.source') == 'Sub':
+        if control.getInt('general.source') == 1:
             srcs.remove('dub')
-        elif control.getSetting('general.source') == 'Dub':
+        elif control.getInt('general.source') == 2:
             srcs.remove('sub')
         # title = kodi_meta.get('ename') or kodi_meta.get('name')
         title = kodi_meta.get('name')

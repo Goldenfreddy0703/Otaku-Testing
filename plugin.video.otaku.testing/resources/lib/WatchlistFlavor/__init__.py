@@ -45,8 +45,8 @@ class WatchlistFlavor:
         control.setSetting('%s.refresh' % flavor, '')
         control.setSetting('%s.username' % flavor, '')
         control.setSetting('%s.password' % flavor, '')
-        control.setSetting('%s.sort' % flavor, '')
-        control.setSetting('%s.order' % flavor, '')
+        control.setInt('%s.sort' % flavor, 0)
+        control.setInt('%s.order' % flavor, 0)
         control.setSetting('%s.titles' % flavor, '')
         return control.refresh()
 
@@ -68,8 +68,8 @@ class WatchlistFlavor:
         refresh = control.getSetting(f'{name}.refresh')
         username = control.getSetting(f'{name}.username')
         password = control.getSetting(f'{name}.password')
-        sort = control.getSetting(f'{name}.sort')
-        order = control.getSetting(f'{name}.order')
+        sort = control.getInt(f'{name}.sort')
+        order = control.getInt(f'{name}.order')
 
         flavor_class = WatchlistFlavor.__get_flavor_class(name)
         return flavor_class(auth_var, username, password, user_id, token, refresh, sort, order)
@@ -88,7 +88,11 @@ class WatchlistFlavor:
             control.setBool('watchlist.update.enabled', True)
             control.setSetting('watchlist.update.flavor', mapping.get(flavor, flavor.capitalize()))
         for _id, value in list(res.items()):
-            control.setSetting('%s.%s' % (flavor, _id), str(value))
+            setting_name = '%s.%s' % (flavor, _id)
+            if _id == 'expiry':
+                control.setInt(setting_name, int(value))
+            else:
+                control.setSetting(setting_name, str(value))
         control.refresh()
         return control.ok_dialog('Login', 'Success')
 

@@ -52,10 +52,10 @@ class AllDebrid:
         premium = user_information['isPremium']
         control.setSetting('alldebrid.username', user_information['username'])
         control.ok_dialog(control.ADDON_NAME, f'Alldebrid {control.lang(30024)}')
-        control.setSetting('show.uncached', 'true')
-        control.setSetting('uncached.autoruninforground', 'false')
-        control.setSetting('uncached.autoruninbackground', 'false')
-        control.setSetting('uncached.autoskipuncached', 'true')
+        control.setBool('show.uncached', True)
+        control.setBool('uncached.autoruninforground', False)
+        control.setBool('uncached.autoruninbackground', False)
+        control.setBool('uncached.autoskipuncached', True)
         if not premium:
             control.setSetting('alldebrid.auth.status', 'Expired')
             control.ok_dialog(f'{control.ADDON_NAME}: AllDebrid', control.lang(30025))

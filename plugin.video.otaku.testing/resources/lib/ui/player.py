@@ -560,16 +560,16 @@ class PlayerDialogs(xbmc.Player):
         args['skipoutro_end'] = skipoutro_end
         if skipoutro_aniskip:
             dialog_mapping = {
-                '0': 'skip_outro_default.xml',
-                '1': 'skip_outro_ah2.xml',
-                '2': 'skip_outro_auramod.xml',
-                '3': 'skip_outro_af.xml',
-                '4': 'skip_outro_af2.xml',
-                '5': 'skip_outro_az.xml',
-                '6': 'skip_outro_tb.xml'
+                0: 'skip_outro_default.xml',
+                1: 'skip_outro_ah2.xml',
+                2: 'skip_outro_auramod.xml',
+                3: 'skip_outro_af.xml',
+                4: 'skip_outro_af2.xml',
+                5: 'skip_outro_az.xml',
+                6: 'skip_outro_tb.xml'
             }
 
-            setting_value = control.getSetting('general.dialog')
+            setting_value = control.getInt('general.dialog')
             xml_file = dialog_mapping.get(setting_value)
 
             # Call PlayingNext with the retrieved XML file
@@ -577,16 +577,16 @@ class PlayerDialogs(xbmc.Player):
                 PlayingNext(xml_file, control.ADDON_PATH, actionArgs=args).doModal()
         else:
             dialog_mapping = {
-                '0': 'playing_next_default.xml',
-                '1': 'playing_next_ah2.xml',
-                '2': 'playing_next_auramod.xml',
-                '3': 'playing_next_af.xml',
-                '4': 'playing_next_af2.xml',
-                '5': 'playing_next_az.xml',
-                '6': 'playing_next_tb.xml'
+                0: 'playing_next_default.xml',
+                1: 'playing_next_ah2.xml',
+                2: 'playing_next_auramod.xml',
+                3: 'playing_next_af.xml',
+                4: 'playing_next_af2.xml',
+                5: 'playing_next_az.xml',
+                6: 'playing_next_tb.xml'
             }
 
-            setting_value = control.getSetting('general.dialog')
+            setting_value = control.getInt('general.dialog')
             xml_file = dialog_mapping.get(setting_value)
 
             # Call PlayingNext with the retrieved XML file
@@ -603,16 +603,16 @@ class PlayerDialogs(xbmc.Player):
         }
 
         dialog_mapping = {
-            '0': 'skip_intro_default.xml',
-            '1': 'skip_intro_ah2.xml',
-            '2': 'skip_intro_auramod.xml',
-            '3': 'skip_intro_af.xml',
-            '4': 'skip_intro_af2.xml',
-            '5': 'skip_intro_az.xml',
-            '6': 'skip_intro_tb.xml'
+            0: 'skip_intro_default.xml',
+            1: 'skip_intro_ah2.xml',
+            2: 'skip_intro_auramod.xml',
+            3: 'skip_intro_af.xml',
+            4: 'skip_intro_af2.xml',
+            5: 'skip_intro_az.xml',
+            6: 'skip_intro_tb.xml'
         }
 
-        setting_value = control.getSetting('general.dialog')
+        setting_value = control.getInt('general.dialog')
         xml_file = dialog_mapping.get(setting_value)
 
         # Call SkipIntro with the retrieved XML file

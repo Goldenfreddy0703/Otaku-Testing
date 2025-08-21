@@ -625,6 +625,18 @@
 					<default>false</default>
 					<control type="toggle"/>
 				</setting>
+				<setting id="widgets.delay" type="integer" label="30428" help="30429">
+					<level>0</level>
+					<default>1000</default>
+					<constraints>
+						<minimum>0</minimum>
+						<maximum>5000</maximum>
+						<step>250</step>
+					</constraints>
+					<control type="slider" format="integer">
+						<popup>false</popup>
+					</control>
+				</setting>
 			</group>
 
 			<!-- Miscellaneous -->
@@ -3475,21 +3487,7 @@
 				</setting>
 			</group>
 
-			<!-- Bool Settings -->
-			<group id="7" label="" help="">
-				<setting id="first_time" type="boolean" label="" help="">
-					<level>4</level>
-					<default>true</default>
-					<control type="toggle"/>
-				</setting>
-				<setting id="best_match" type="boolean" label="" help="">
-					<level>4</level>
-					<default>true</default>
-					<control type="toggle"/>
-				</setting>
-			</group>
-
-			<!-- Integer Settings -->
+			<!-- Hidden Settings -->
 			<group id="8" label="" help="">
 				<setting id="otaku.version" type="string" label="" help="">
 					<level>4</level>
@@ -3527,80 +3525,365 @@
 						<allowempty>true</allowempty>
 					</constraints>
 				</setting>
-				<setting id="update.time.30" type="integer" label="" help="">
+				<setting id="alldebrid.token" type="string" label="" help="">
 					<level>4</level>
-					<default>0</default>
-					<control type="edit" format="integer" />
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
 				</setting>
-				<setting id="update.time.7" type="integer" label="" help="">
+				<setting id="anilist.authvar" type="string" label="" help="">
 					<level>4</level>
-					<default>0</default>
-					<control type="edit" format="integer" />
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
 				</setting>
-				<setting id="update.time.1" type="integer" label="" help="">
+				<setting id="anilist.password" type="string" label="" help="">
 					<level>4</level>
-					<default>0</default>
-					<control type="edit" format="integer" />
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
 				</setting>
-				<setting id="realdebrid.expiry" type="integer" label="" help="">
+				<setting id="anilist.refresh" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="anilist.titles" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="anilist.token" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="anilist.userid" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="aniwave.skipintro.end" type="integer" label="" help="">
 					<level>4</level>
 					<default>0</default>
-					<control type="edit" format="integer" />
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="aniwave.skipintro.start" type="integer" label="" help="">
+					<level>4</level>
+					<default>0</default>
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="aniwave.skipoutro.end" type="integer" label="" help="">
+					<level>4</level>
+					<default>0</default>
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="aniwave.skipoutro.start" type="integer" label="" help="">
+					<level>4</level>
+					<default>0</default>
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="best_match" type="boolean" label="" help="">
+					<level>4</level>
+					<default>true</default>
+					<control type="toggle"/>
 				</setting>
 				<setting id="debridlink.expiry" type="integer" label="" help="">
 					<level>4</level>
 					<default>0</default>
-					<control type="edit" format="integer" />
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="debridlink.refresh" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="debridlink.token" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="easydebrid.token" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="first_time" type="boolean" label="" help="">
+					<level>4</level>
+					<default>true</default>
+					<control type="toggle"/>
+				</setting>
+				<setting id="format" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="general.fuzzy" type="integer" label="" help="">
+					<level>4</level>
+					<default>0</default>
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="hianime.skipintro.end" type="integer" label="" help="">
+					<level>4</level>
+					<default>0</default>
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="hianime.skipintro.start" type="integer" label="" help="">
+					<level>4</level>
+					<default>0</default>
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="hianime.skipoutro.end" type="integer" label="" help="">
+					<level>4</level>
+					<default>0</default>
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="hianime.skipoutro.start" type="integer" label="" help="">
+					<level>4</level>
+					<default>0</default>
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="interface.show_last_watched" type="boolean" label="" help="">
+					<level>4</level>
+					<default>true</default>
+					<control type="toggle"/>
+				</setting>
+				<setting id="interface.show_watch_history" type="boolean" label="" help="">
+					<level>4</level>
+					<default>true</default>
+					<control type="toggle"/>
 				</setting>
 				<setting id="kitsu.expiry" type="integer" label="" help="">
 					<level>4</level>
 					<default>0</default>
-					<control type="edit" format="integer" />
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="kitsu.refresh" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="kitsu.titles" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="kitsu.token" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="kitsu.userid" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="mal.authvar" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
 				</setting>
 				<setting id="mal.expiry" type="integer" label="" help="">
 					<level>4</level>
 					<default>0</default>
-					<control type="edit" format="integer" />
+					<control type="edit" format="integer"/>
 				</setting>
-				<setting id="aniwave.skipintro.start" type="integer" label="" help="">
+				<setting id="mal.password" type="string" label="" help="">
 					<level>4</level>
-					<default>-1</default>
-					<control type="edit" format="integer" />
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
 				</setting>
-				<setting id="aniwave.skipintro.end" type="integer" label="" help="">
+				<setting id="mal.refresh" type="string" label="" help="">
 					<level>4</level>
-					<default>-1</default>
-					<control type="edit" format="integer" />
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
 				</setting>
-				<setting id="aniwave.skipoutro.start" type="integer" label="" help="">
+				<setting id="mal.titles" type="string" label="" help="">
 					<level>4</level>
-					<default>-1</default>
-					<control type="edit" format="integer" />
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
 				</setting>
-				<setting id="aniwave.skipoutro.end" type="integer" label="" help="">
+				<setting id="mal.token" type="string" label="" help="">
 					<level>4</level>
-					<default>-1</default>
-					<control type="edit" format="integer" />
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
 				</setting>
-				<setting id="hianime.skipintro.start" type="integer" label="" help="">
+				<setting id="mal.userid" type="string" label="" help="">
 					<level>4</level>
-					<default>-1</default>
-					<control type="edit" format="integer" />
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
 				</setting>
-				<setting id="hianime.skipintro.end" type="integer" label="" help="">
+				<setting id="premiumize.token" type="string" label="" help="">
 					<level>4</level>
-					<default>-1</default>
-					<control type="edit" format="integer" />
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
 				</setting>
-				<setting id="hianime.skipoutro.start" type="integer" label="" help="">
+				<setting id="provider.gogo" type="boolean" label="" help="">
 					<level>4</level>
-					<default>-1</default>
-					<control type="edit" format="integer" />
+					<default>true</default>
+					<control type="toggle"/>
 				</setting>
-				<setting id="hianime.skipoutro.end" type="integer" label="" help="">
+				<setting id="provider.gogoalt" type="boolean" label="" help="">
 					<level>4</level>
-					<default>-1</default>
-					<control type="edit" format="integer" />
+					<default>true</default>
+					<control type="toggle"/>
+				</setting>
+				<setting id="realdebrid.client_id" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="realdebrid.expiry" type="integer" label="" help="">
+					<level>4</level>
+					<default>0</default>
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="realdebrid.refresh" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="realdebrid.secret" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="realdebrid.token" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="regex.question" type="boolean" label="" help="">
+					<level>4</level>
+					<default>true</default>
+					<control type="toggle"/>
+				</setting>
+				<setting id="resolve_season" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="simkl.authvar" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="simkl.password" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="simkl.refresh" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="simkl.titles" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="simkl.token" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="simkl.userid" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="torbox.token" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="update.time.1" type="integer" label="" help="">
+					<level>4</level>
+					<default>0</default>
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="update.time.30" type="integer" label="" help="">
+					<level>4</level>
+					<default>0</default>
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="update.time.7" type="integer" label="" help="">
+					<level>4</level>
+					<default>0</default>
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="version" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
 				</setting>
 			</group>
 		</category>

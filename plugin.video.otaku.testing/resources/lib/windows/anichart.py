@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import xbmcgui
+import time
 
 from resources.lib import Main
 from resources.lib.ui import control
@@ -19,6 +20,8 @@ class Anichart(BaseWindow):
         self.position = -1
         self.display_list = None
         self.last_action_time = 0
+        self.last_touch_position = -1
+        self.touch_count = 0
         self.anime_path = ''
         self.anime_items = calendar if calendar is not None else anime_items
 
@@ -52,17 +55,52 @@ class Anichart(BaseWindow):
 
     def onDoubleClick(self, controlId):
         # immediate activate on double-click
-        self.handle_action(controlId)
+        control.log(f"Double click detected on control: {controlId}", level='debug')
+        if controlId == 1000:  # only handle double-clicks on our anime list
+            control.log("Handling double click action", level='debug')
+            self.handle_action(controlId)
 
     def onAction(self, action):
         actionID = action.getId()
+        control.log(f"Action detected: {actionID}", level='debug')
+        
         # back navigation
         if actionID in [xbmcgui.ACTION_NAV_BACK,
                         xbmcgui.ACTION_BACKSPACE,
                         xbmcgui.ACTION_PREVIOUS_MENU]:
             self.close()
-        # single-click activate
+        # Handle different input methods differently
         elif actionID == xbmcgui.ACTION_SELECT_ITEM:
+            # Traditional input (remote, keyboard) - single click activates
+            control.log("Traditional input detected - single click activation", level='debug')
+            self.handle_action(actionID)
+        elif actionID in [xbmcgui.ACTION_TOUCH_TAP,
+                          xbmcgui.ACTION_MOUSE_LEFT_CLICK]:
+            # Touch/mouse input - require double tap/click
+            control.log("Touch/mouse input detected - checking for double tap", level='debug')
+            current_time = time.time()
+            current_position = self.display_list.getSelectedPosition() if self.getFocusId() == 1000 else -1
+            
+            # Check if this is a double-tap (same position within 0.5 seconds)
+            time_diff = current_time - self.last_action_time
+            is_double_tap = (time_diff < 0.5 and
+                             current_position == self.last_touch_position and
+                             current_position != -1)
+            
+            if is_double_tap:
+                control.log("Double tap detected - activating", level='debug')
+                self.handle_action(actionID)
+                # Reset to prevent triple-tap activation
+                self.last_action_time = 0
+                self.last_touch_position = -1
+            else:
+                control.log(f"First tap detected at position {current_position}", level='debug')
+                # Store tap info for potential double-tap
+                self.last_action_time = current_time
+                self.last_touch_position = current_position
+        elif actionID == xbmcgui.ACTION_MOUSE_DOUBLE_CLICK:
+            # Direct double-click event - activate immediately
+            control.log("Direct double-click detected - activating", level='debug')
             self.handle_action(actionID)
 
         # rest of your existing context‐menu code…
@@ -117,15 +155,15 @@ class Anichart(BaseWindow):
         url = f"animes/{anime}/"
         self.anime_path = control.addon_url(url)
 
-
-        new_payload, new_params = control.get_payload_params(self.anime_path)
-        if 'animes/' in new_payload:
-            control.progressDialog.create(control.ADDON_NAME, "Loading..")
-            try:
+        # Show progress dialog for all actions
+        control.progressDialog.create(control.ADDON_NAME, "Loading..")
+        try:
+            new_payload, new_params = control.get_payload_params(self.anime_path)
+            if 'animes/' in new_payload:
                 x = new_payload.split('animes/', 1)[1]
                 Main.ANIMES_PAGE(x, new_params)
-            finally:
-                control.progressDialog.close()
-        elif 'airing_calendar' in new_payload:
-            Main.AIRING_CALENDAR(new_payload.rsplit('airing_calendar', 0)[0], new_params)
+            elif 'airing_calendar' in new_payload:
+                Main.AIRING_CALENDAR(new_payload.rsplit('airing_calendar', 0)[0], new_params)
+        finally:
+            control.progressDialog.close()
         self.close()

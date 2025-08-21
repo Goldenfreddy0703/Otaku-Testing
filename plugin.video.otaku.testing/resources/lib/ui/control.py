@@ -137,43 +137,93 @@ def refresh():
 
 
 def getSetting(key):
-    return ADDON.getSetting(key)
+    """Get setting as string - kept for backward compatibility"""
+    return settings.getString(key)
 
 
 def getBool(key):
-    return ADDON.getSettingBool(key)
+    """Get setting as boolean"""
+    return settings.getBool(key)
 
 
 def getInt(key):
-    return ADDON.getSettingInt(key)
+    """Get setting as integer"""
+    return settings.getInt(key)
 
 
 def getStr(key):
-    return ADDON.getSettingString(key)
+    """Get setting as string"""
+    return settings.getString(key)
+
+
+def getNumber(key):
+    """Get setting as float/number"""
+    return settings.getNumber(key)
 
 
 def getStringList(settingid):
+    """Get setting as list of strings"""
     return settings.getStringList(settingid)
 
 
+def getBoolList(settingid):
+    """Get setting as list of booleans"""
+    return settings.getBoolList(settingid)
+
+
+def getIntList(settingid):
+    """Get setting as list of integers"""
+    return settings.getIntList(settingid)
+
+
+def getNumberList(settingid):
+    """Get setting as list of numbers"""
+    return settings.getNumberList(settingid)
+
+
 def setSetting(settingid, value):
-    ADDON.setSetting(settingid, value)
+    """Set setting as string - kept for backward compatibility"""
+    settings.setString(settingid, str(value))
 
 
 def setBool(settingid, value):
-    ADDON.setSettingBool(settingid, value)
+    """Set setting as boolean"""
+    settings.setBool(settingid, value)
 
 
 def setInt(settingid, value):
-    ADDON.setSettingInt(settingid, value)
+    """Set setting as integer"""
+    settings.setInt(settingid, value)
 
 
 def setStr(settingid, value):
-    ADDON.setSettingString(settingid, value)
+    """Set setting as string"""
+    settings.setString(settingid, value)
+
+
+def setNumber(settingid, value):
+    """Set setting as float/number"""
+    settings.setNumber(settingid, value)
 
 
 def setStringList(settingid, value):
-    return settings.setStringList(settingid, value)
+    """Set setting as list of strings"""
+    settings.setStringList(settingid, value)
+
+
+def setBoolList(settingid, value):
+    """Set setting as list of booleans"""
+    settings.setBoolList(settingid, value)
+
+
+def setIntList(settingid, value):
+    """Set setting as list of integers"""
+    settings.setIntList(settingid, value)
+
+
+def setNumberList(settingid, value):
+    """Set setting as list of numbers"""
+    settings.setNumberList(settingid, value)
 
 
 def setGlobalProp(property, value):
@@ -367,6 +417,15 @@ def bulk_draw_items(video_data):
 
 
 def draw_items(video_data, content_type=''):
+    # Widget rate limiting - detect if this is a widget request
+    is_widget = xbmc.getInfoLabel('Container.PluginName') != ADDON_ID
+    
+    if is_widget:
+        # This is a widget request - add delay to respect rate limits
+        widget_delay = getInt('widgets.delay') or 1000  # Default 1 second (1000ms)
+        log(f"Widget detected - adding {widget_delay}ms delay", level='debug')
+        xbmc.sleep(widget_delay)
+    
     if len(video_data) > 99:
         bulk_draw_items(video_data)
     else:

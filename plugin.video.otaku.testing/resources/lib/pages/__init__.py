@@ -8,7 +8,7 @@ from resources.lib.windows import sort_select
 
 
 def getSourcesHelper(actionArgs):
-    if control.getSetting('general.dialog') in (5, 6):
+    if control.getInt('general.dialog') in (5, 6):
         sources_window = Sources('get_sources_alt.xml', control.ADDON_PATH, actionArgs=actionArgs)
     else:
         sources_window = Sources('get_sources.xml', control.ADDON_PATH, actionArgs=actionArgs)
@@ -270,9 +270,9 @@ class Sources(GetSources):
         sortedList = [x for x in all_list if control.getInt('general.minResolution') <= x['quality'] <= control.getInt('general.maxResolution')]
 
         # Filter by size
-        filter_option = control.getSetting('general.fileFilter')
+        filter_option = control.getInt('general.fileFilter')
 
-        if filter_option == '1':
+        if filter_option == 1:
             # web speed limit
             webspeed = control.getInt('general.webspeed')
             len_in_sec = int(duration) * 60
@@ -280,16 +280,16 @@ class Sources(GetSources):
             _torrent_list = torrent_list
             torrent_list = [i for i in _torrent_list if i['size'] != 'NA' and ((float(i['size'][:-3]) * 8000) / len_in_sec) <= webspeed]
 
-        elif filter_option == '2':
+        elif filter_option == 2:
             # hard limit
             _torrent_list = torrent_list
 
             if media_type == 'movie':
-                max_GB = float(control.getSetting('general.movie.maxGB'))
-                min_GB = float(control.getSetting('general.movie.minGB'))
+                max_GB = float(control.getInt('general.movie.maxGB'))
+                min_GB = float(control.getInt('general.movie.minGB'))
             else:
-                max_GB = float(control.getSetting('general.episode.maxGB'))
-                min_GB = float(control.getSetting('general.episode.minGB'))
+                max_GB = float(control.getInt('general.episode.maxGB'))
+                min_GB = float(control.getInt('general.episode.minGB'))
 
             torrent_list = []
             for i in _torrent_list:
@@ -319,8 +319,8 @@ class Sources(GetSources):
             exclude_filter5 = control.getBool('general.release_title_filter.exclude5')
 
             _torrent_list = torrent_list
-            release_title_logic = control.getSetting('general.release_title_filter.logic')
-            if release_title_logic == '0':
+            release_title_logic = control.getInt('general.release_title_filter.logic')
+            if release_title_logic == 0:
                 # AND filter (case-insensitive)
                 torrent_list = [
                     i for i in _torrent_list
@@ -330,7 +330,7 @@ class Sources(GetSources):
                     and (not exclude_filter4 or release_title_filter4.lower() not in i['release_title'].lower())
                     and (not exclude_filter5 or release_title_filter5.lower() not in i['release_title'].lower())
                 ]
-            if release_title_logic == '1':
+            if release_title_logic == 1:
                 # OR filter (case-insensitive)
                 torrent_list = [
                     i for i in _torrent_list

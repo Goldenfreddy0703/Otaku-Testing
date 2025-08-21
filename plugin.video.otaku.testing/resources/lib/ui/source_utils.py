@@ -256,7 +256,7 @@ def get_fuzzy_match(query, filenames):
 
 
 def get_best_match(dict_key, dictionary_list, episode, pack_select=False):
-    control.setSetting('best_match', 'true')
+    control.setBool('best_match', True)
     regex = get_cache_check_reg(episode)
     files = []
     for i in dictionary_list:
@@ -270,7 +270,7 @@ def get_best_match(dict_key, dictionary_list, episode, pack_select=False):
     else:
         files = [i for i in files if len(i['regex_matches']) > 0]
         if len(files) == 0:
-            control.setSetting('best_match', 'false')
+            control.setBool('best_match', False)
             return {}
         files = sorted(files, key=lambda x: len(' '.join(list(x['regex_matches'][0]))), reverse=True)
         if len(files) != 1:

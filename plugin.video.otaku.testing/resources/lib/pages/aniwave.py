@@ -25,9 +25,9 @@ class Sources(BrowserBase):
         all_results = []
         items = []
         srcs = ['sub', 'dub', 's-sub']
-        if control.getSetting('general.source') == 'Sub':
+        if control.getInt('general.source') == 1:
             srcs.remove('dub')
-        elif control.getSetting('general.source') == 'Dub':
+        elif control.getInt('general.source') == 2:
             srcs.remove('sub')
             srcs.remove('s-sub')
 
