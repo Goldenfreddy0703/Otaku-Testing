@@ -55,7 +55,7 @@ class SyncDatabase:
                     self.migration_process()
 
             if first_time:
-                control.setInt('showchangelog', '1')
+                control.setInt('showchangelog', 1)
                 # Ask the user if they would like to go throught the setup wizard
                 # Here the button labels are:
                 # Button 0: "Yes"   | Button 1: "No"
@@ -67,12 +67,12 @@ class SyncDatabase:
 
                 # Yes selected
                 if choice == 1:
-                    control.setBool('first_time', 'false')
+                    control.setBool('first_time', False)
                     control.execute('RunPlugin(plugin://plugin.video.otaku.testing/setup_wizard)')
 
                 # No selected
                 elif choice == 0:
-                    control.setBool('first_time', 'false')
+                    control.setBool('first_time', False)
 
             self.re_build_database(True)
 

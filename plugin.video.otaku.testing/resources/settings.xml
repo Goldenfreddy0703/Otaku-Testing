@@ -3844,13 +3844,6 @@
 						<allowempty>true</allowempty>
 					</constraints>
 				</setting>
-				<setting id="subtitles.type" type="string" label="" help="">
-					<level>4</level>
-					<default/>
-					<constraints>
-						<allowempty>true</allowempty>
-					</constraints>
-				</setting>
 				<setting id="torbox.token" type="string" label="" help="">
 					<level>4</level>
 					<default/>
