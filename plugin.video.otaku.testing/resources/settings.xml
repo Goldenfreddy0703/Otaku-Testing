@@ -625,6 +625,18 @@
 					<default>false</default>
 					<control type="toggle"/>
 				</setting>
+				<setting id="widgets.delay" type="integer" label="30428" help="30429">
+					<level>0</level>
+					<default>1000</default>
+					<constraints>
+						<minimum>0</minimum>
+						<maximum>5000</maximum>
+						<step>250</step>
+					</constraints>
+					<control type="slider" format="integer">
+						<popup>false</popup>
+					</control>
+				</setting>
 			</group>
 
 			<!-- Miscellaneous -->

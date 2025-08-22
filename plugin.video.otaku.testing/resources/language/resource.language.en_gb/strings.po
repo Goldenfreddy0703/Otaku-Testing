@@ -1720,3 +1720,11 @@ msgstr ""
 msgctxt "#30427"
 msgid "Enable Automatic Outro Skip"
 msgstr ""
+
+msgctxt "#30428"
+msgid "Widget Load Delay (milliseconds)"
+msgstr ""
+
+msgctxt "#30429"
+msgid "Delay between widget loads to prevent API rate limiting. 1000ms = 1 second."
+msgstr ""

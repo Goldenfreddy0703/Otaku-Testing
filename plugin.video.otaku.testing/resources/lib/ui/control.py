@@ -417,6 +417,15 @@ def bulk_draw_items(video_data):
 
 
 def draw_items(video_data, content_type=''):
+    # Widget rate limiting - detect if this is a widget request
+    is_widget = xbmc.getInfoLabel('Container.PluginName') != ADDON_ID
+    
+    if is_widget:
+        # This is a widget request - add delay to respect rate limits
+        widget_delay = getInt('widgets.delay') or 1000  # Default 1 second (1000ms)
+        log(f"Widget detected - adding {widget_delay}ms delay", level='debug')
+        xbmc.sleep(widget_delay)
+    
     if len(video_data) > 99:
         bulk_draw_items(video_data)
     else:
