@@ -88,7 +88,11 @@ class WatchlistFlavor:
             control.setBool('watchlist.update.enabled', True)
             control.setSetting('watchlist.update.flavor', mapping.get(flavor, flavor.capitalize()))
         for _id, value in list(res.items()):
-            control.setSetting('%s.%s' % (flavor, _id), str(value))
+            setting_name = '%s.%s' % (flavor, _id)
+            if _id == 'expiry':
+                control.setInt(setting_name, int(value))
+            else:
+                control.setSetting(setting_name, str(value))
         control.refresh()
         return control.ok_dialog('Login', 'Success')
 
