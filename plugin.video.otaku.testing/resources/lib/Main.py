@@ -1854,10 +1854,24 @@ def FANART(payload: str, params: dict):
     fanart = pickle.loads(episode['kodi_meta'])['image']['fanart'] or []
     fanart_display = fanart + ["None", "Random"]
     fanart += ["None", ""]
-    fanart_all = control.getStringList('fanart.all')
-    fanart_all.append(str(mal_id))
-    control.setSetting(f'fanart.select.{mal_id}', fanart[int(select)])
-    control.setStringList('fanart.all', fanart_all)
+    
+    # Set fanart selection using string lists
+    mal_ids = control.getStringList('fanart.mal_ids')
+    fanart_selections = control.getStringList('fanart.selections')
+    mal_id_str = str(mal_id)
+    fanart_url = fanart[int(select)]
+    
+    try:
+        # Update existing entry
+        index = mal_ids.index(mal_id_str)
+        fanart_selections[index] = fanart_url
+    except ValueError:
+        # Add new entry
+        mal_ids.append(mal_id_str)
+        fanart_selections.append(fanart_url)
+    
+    control.setStringList('fanart.mal_ids', mal_ids)
+    control.setStringList('fanart.selections', fanart_selections)
     control.ok_dialog(control.ADDON_NAME, f"Fanart Set to {fanart_display[int(select)]}")
 
 
@@ -3662,10 +3676,9 @@ def CLEAR_SELECTED_FANART(payload, params):
     if confirm == 0:
         return
 
-    fanart_all = control.getStringList('fanart.all')
-    for i in fanart_all:
-        control.setSetting(f'fanart.select.{i}', '')
-    control.setStringList('fanart.all', [])
+    # Clear all fanart selections using string lists
+    control.setStringList('fanart.mal_ids', [])
+    control.setStringList('fanart.selections', [])
     if not silent:
         control.notify(f'{control.ADDON_NAME}: Fanart', 'Fanart Successfully Cleared', sound=False)
 

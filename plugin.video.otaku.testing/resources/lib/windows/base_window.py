@@ -35,7 +35,18 @@ class BaseWindow(xbmcgui.WindowXMLDialog):
         else:
             if isinstance(fanart, list):
                 if control.settingids.fanart_select:
-                    fanart_select = control.getSetting(f'fanart.select.{mal_id}')
+                    # Get fanart selection using string lists
+                    mal_ids = control.getStringList('fanart.mal_ids')
+                    fanart_selections = control.getStringList('fanart.selections')
+                    mal_id_str = str(mal_id)
+                    
+                    fanart_select = ''
+                    try:
+                        index = mal_ids.index(mal_id_str)
+                        fanart_select = fanart_selections[index] if index < len(fanart_selections) else ''
+                    except (ValueError, IndexError):
+                        pass
+                    
                     fanart = fanart_select if fanart_select else random.choice(fanart)
                 else:
                     fanart = random.choice(fanart)

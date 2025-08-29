@@ -395,7 +395,18 @@ def xbmc_add_dir(name, url, art, info, draw_cm, bulk_add, isfolder, isplayable):
         if isinstance(art['fanart'], list):
             if settingids.fanart_select:
                 if info.get('UniqueIDs', {}).get('mal_id'):
-                    fanart_select = getSetting(f'fanart.select.{info["UniqueIDs"]["mal_id"]}')
+                    # Get fanart selection using string lists
+                    mal_ids = getStringList('fanart.mal_ids')
+                    fanart_selections = getStringList('fanart.selections')
+                    mal_id = str(info["UniqueIDs"]["mal_id"])
+                    
+                    fanart_select = ''
+                    try:
+                        index = mal_ids.index(mal_id)
+                        fanart_select = fanart_selections[index] if index < len(fanart_selections) else ''
+                    except (ValueError, IndexError):
+                        pass
+                    
                     art['fanart'] = fanart_select if fanart_select else random.choice(art['fanart'])
                 else:
                     art['fanart'] = OTAKU_FANART
@@ -449,11 +460,11 @@ def draw_items(video_data, content_type=''):
         if getBool('interface.viewidswitch'):
             # Use integer view types
             if content_type == '' or content_type == 'addons':
-                xbmc.executebuiltin('Container.SetViewMode(%d)' % int(getSetting('interface.addon.view.id')))
+                xbmc.executebuiltin('Container.SetViewMode(%d)' % getInt('interface.addon.view.id'))
             elif content_type == 'tvshows':
-                xbmc.executebuiltin('Container.SetViewMode(%d)' % int(getSetting('interface.show.view.id')))
+                xbmc.executebuiltin('Container.SetViewMode(%d)' % getInt('interface.show.view.id'))
             elif content_type == 'episodes':
-                xbmc.executebuiltin('Container.SetViewMode(%d)' % int(getSetting('interface.episode.view.id')))
+                xbmc.executebuiltin('Container.SetViewMode(%d)' % getInt('interface.episode.view.id'))
         else:
             # Use optional view types
             if content_type == '' or content_type == 'addons':

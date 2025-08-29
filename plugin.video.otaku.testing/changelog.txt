@@ -1,3 +1,7 @@
+Changelog v5.2.43 (2025-08-29):
+- Fixed String error for fanart selection
+- Fixed Integer error for view ids
+
 Changelog v5.2.42 (2025-08-25):
 - Alot of Setting Fixes
 - Added Widget Delay Setting

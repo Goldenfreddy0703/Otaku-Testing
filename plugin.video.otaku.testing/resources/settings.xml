@@ -3503,6 +3503,20 @@
 						<allowempty>true</allowempty>
 					</constraints>
 				</setting>
+				<setting id="fanart.mal_ids" type="list[String]" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="fanart.selections" type="list[String]" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
 				<setting id="DMIndex" type="list[String]" help="">
 					<level>4</level>
 					<default/>
