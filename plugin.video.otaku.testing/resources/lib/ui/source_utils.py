@@ -519,8 +519,8 @@ def remove_patterns(text):
 def cleanup_text(text):
     # Remove content within brackets or parentheses
     text = re.sub(r"\[.*?\]|\(.*?\)", "", text).strip()
-    # Replace special characters with a space
-    text = re.sub(r"[:/,!?()'\"\\\[\]\-_.]", " ", text)
+    # Replace special characters with a space, but preserve dashes for episode range detection
+    text = re.sub(r"[:/,!?()'\"\\\[\]_.]", " ", text)
     # Collapse multiple spaces into one
     return re.sub(r"\s+", " ", text).strip()
 
