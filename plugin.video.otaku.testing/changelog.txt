@@ -1,3 +1,7 @@
+Changelog v5.2.44 (2025-09-01):
+- Added network settings for toggling IPv6 and HTTP/2
+- Improved Filtering by preserving dashes
+
 Changelog v5.2.43 (2025-08-29):
 - Fixed String error for fanart selection
 - Fixed Integer error for view ids
