@@ -54,6 +54,10 @@ simkl_calendar_json = os.path.join(dataPath, 'simkl_calendar.json')
 anilist_calendar_json = os.path.join(dataPath, 'anilist_calendar.json')
 mal_calendar_json = os.path.join(dataPath, 'mal_calendar.json')
 
+# Kodi system paths
+kodi_userdata_path = xbmcvfs.translatePath('special://userdata/')
+kodi_advancedsettings_path = os.path.join(kodi_userdata_path, 'advancedsettings.xml')
+
 IMAGES_PATH = os.path.join(ADDON_PATH, 'resources', 'images')
 OTAKU_LOGO_PATH = os.path.join(ADDON_PATH, 'resources', 'images', 'trans-goku.png')
 OTAKU_LOGO2_PATH = os.path.join(ADDON_PATH, 'resources', 'images', 'trans-goku-small.png')

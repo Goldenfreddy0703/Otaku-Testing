@@ -1728,3 +1728,31 @@ msgstr ""
 msgctxt "#30429"
 msgid "Delay between widget loads to prevent API rate limiting. 1000ms = 1 second."
 msgstr ""
+
+msgctxt "#30430"
+msgid "Network Settings"
+msgstr ""
+
+msgctxt "#30431"
+msgid "Toggle IPv6"
+msgstr ""
+
+msgctxt "#30432"
+msgid "Enable/disable IPv6 connections. Kodi restart required for changes to take effect."
+msgstr ""
+
+msgctxt "#30433"
+msgid "Toggle HTTP/2"
+msgstr ""
+
+msgctxt "#30434"
+msgid "Enable/disable HTTP/2 protocol. Kodi restart required for changes to take effect."
+msgstr ""
+
+msgctxt "#30435"
+msgid "IPv6 Status"
+msgstr ""
+
+msgctxt "#30436"
+msgid "HTTP/2 Status"
+msgstr ""

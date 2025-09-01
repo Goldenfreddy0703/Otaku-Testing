@@ -3284,21 +3284,21 @@
 					</control>
 				</setting>
 				<setting id="clear_search_history" type="action" label="30013" help="">
-					<level>2</level>
+					<level>1</level>
 					<data>RunPlugin(plugin://plugin.video.otaku.testing/clear_search_history?setting=true)</data>
 					<control type="button" format="action">
 						<close>true</close>
 					</control>
 				</setting>
 				<setting id="clear_watch_history" type="action" label="30014" help="">
-					<level>2</level>
+					<level>1</level>
 					<data>RunPlugin(plugin://plugin.video.otaku.testing/clear_watch_history?setting=true)</data>
 					<control type="button" format="action">
 						<close>true</close>
 					</control>
 				</setting>
 				<setting id="rebuild_database" type="action" label="30015" help="">
-					<level>2</level>
+					<level>1</level>
 					<data>RunPlugin(plugin://plugin.video.otaku.testing/rebuild_database?setting=true)</data>
 					<control type="button" format="action">
 						<close>true</close>
@@ -3312,7 +3312,7 @@
 					</control>
 				</setting>
 				<setting id="completed_sync" type="action" label="30017" help="">
-					<level>2</level>
+					<level>1</level>
 					<data>RunPlugin(plugin://plugin.video.otaku.testing/completed_sync?setting=true)</data>
 					<control type="button" format="action">
 						<close>true</close>
@@ -3326,7 +3326,7 @@
 					</control>
 				</setting>
 				<setting id="clear_selected_fanart" type="action" label="30020" help="">
-					<level>2</level>
+					<level>1</level>
 					<data>RunPlugin(plugin://plugin.video.otaku.testing/clear_selected_fanart?setting=true)</data>
 					<control type="button" format="action">
 						<close>true</close>
@@ -3469,8 +3469,43 @@
 				</setting>
 			</group>
 
+			<!-- Network Settings -->
+			<group id="6" label="30430" help="">
+				<setting id="update_network_status" type="action" label="" help="">
+					<level>4</level>
+					<data>RunPlugin(plugin://plugin.video.otaku.testing/update_network_status)</data>
+					<visible>false</visible>
+				</setting>
+				<setting id="toggle_ipv6" type="action" label="30431" help="30432">
+					<level>1</level>
+					<data>RunPlugin(plugin://plugin.video.otaku.testing/toggle_ipv6?setting=true)</data>
+					<control type="button" format="action">
+						<close>true</close>
+					</control>
+				</setting>
+				<setting id="ipv6.status" type="string" label="30435" help="">
+					<level>1</level>
+					<default>Enabled</default>
+					<enable>false</enable>
+					<control type="edit" format="string"/>
+				</setting>
+				<setting id="toggle_http2" type="action" label="30433" help="30434">
+					<level>1</level>
+					<data>RunPlugin(plugin://plugin.video.otaku.testing/toggle_http2?setting=true)</data>
+					<control type="button" format="action">
+						<close>true</close>
+					</control>
+				</setting>
+				<setting id="http2.status" type="string" label="30436" help="">
+					<level>1</level>
+					<default>Enabled</default>
+					<enable>false</enable>
+					<control type="edit" format="string"/>
+				</setting>
+			</group>
+
 			<!-- Import/Export -->
-			<group id="6" label="30127" help="">
+			<group id="7" label="30127" help="">
 				<setting id="import_settings" type="action" label="30128" help="">
 					<level>3</level>
 					<data>RunPlugin(plugin://plugin.video.otaku.testing/import_settings?setting=true)</data>

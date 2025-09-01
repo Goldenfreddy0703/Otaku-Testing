@@ -4065,3 +4065,139 @@ def SETUP_WIZARD(payload, params):
 def TOGGLE_LANGUAGE_INVOKER(payload, params):
     import service
     service.toggle_reuselanguageinvoker()
+
+
+def _get_advancedsettings_status(element_name):
+    """Helper function to get current status of advancedsettings.xml elements"""
+    import os
+    import xml.etree.ElementTree as ET
+    
+    try:
+        if os.path.exists(control.kodi_advancedsettings_path):
+            tree = ET.parse(control.kodi_advancedsettings_path)
+            root = tree.getroot()
+            element = root.find(element_name)
+            if element is not None:
+                return element.text.lower() == 'true'
+        return False  # Default to false if not found or file doesn't exist
+    except Exception:
+        return False
+
+
+def _update_network_status():
+    """Update the status settings to reflect current advancedsettings.xml state"""
+    # Get current states
+    ipv6_disabled = _get_advancedsettings_status('disableipv6')
+    http2_disabled = _get_advancedsettings_status('disablehttp2')
+    
+    # Update status settings (remember: disabled=true means the protocol is OFF)
+    control.setSetting('ipv6.status', 'Disabled' if ipv6_disabled else 'Enabled')
+    control.setSetting('http2.status', 'Disabled' if http2_disabled else 'Enabled')
+
+
+@Route('toggle_ipv6')
+def TOGGLE_IPV6(payload, params):
+    """Toggle IPv6 setting in Kodi's advancedsettings.xml"""
+    import os
+    import xml.etree.ElementTree as ET
+    
+    try:
+        # Check if advancedsettings.xml exists
+        if os.path.exists(control.kodi_advancedsettings_path):
+            # Parse existing file
+            tree = ET.parse(control.kodi_advancedsettings_path)
+            root = tree.getroot()
+        else:
+            # Create new advancedsettings.xml
+            root = ET.Element('advancedsettings')
+            tree = ET.ElementTree(root)
+        
+        # Find or create disableipv6 element
+        disableipv6_elem = root.find('disableipv6')
+        if disableipv6_elem is None:
+            disableipv6_elem = ET.SubElement(root, 'disableipv6')
+            disableipv6_elem.text = 'false'
+        
+        # Toggle the value
+        current_value = disableipv6_elem.text.lower() == 'true'
+        new_value = not current_value
+        disableipv6_elem.text = 'true' if new_value else 'false'
+        
+        # Write back to file
+        tree.write(control.kodi_advancedsettings_path, encoding='utf-8', xml_declaration=True)
+        
+        # Update status settings
+        _update_network_status()
+        
+        # Show notification
+        status = "disabled" if new_value else "enabled"
+        control.notify(
+            title=control.ADDON_NAME,
+            text=f"IPv6 {status}. Please restart Kodi for changes to take effect.",
+            time=5000
+        )
+        
+    except Exception as e:
+        control.notify(
+            title=control.ADDON_NAME,
+            text=f"Error toggling IPv6 setting: {str(e)}",
+            time=5000
+        )
+        control.log(f"Error in TOGGLE_IPV6: {str(e)}", level='LOGINFO')
+
+
+@Route('toggle_http2')
+def TOGGLE_HTTP2(payload, params):
+    """Toggle HTTP/2 setting in Kodi's advancedsettings.xml"""
+    import os
+    import xml.etree.ElementTree as ET
+    
+    try:
+        # Check if advancedsettings.xml exists
+        if os.path.exists(control.kodi_advancedsettings_path):
+            # Parse existing file
+            tree = ET.parse(control.kodi_advancedsettings_path)
+            root = tree.getroot()
+        else:
+            # Create new advancedsettings.xml
+            root = ET.Element('advancedsettings')
+            tree = ET.ElementTree(root)
+        
+        # Find or create disablehttp2 element
+        disablehttp2_elem = root.find('disablehttp2')
+        if disablehttp2_elem is None:
+            disablehttp2_elem = ET.SubElement(root, 'disablehttp2')
+            disablehttp2_elem.text = 'false'
+        
+        # Toggle the value
+        current_value = disablehttp2_elem.text.lower() == 'true'
+        new_value = not current_value
+        disablehttp2_elem.text = 'true' if new_value else 'false'
+        
+        # Write back to file
+        tree.write(control.kodi_advancedsettings_path, encoding='utf-8', xml_declaration=True)
+        
+        # Update status settings
+        _update_network_status()
+        
+        # Show notification
+        status = "disabled" if new_value else "enabled"
+        control.notify(
+            title=control.ADDON_NAME,
+            text=f"HTTP/2 {status}. Please restart Kodi for changes to take effect.",
+            time=5000
+        )
+        
+    except Exception as e:
+        control.notify(
+            title=control.ADDON_NAME,
+            text=f"Error toggling HTTP/2 setting: {str(e)}",
+            time=5000
+        )
+        control.log(f"Error in TOGGLE_HTTP2: {str(e)}", level='LOGINFO')
+
+
+@Route('update_network_status')
+def UPDATE_NETWORK_STATUS(payload, params):
+    """Update network status settings when settings are opened"""
+    _update_network_status()
