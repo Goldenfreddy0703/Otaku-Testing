@@ -1,3 +1,6 @@
+Changelog v5.2.45 (2025-09-10):
+- Small Fix with Migration Script
+
 Changelog v5.2.44 (2025-09-01):
 - Added network settings for toggling IPv6 and HTTP/2
 - Improved Filtering by preserving dashes

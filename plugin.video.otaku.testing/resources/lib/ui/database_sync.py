@@ -257,6 +257,19 @@ class SyncDatabase:
         except Exception as e:
             control.log(f"Error writing migration settings: {e}")
 
+        # Remove old addons
+        try:
+            import shutil
+            import os
+
+            addon_ids = ['script.otaku.mappings', 'script.otaku.themepak']
+            for addon_id in addon_ids:
+                addon_path = os.path.join(control.ADDONS_PATH, addon_id)
+                if os.path.exists(addon_path):
+                    shutil.rmtree(addon_path)
+        except Exception as e:
+            control.log(f"Error removing old addons: {e}")
+
         # Inform user and force restart Kodi
         control.ok_dialog(control.ADDON_NAME, "Otaku has gotten a major update and requires a force restart to complete the watchlist migration.\nPlease restart Otaku to complete the migration.")
         xbmc.executebuiltin('Quit')

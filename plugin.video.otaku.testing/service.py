@@ -183,11 +183,40 @@ def apply_migration_settings():
                 migration_data = json.load(f)
             # Restore each setting from the migration file
             for key, value in migration_data.items():
-                control.setSetting(key, value)
+                try:
+                    # Try bool
+                    if isinstance(value, bool):
+                        control.setBool(key, value)
+                    # Try int (but not bool, since bool is a subclass of int)
+                    elif isinstance(value, int) and not isinstance(value, bool):
+                        control.setInt(key, value)
+                    # Fallback to string
+                    else:
+                        control.setSetting(key, str(value))
+                except Exception as e:
+                    control.log(f"Error setting {key}: {e}")
+                    control.setSetting(key, str(value))
             os.remove(control.migrationSettings)
             control.ok_dialog(control.ADDON_NAME, "Migration complete. Watchlist Settings have been restored.")
-            control.execute('RunPlugin(plugin://plugin.video.otaku.testing/setup_wizard)')
             getMigration()
+            # Ask the user if they would like to go throught the setup wizard
+            # Here the button labels are:
+            # Button 0: "Yes"   | Button 1: "No"
+            choice = control.yesno_dialog(
+                control.ADDON_NAME + ' - ' + control.lang(30417),
+                "Welcome back to Otaku!!!\nSense most of your settings have been deleted, would you like to go through the setup wizard?",
+                "No", "Yes",
+            )
+
+            # Yes selected
+            if choice == 1:
+                control.setBool('first_time', False)
+                control.execute('RunPlugin(plugin://plugin.video.otaku/setup_wizard)')
+
+            # No selected
+            elif choice == 0:
+                control.setBool('first_time', False)
+
             control.log("Migration settings successfully applied and file removed.")
         except Exception as e:
             control.log(f"Error applying migration settings: {e}")

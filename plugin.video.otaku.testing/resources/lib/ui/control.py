@@ -28,6 +28,7 @@ ADDON_VERSION = addonInfo('version')
 ADDON_ICON = addonInfo('icon')
 OTAKU_FANART = addonInfo('fanart')
 ADDON_PATH = ADDON.getAddonInfo('path')
+ADDONS_PATH = xbmcvfs.translatePath('special://home/addons/')
 pathExists = xbmcvfs.exists
 dataPath = xbmcvfs.translatePath(addonInfo('profile'))
 kodi_version = float(xbmcaddon.Addon('xbmc.addon').getAddonInfo('version')[:4])
