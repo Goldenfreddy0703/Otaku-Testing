@@ -172,8 +172,8 @@ class ANIDBAPI:
         kodi_meta.update(pickle.loads(show_meta['art']))
         fanart = kodi_meta.get('fanart')
         poster = kodi_meta.get('poster')
-        clearart = random.choice(kodi_meta.get('clearart', ['']))
-        clearlogo = random.choice(kodi_meta.get('clearlogo', ['']))
+        clearart = random.choice(kodi_meta['clearart']) if kodi_meta.get('clearart') else ''
+        clearlogo = random.choice(kodi_meta['clearlogo']) if kodi_meta.get('clearlogo') else ''
         tvshowtitle = kodi_meta['title_userPreferred']
         if not (eps_watched := kodi_meta.get('eps_watched')) and control.settingids.watchlist_data:
             from resources.lib.WatchlistFlavor import WatchlistFlavor
@@ -185,7 +185,7 @@ class ANIDBAPI:
                     database.update_kodi_meta(mal_id, kodi_meta)
         episodes = database.get_episode_list(mal_id)
         dub_data = indexers.process_dub(mal_id, kodi_meta['ename']) if control.getBool('jz.dub') else None
-        
+
         if episodes:
             if kodi_meta['status'] not in ["FINISHED", "Finished Airing"]:
                 return self.append_episodes(mal_id, episodes, eps_watched, poster, fanart, clearart, clearlogo, tvshowtitle, dub_data)

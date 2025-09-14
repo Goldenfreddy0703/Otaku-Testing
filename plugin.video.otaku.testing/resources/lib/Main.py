@@ -1596,7 +1596,7 @@ def EDIT_SEARCH_ITEM(payload, params):
         if search_type in payload:
             search_item = payload.rsplit(search_type)[1]
             if search_item:
-                query = control.keyboard(control.lang(30905), search_item)
+                query = control.keyboard(control.lang(30918), search_item)
                 if query and query != search_item:
                     database.remove_search(table=format, value=search_item)
                     control.sleep(500)
@@ -1631,7 +1631,7 @@ def SEARCH(payload, params):
     query = payload
     page = int(params.get('page', 1))
     if not query:
-        query = control.keyboard(control.lang(30905))
+        query = control.keyboard(control.lang(30918))
         if not query:
             return control.draw_items([], 'tvshows')
         if control.getInt('searchhistory') == 0:
@@ -4201,3 +4201,12 @@ def TOGGLE_HTTP2(payload, params):
 def UPDATE_NETWORK_STATUS(payload, params):
     """Update network status settings when settings are opened"""
     _update_network_status()
+
+
+@Route('migration_process')
+def MIGRATION_PROCESS(payload, params):
+    from resources.lib.ui.database_sync import SyncDatabase
+    confirm = control.yesno_dialog(control.ADDON_NAME, control.lang(30440))
+    if confirm == 0:
+        return
+    SyncDatabase().migration_process()

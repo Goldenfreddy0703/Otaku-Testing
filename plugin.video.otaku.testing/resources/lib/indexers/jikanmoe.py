@@ -133,8 +133,8 @@ class JikanAPI:
         kodi_meta.update(pickle.loads(show_meta['art']))
         fanart = kodi_meta.get('fanart')
         poster = kodi_meta.get('poster')
-        clearart = random.choice(kodi_meta.get('clearart', ['']))
-        clearlogo = random.choice(kodi_meta.get('clearlogo', ['']))
+        clearart = random.choice(kodi_meta['clearart']) if kodi_meta.get('clearart') else ''
+        clearlogo = random.choice(kodi_meta['clearlogo']) if kodi_meta.get('clearlogo') else ''
         tvshowtitle = kodi_meta['title_userPreferred']
         if not (eps_watched := kodi_meta.get('eps_watched')) and control.settingids.watchlist_data:
             from resources.lib.WatchlistFlavor import WatchlistFlavor

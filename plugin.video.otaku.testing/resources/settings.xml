@@ -3522,8 +3522,19 @@
 				</setting>
 			</group>
 
+			<!-- Migration Process -->
+			<group id="8" label="30437" help="">
+				<setting id="migration_process" type="action" label="30438" help="30439">
+					<level>0</level>
+					<data>RunPlugin(plugin://plugin.video.otaku.testing/migration_process?setting=true)</data>
+					<control type="button" format="action">
+						<close>true</close>
+					</control>
+				</setting>
+			</group>
+
 			<!-- Hidden Settings -->
-			<group id="8" label="" help="">
+			<group id="9" label="" help="">
 				<setting id="otaku.version" type="string" label="" help="">
 					<level>4</level>
 					<default/>

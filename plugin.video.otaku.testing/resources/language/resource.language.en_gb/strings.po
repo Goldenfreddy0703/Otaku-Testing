@@ -1756,3 +1756,19 @@ msgstr ""
 msgctxt "#30436"
 msgid "HTTP/2 Status"
 msgstr ""
+
+msgctxt "#30437"
+msgid "Migration Process"
+msgstr ""
+
+msgctxt "#30438"
+msgid "Run the Migration Process"
+msgstr ""
+
+msgctxt "#30439"
+msgid "Use only if you did not get Migration Process after v5.2.45"
+msgstr ""
+
+msgctxt "#30440"
+msgid "[COLOR red]WARNING[/COLOR]\nThis will reset all of your settings except Watchlist, are you sure?"
+msgstr ""

@@ -37,7 +37,7 @@ class EasyDebrid:
             control.ok_dialog(control.ADDON_NAME, f'EasyDebrid {control.lang(30024)}')
         return resp and "id" in resp
 
-    def resolve_hoster(self, endpoint, episode, pack_select=False):
+    def resolve_hoster(self, endpoint, episode, pack_select):
         """
         Generate a debrid link using /link/generate.
         If pack_select is True and multiple files are returned,
@@ -49,14 +49,16 @@ class EasyDebrid:
         resp = json.loads(r) if r else {}
 
         files = resp.get('files')
-        if isinstance(files, list):
-            if pack_select and episode:
-                best_match = source_utils.get_best_match('filename', files, episode, pack_select=True)
-                if best_match and best_match.get('url'):
-                    return best_match['url']
-            # Default: return the first file's URL.
-            if files and files[0].get('url'):
-                return files[0]['url']
+        if isinstance(files, list) and episode:
+            # Always use get_best_match for episode matching
+            best_match = source_utils.get_best_match('filename', files, episode, pack_select)
+            if best_match and best_match.get('url'):
+                return best_match['url']
+            # If no match, get_best_match will handle user selection or return empty
+            return None
+        elif isinstance(files, list) and files and files[0].get('url'):
+            # No episode provided, fallback to first file
+            return files[0]['url']
         return files or resp
 
     def lookup_link(self, endpoint):
@@ -72,13 +74,13 @@ class EasyDebrid:
         resp = json.loads(r) if r else {}
         return resp
 
-    def resolve_single_magnet(self, hash_, magnet, episode='', pack_select=False):
+    def resolve_single_magnet(self, hash_, magnet, episode, pack_select):
         """
         For compatibility with our add-on interface.
         Since EasyDebrid does not support adding a magnet,
         resolve its link by generating a debrid link for the provided magnet URL.
         """
-        return self.resolve_hoster(magnet)
+        return self.resolve_hoster(magnet, episode, pack_select)
 
     def resolve_cloud(self, source, pack_select):
         # EasyDebrid does not support cloud/torrent caching.

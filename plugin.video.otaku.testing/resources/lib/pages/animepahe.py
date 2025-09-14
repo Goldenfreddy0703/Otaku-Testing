@@ -4,6 +4,7 @@ import pickle
 from bs4 import BeautifulSoup, SoupStrainer
 from resources.lib.ui import database, source_utils
 from resources.lib.ui.BrowserBase import BrowserBase
+from resources.lib.endpoints import malsync
 
 
 class Sources(BrowserBase):
@@ -14,12 +15,10 @@ class Sources(BrowserBase):
     }
 
     def get_sources(self, mal_id, episode):
-        show = database.get_show(mal_id)
-        kodi_meta = pickle.loads(show.get('kodi_meta'))
-        title = kodi_meta.get('name')
-        title = self._clean_title(title)
-        params = {'m': 'search',
-                  'q': title}
+        title = malsync.get_title(mal_id, site='animepahe')
+        if not title:
+            return []
+        params = {'m': 'search', 'q': title}
         r = database.get(
             self._get_request,
             8,
