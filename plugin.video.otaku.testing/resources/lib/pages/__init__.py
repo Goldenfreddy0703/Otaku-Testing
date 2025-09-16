@@ -286,10 +286,10 @@ class Sources(GetSources):
 
             if media_type == 'movie':
                 max_GB = float(control.getInt('general.movie.maxGB'))
-                min_GB = float(control.getInt('general.movie.minGB'))
+                min_GB = control.getNumber('general.movie.minGB')
             else:
                 max_GB = float(control.getInt('general.episode.maxGB'))
-                min_GB = float(control.getInt('general.episode.minGB'))
+                min_GB = control.getNumber('general.episode.minGB')
 
             torrent_list = []
             for i in _torrent_list:

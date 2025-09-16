@@ -1,3 +1,7 @@
+Changelog v5.2.48 (2025-09-15):
+- Fixed two Setting types
+- Removed print statement
+
 Changelog v5.2.47 (2025-09-15):
 - Added New Meta Api
 - Renamed OtakuBrowser to MetaBrowser

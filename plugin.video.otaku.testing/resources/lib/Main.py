@@ -3968,17 +3968,14 @@ def SETUP_WIZARD(payload, params):
 
     # Otaku selected
     if choice == 1:
-        control.print("Otaku selected")
         control.setSetting('browser.api', 'otaku')
 
     # Mal selected
     elif choice == 0:
-        control.print("Mal selected")
         control.setSetting('browser.api', 'mal')
 
     # Anilist selected
     elif choice == 2:
-        control.print("Anilist selected")
         control.setSetting('browser.api', 'anilist')
 
         # Ask the user if they would like to replace Anilist Posters with Mal Posters
