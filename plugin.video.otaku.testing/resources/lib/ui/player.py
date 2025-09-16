@@ -13,7 +13,7 @@ from resources.lib.endpoints import anilist
 playList = control.playList
 player = xbmc.Player
 
-# from resources.lib import OtakuBrowser
+# from resources.lib import MetaBrowser
 
 
 class WatchlistPlayer(player):

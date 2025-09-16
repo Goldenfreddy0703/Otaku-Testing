@@ -3,9 +3,9 @@ import pickle
 from resources.lib.ui import control, database
 from resources.lib.ui.router import Route
 from resources.lib.WatchlistFlavor import WatchlistFlavor
-from resources.lib import OtakuBrowser
+from resources.lib import MetaBrowser
 
-BROWSER = OtakuBrowser.BROWSER
+BROWSER = MetaBrowser.BROWSER
 
 
 def get_auth_dialog(flavor):
@@ -70,7 +70,7 @@ def WATCHLIST_TO_EP(payload, params):
     kodi_meta['eps_watched'] = eps_watched
     database.update_kodi_meta(mal_id, kodi_meta)
 
-    anime_general, content_type = OtakuBrowser.get_anime_init(mal_id)
+    anime_general, content_type = MetaBrowser.get_anime_init(mal_id)
     control.draw_items(anime_general, content_type)
 
 

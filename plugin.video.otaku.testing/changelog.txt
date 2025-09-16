@@ -1,3 +1,7 @@
+Changelog v5.2.47 (2025-09-15):
+- Added New Meta Api
+- Renamed OtakuBrowser to MetaBrowser
+
 Changelog v5.2.46 (2025-09-14):
 - Added Migration Setting
 - Fixed AnimePahe anime searching

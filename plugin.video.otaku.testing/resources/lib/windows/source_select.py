@@ -5,7 +5,7 @@ from resources.lib.ui import control, database
 from resources.lib.windows.base_window import BaseWindow
 from resources.lib.windows.download_manager import Manager
 from resources.lib.windows.resolver import Resolver
-from resources.lib import OtakuBrowser
+from resources.lib import MetaBrowser
 
 
 class SourceSelect(BaseWindow):
@@ -25,7 +25,7 @@ class SourceSelect(BaseWindow):
 
         # Set properties for the selected episode
         if episode:
-            anime_init = OtakuBrowser.get_anime_init(actionArgs.get('mal_id'))
+            anime_init = MetaBrowser.get_anime_init(actionArgs.get('mal_id'))
             episode = int(episode)
             try:
                 self.setProperty('item.info.season', str(anime_init[0][episode - 1]['info']['season']))

@@ -245,9 +245,10 @@
 			<group id="3" label="30130" help="">
 				<setting id="browser.api" type="string" label="30130" help="">
 					<level>1</level>
-					<default>mal</default>
+					<default>otaku</default>
 					<constraints>
 						<options>
+							<option label="Otaku">otaku</option>
 							<option label="Anilist">anilist</option>
 							<option label="MAL">mal</option>
 						</options>
@@ -315,7 +316,12 @@
 						<popup>false</popup>
 					</control>
 					<dependencies>
-						<dependency type="visible" setting="browser.api">mal</dependency>
+						<dependency type="visible">
+							<or>
+								<condition setting="browser.api">mal</condition>
+								<condition setting="browser.api">otaku</condition>
+							</or>
+						</dependency>
 					</dependencies>
 				</setting>
 				<setting id="interface.perpage.watchlist" type="integer" label="30108" help="">
@@ -467,7 +473,12 @@
 					<default>false</default>
 					<control type="toggle"/>
 					<dependencies>
-						<dependency type="visible" setting="browser.api">mal</dependency>
+						<dependency type="visible">
+							<or>
+								<condition setting="browser.api">mal</condition>
+								<condition setting="browser.api">otaku</condition>
+							</or>
+						</dependency>
 					</dependencies>
 				</setting>
 				<setting id="contentrating.menu.mal" type="integer" label="30337" help="" parent="contentrating.bool">

@@ -6,9 +6,9 @@ import time
 from resources.lib import Main
 from resources.lib.ui import control
 from resources.lib.windows.anichart_window import BaseWindow
-from resources.lib import OtakuBrowser, WatchlistIntegration
+from resources.lib import MetaBrowser, WatchlistIntegration
 
-BROWSER = OtakuBrowser.BROWSER
+BROWSER = MetaBrowser.BROWSER
 
 
 class Anichart(BaseWindow):

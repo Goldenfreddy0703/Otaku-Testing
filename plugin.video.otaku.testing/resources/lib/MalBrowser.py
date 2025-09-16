@@ -749,9 +749,6 @@ class MalBrowser(BrowserBase):
         if self.genre:
             params['genres'] = self.genre
 
-        if self.genre:
-            params['genres'] = self.genre
-
         voted = database.get(self.get_base_res, 24, f"{self._BASE_URL}/anime", params)
         base_plugin_url = f"{prefix}?page=%d" if prefix else "voted_this_year?page=%d"
         return self.process_mal_view(voted, base_plugin_url, page)
@@ -1700,7 +1697,7 @@ class MalBrowser(BrowserBase):
         if kodi_meta.get('clearlogo'):
             base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
 
-        if res.get('type') in ['Movie', 'ONA', 'OVA', 'Special', 'TV Special'] and res['episodes'] == 1:
+        if res['episodes'] == 1:
             base['url'] = f'play_movie/{mal_id}/'
             base['info']['mediatype'] = 'movie'
             return utils.parse_view(base, False, True, dub)
