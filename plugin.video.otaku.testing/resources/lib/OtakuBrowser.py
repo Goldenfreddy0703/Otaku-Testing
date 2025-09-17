@@ -385,7 +385,7 @@ class OtakuBrowser(BrowserBase):
         return self.process_otaku_view(airing, base_plugin_url, page)
 
     def get_trending_last_year(self, page, format, prefix=None):
-        _, _, _, _, _, _, _, _, year_start_date_last, year_end_date_last, _, _, _, _ = self.get_season_year('last')
+        _, _, _, _, _, _, _, _, year_start_date_last, year_end_date_last, _, _, _, _ = self.get_season_year('')
         params = {
             'page': page,
             'limit': self.perpage,
@@ -2036,7 +2036,7 @@ class OtakuBrowser(BrowserBase):
 
         # Duration
         duration = self.duration_to_seconds(mal_res.get('duration')) if mal_res and 'duration' in mal_res else None
-        if not duration and anilist_res and 'duration' in anilist_res:
+        if not duration and anilist_res and 'duration' in anilist_res and anilist_res['duration'] is not None:
             duration = anilist_res['duration'] * 60
 
         # Genre

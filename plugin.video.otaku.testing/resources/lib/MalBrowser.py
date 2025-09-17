@@ -393,7 +393,7 @@ class MalBrowser(BrowserBase):
         return self.process_mal_view(airing, base_plugin_url, page)
 
     def get_trending_last_year(self, page, format, prefix=None):
-        _, _, _, _, _, _, _, _, year_start_date_last, year_end_date_last, _, _, _, _ = self.get_season_year('last')
+        _, _, _, _, _, _, _, _, year_start_date_last, year_end_date_last, _, _, _, _ = self.get_season_year('')
         params = {
             'page': page,
             'limit': self.perpage,
