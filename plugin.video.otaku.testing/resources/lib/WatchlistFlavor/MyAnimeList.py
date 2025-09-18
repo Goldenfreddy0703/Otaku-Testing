@@ -145,8 +145,19 @@ class MyAnimeListWLF(WatchlistFlavorBase):
         results = json.loads(r) if r else {}
 
         # Extract mal_ids and create a list of dictionaries with 'mal_id' keys
-        mal_ids = [{'mal_id': item['node']['id']} for item in results.get('data', [])]
-        get_meta.collect_meta(mal_ids)
+        mal_ids = [item['node']['id'] for item in results.get('data', [])]
+        mal_id_dicts = [{'mal_id': mid} for mid in mal_ids]
+        get_meta.collect_meta(mal_id_dicts)
+
+        # Fetch AniList data for all MAL IDs
+        try:
+            from resources.lib.endpoints.anilist import Anilist
+            anilist_data = Anilist().get_anilist_by_mal_ids(mal_ids)
+        except Exception:
+            anilist_data = []
+
+        # Build AniList lookup by MAL ID
+        anilist_by_mal_id = {item.get('idMal'): item for item in anilist_data if item.get('idMal')}
 
         # If sorting by anime_title and language is english, sort manually by english title.
         if self.__get_sort() == 'anime_title' and self.title_lang == 'english':
@@ -156,65 +167,203 @@ class MyAnimeListWLF(WatchlistFlavorBase):
         if int(self.sort) == 2:
             results['data'].sort(key=lambda item: item['list_status']['num_episodes_watched'])
 
-        # If oder is descending, reverse the order.
+        # If order is descending, reverse the order.
         if int(self.order) == 1:
             results['data'].reverse()
 
-        all_results = list(map(self._base_next_up_view, results['data'])) if next_up else list(map(self._base_watchlist_status_view, results['data']))
+        # Pass AniList data to view functions
+        def viewfunc(res):
+            mal_id = res['node']['id']
+            anilist_item = anilist_by_mal_id.get(mal_id)
+            return self._base_next_up_view(res, anilist_res=anilist_item) if next_up else self._base_watchlist_status_view(res, anilist_res=anilist_item)
+
+        all_results = list(map(viewfunc, results['data']))
         all_results += self.handle_paging(results.get('paging', {}).get('next'), base_plugin_url, page)
         return all_results
 
     @div_flavor
-    def _base_watchlist_status_view(self, res, mal_dub=None):
+    def _base_watchlist_status_view(self, res, mal_dub=None, anilist_res=None):
         mal_id = res['node']['id']
-
         if not mal_id:
             control.log(f"Mal ID not found for {mal_id}", 'warning')
 
         dub = True if mal_dub and mal_dub.get(str(mal_id)) else False
 
+        # Title logic: prefer MAL, fallback to AniList
         title = res['node'].get('title')
         if self.title_lang == 'english':
             title = res['node']['alternative_titles'].get('en') or title
+        if not title and anilist_res:
+            title = anilist_res.get('title', {}).get(self.title_lang) or anilist_res.get('title', {}).get('romaji') or title
+        if title is None:
+            title = ''
 
+        # Add relation info (if available)
+        if anilist_res and anilist_res.get('relationType'):
+            title += ' [I]%s[/I]' % control.colorstr(anilist_res['relationType'], 'limegreen')
+
+        # Plot/synopsis
+        plot = res['node'].get('synopsis')
+        if not plot and anilist_res and anilist_res.get('description'):
+            desc = anilist_res['description']
+            desc = desc.replace('<i>', '[I]').replace('</i>', '[/I]')
+            desc = desc.replace('<b>', '[B]').replace('</b>', '[/B]')
+            desc = desc.replace('<br>', '[CR]')
+            desc = desc.replace('\n', '')
+            plot = desc
+
+        # Genres
+        genre = [x.get('name') for x in res['node'].get('genres', [])]
+        if (not genre or not genre) and anilist_res:
+            genre = anilist_res.get('genres')
+
+        # Studios
+        studio = [x.get('name') for x in res['node'].get('studios', [])]
+        if (not studio or not studio) and anilist_res and anilist_res.get('studios'):
+            # AniList studios may be list or dict
+            if isinstance(anilist_res['studios'], list):
+                studio = [s.get('name') for s in anilist_res['studios']] or studio
+            elif isinstance(anilist_res['studios'], dict) and 'edges' in anilist_res['studios']:
+                studio = [s['node'].get('name') for s in anilist_res['studios']['edges']] or studio
+
+        # Status
+        status = res['node'].get('status')
+        if not status and anilist_res:
+            status = anilist_res.get('status')
+
+        # Duration
+        duration = res['node'].get('average_episode_duration')
+        if not duration and anilist_res and anilist_res.get('duration'):
+            duration = anilist_res.get('duration') * 60 if isinstance(anilist_res.get('duration'), int) else anilist_res.get('duration')
+
+        # Country
+        country = None
+        if anilist_res:
+            country = [anilist_res.get('countryOfOrigin', '')]
+
+        # Rating/score
+        rating = res['node'].get('mean')
+        info_rating = None
+        if isinstance(rating, (float, int)) and rating:
+            info_rating = {'score': rating}
+        elif anilist_res and anilist_res.get('averageScore'):
+            info_rating = {'score': anilist_res.get('averageScore') / 10.0}
+            if anilist_res.get('stats') and anilist_res['stats'].get('scoreDistribution'):
+                total_votes = sum([score['amount'] for score in anilist_res['stats']['scoreDistribution']])
+                info_rating['votes'] = total_votes
+
+        # Trailer
+        trailer = None
+        if anilist_res and anilist_res.get('trailer'):
+            try:
+                if anilist_res['trailer']['site'] == 'youtube':
+                    trailer = f"plugin://plugin.video.youtube/play/?video_id={anilist_res['trailer']['id']}"
+                else:
+                    trailer = f"plugin://plugin.video.dailymotion_com/?url={anilist_res['trailer']['id']}&mode=playVideo"
+            except (KeyError, TypeError):
+                pass
+
+        # Playcount
         eps_watched = res['list_status']["num_episodes_watched"]
         eps = res['node']["num_episodes"]
-        image = res['node']['main_picture'].get('large', res['node']['main_picture']['medium'])
-
-        info = {
-            'UniqueIDs': {
-                'mal_id': str(mal_id),
-                **database.get_mapping_ids(mal_id, 'mal_id')
-            },
-            'title': title,
-            'plot': res['node']['synopsis'],
-            'rating': {'score': res['node'].get('mean', 0)},
-            'duration': res['node']['average_episode_duration'],
-            'genre': [x.get('name') for x in res['node']['genres']],
-            'status': res['node']['status'],
-            'mpaa': res['node'].get('rating'),
-            'mediatype': 'tvshow',
-            'studio': [x.get('name') for x in res['node']['studios']]
-        }
-
-        if start_date := res['node'].get('start_date'):
-            info['premiered'] = start_date
-            info['year'] = int(start_date[:4])
-
+        playcount = None
         if eps_watched == eps and eps != 0:
-            info['playcount'] = 1
+            playcount = 1
 
+        # Premiered/year
+        start_date = res['node'].get('start_date')
+        premiered = None
+        year = None
+        if not start_date and anilist_res and anilist_res.get('startDate'):
+            start_date = anilist_res.get('startDate')
+        if start_date:
+            if isinstance(start_date, dict):
+                premiered = '{}-{:02}-{:02}'.format(start_date.get('year', 0), start_date.get('month', 1), start_date.get('day', 1))
+                year = start_date.get('year', None)
+            else:
+                premiered = str(start_date)
+                try:
+                    year = int(str(start_date)[:4])
+                except Exception:
+                    pass
+
+        # Cast
+        cast = None
+        if anilist_res and anilist_res.get('characters'):
+            try:
+                cast = []
+                for i, x in enumerate(anilist_res['characters'].get('edges', [])):
+                    role = x['node']['name']['userPreferred']
+                    actor = x['voiceActors'][0]['name']['userPreferred']
+                    actor_hs = x['voiceActors'][0]['image']['large']
+                    cast.append({'name': actor, 'role': role, 'thumbnail': actor_hs, 'index': i})
+            except (IndexError, KeyError, TypeError):
+                pass
+
+        # UniqueIDs
+        unique_ids = {'mal_id': str(mal_id)}
+        if anilist_res and anilist_res.get('id'):
+            unique_ids['anilist_id'] = str(anilist_res['id'])
+            unique_ids.update(database.get_mapping_ids(anilist_res['id'], 'anilist_id'))
+        unique_ids.update(database.get_mapping_ids(mal_id, 'mal_id'))
+
+        # Art/Images
         show_meta = database.get_show_meta(mal_id)
         kodi_meta = pickle.loads(show_meta.get('art')) if show_meta else {}
+        image = res['node']['main_picture'].get('large', res['node']['main_picture']['medium']) if res['node'].get('main_picture') else None
+        poster = image
+        banner = None
+        fanart = kodi_meta.get('fanart', image)
+        # AniList fallback for missing images
+        if anilist_res and anilist_res.get('coverImage'):
+            if not image:
+                image = anilist_res['coverImage'].get('extraLarge')
+            if not poster:
+                poster = anilist_res['coverImage'].get('extraLarge')
+            if not fanart:
+                fanart = anilist_res['coverImage'].get('extraLarge')
+        if anilist_res and anilist_res.get('bannerImage'):
+            banner = anilist_res.get('bannerImage')
+
+        info = {
+            'UniqueIDs': unique_ids,
+            'title': title,           # Title
+            'plot': plot,             # Plot/Synopsis
+            'genre': genre,           # Genres
+            'studio': studio,         # Studios
+            'status': status,         # Status
+            'duration': duration,     # Duration
+            'country': country,       # Country
+            'mediatype': 'tvshow',
+        }
+        if info_rating:
+            info['rating'] = info_rating
+        if playcount:
+            info['playcount'] = playcount
+        if premiered:
+            info['premiered'] = premiered
+        if year:
+            info['year'] = year
+        if cast:
+            info['cast'] = cast
+        if trailer:
+            info['trailer'] = trailer
+        if anilist_res and anilist_res.get('countryOfOrigin'):
+            info['mpaa'] = anilist_res.get('countryOfOrigin')
+        elif res['node'].get('rating'):
+            info['mpaa'] = res['node'].get('rating')
+
         base = {
             "name": f"{title} - {eps_watched}/{eps}",
             "url": f'watchlist_to_ep/{mal_id}/{eps_watched}',
             "image": image,
-            "poster": image,
-            'fanart': kodi_meta['fanart'] if kodi_meta.get('fanart') else image,
+            "poster": poster,
+            'fanart': fanart,
+            "banner": banner,
             "info": info
         }
 
+        # Extra art
         if kodi_meta.get('thumb'):
             base['landscape'] = random.choice(kodi_meta['thumb'])
         if kodi_meta.get('clearart'):
@@ -222,6 +371,7 @@ class MyAnimeListWLF(WatchlistFlavorBase):
         if kodi_meta.get('clearlogo'):
             base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
 
+        # Movie logic
         if res['node']['media_type'] == 'movie' and eps == 1:
             base['url'] = f'play_movie/{mal_id}/'
             base['info']['mediatype'] = 'movie'

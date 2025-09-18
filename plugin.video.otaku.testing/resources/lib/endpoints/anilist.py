@@ -152,3 +152,101 @@ class Anilist:
     def set_cached_data(self, data):
         with open(control.anilist_calendar_json, 'w') as f:
             json.dump(data, f)
+
+    @staticmethod
+    def get_anilist_by_mal_ids(mal_ids, page=1, media_type="ANIME"):
+        _ANILIST_BASE_URL = "https://graphql.anilist.co"
+
+        query = '''
+        query ($page: Int, $malIds: [Int], $type: MediaType) {
+          Page(page: $page) {
+            pageInfo {
+              hasNextPage
+              total
+            }
+            media(idMal_in: $malIds, type: $type) {
+              id
+              idMal
+              title {
+                romaji
+                english
+              }
+              coverImage {
+                extraLarge
+              }
+              bannerImage
+              startDate {
+                year
+                month
+                day
+              }
+              description
+              synonyms
+              format
+              episodes
+              status
+              genres
+              duration
+              countryOfOrigin
+              averageScore
+              characters(
+                page: 1
+                sort: ROLE
+                perPage: 10
+              ) {
+                edges {
+                  node {
+                    name {
+                      userPreferred
+                    }
+                  }
+                  voiceActors(language: JAPANESE) {
+                    name {
+                      userPreferred
+                    }
+                    image {
+                      large
+                    }
+                  }
+                }
+              }
+              studios {
+                edges {
+                  node {
+                    name
+                  }
+                }
+              }
+              trailer {
+                id
+                site
+              }
+              stats {
+                scoreDistribution {
+                  score
+                  amount
+                }
+              }
+            }
+          }
+        }
+        '''
+
+        all_media = []
+        page = 1
+        while True:
+            variables = {
+                "page": page,
+                "malIds": mal_ids,
+                "type": media_type
+            }
+            result = client.request(_ANILIST_BASE_URL, post={'query': query, 'variables': variables}, jpost=True)
+            results = json.loads(result)
+            page_data = results.get('data', {}).get('Page', {})
+            media = page_data.get('media', [])
+            all_media.extend(media)
+            has_next = page_data.get('pageInfo', {}).get('hasNextPage', False)
+            if not has_next:
+                break
+            page += 1
+        return all_media

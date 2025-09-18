@@ -101,9 +101,7 @@ class SimklWLF(WatchlistFlavorBase):
         # Get the progress of the item
         def get_progress(item):
             try:
-                # Expected format: "Title - current/total"
                 text = item['name']
-                # Get the part after the last " - "
                 progress_parts = text.rsplit(" - ", 1)
                 if len(progress_parts) == 2:
                     current = int(progress_parts[1].split("/")[0])
@@ -113,11 +111,28 @@ class SimklWLF(WatchlistFlavorBase):
                 current = 0
             return current
 
-        # Extract mal_ids from the new API response structure
-        mal_ids = [{'mal_id': anime['show']['ids']['mal']} for anime in results['anime']]
-        get_meta.collect_meta(mal_ids)
+        # Extract mal_ids from Simkl response
+        mal_ids = [anime['show']['ids']['mal'] for anime in results['anime'] if anime['show']['ids'].get('mal')]
+        mal_id_dicts = [{'mal_id': mid} for mid in mal_ids]
+        get_meta.collect_meta(mal_id_dicts)
 
-        all_results = list(map(self._base_next_up_view, results['anime'])) if next_up else list(map(self._base_watchlist_status_view, results['anime']))
+        # Fetch AniList data for all MAL IDs
+        try:
+            from resources.lib.endpoints.anilist import Anilist
+            anilist_data = Anilist().get_anilist_by_mal_ids(mal_ids)
+        except Exception:
+            anilist_data = []
+
+        # Build AniList lookup by MAL ID (ensure all keys and lookups are strings)
+        anilist_by_mal_id = {str(item.get('idMal')): item for item in anilist_data if item.get('idMal')}
+
+        # Pass AniList data to view functions
+        def viewfunc(res):
+            mal_id = str(res['show']['ids'].get('mal'))
+            anilist_item = anilist_by_mal_id.get(mal_id)
+            return self._base_next_up_view(res, anilist_res=anilist_item) if next_up else self._base_watchlist_status_view(res, anilist_res=anilist_item)
+
+        all_results = list(map(viewfunc, results['anime']))
 
         if int(self.sort) == 0:  # anime_title
             all_results = sorted(all_results, key=lambda x: x['info']['title'])
@@ -136,7 +151,7 @@ class SimklWLF(WatchlistFlavorBase):
         return all_results
 
     @div_flavor
-    def _base_watchlist_status_view(self, res, mal_dub=None):
+    def _base_watchlist_status_view(self, res, mal_dub=None, anilist_res=None):
         show_ids = res['show']['ids']
         anilist_id = show_ids.get('anilist')
         mal_id = show_ids.get('mal')
@@ -150,39 +165,164 @@ class SimklWLF(WatchlistFlavorBase):
         show = database.get_show(mal_id)
         kodi_meta = pickle.loads(show['kodi_meta']) if show else {}
 
+        # Title logic: prefer Simkl, fallback to AniList
         if self.title_lang == 'english':
             title = kodi_meta.get('ename') or res['show']['title']
         else:
             title = res['show']['title']
+        if anilist_res:
+            title = anilist_res.get('title', {}).get(self.title_lang) or anilist_res.get('title', {}).get('romaji') or title
+        if title is None:
+            title = ''
+
+        # Add relation info (if available)
+        if anilist_res and anilist_res.get('relationType'):
+            title += ' [I]%s[/I]' % control.colorstr(anilist_res['relationType'], 'limegreen')
+
+        # Plot/synopsis
+        plot = None
+        if anilist_res and anilist_res.get('description'):
+            desc = anilist_res['description']
+            desc = desc.replace('<i>', '[I]').replace('</i>', '[/I]')
+            desc = desc.replace('<b>', '[B]').replace('</b>', '[/B]')
+            desc = desc.replace('<br>', '[CR]')
+            desc = desc.replace('\n', '')
+            plot = desc
+
+        # Genres
+        genre = None
+        if anilist_res:
+            genre = anilist_res.get('genres')
+
+        # Studios
+        studio = None
+        if anilist_res and anilist_res.get('studios'):
+            if isinstance(anilist_res['studios'], list):
+                studio = [s.get('name') for s in anilist_res['studios']]
+            elif isinstance(anilist_res['studios'], dict) and 'edges' in anilist_res['studios']:
+                studio = [s['node'].get('name') for s in anilist_res['studios']['edges']]
+
+        # Status
+        status = None
+        if anilist_res:
+            status = anilist_res.get('status')
+
+        # Duration
+        duration = None
+        if anilist_res and anilist_res.get('duration'):
+            duration = anilist_res.get('duration') * 60 if isinstance(anilist_res.get('duration'), int) else anilist_res.get('duration')
+
+        # Country
+        country = None
+        if anilist_res:
+            country = [anilist_res.get('countryOfOrigin', '')]
+
+        # Rating/score
+        info_rating = None
+        if anilist_res and anilist_res.get('averageScore'):
+            info_rating = {'score': anilist_res.get('averageScore') / 10.0}
+            if anilist_res.get('stats') and anilist_res['stats'].get('scoreDistribution'):
+                total_votes = sum([score['amount'] for score in anilist_res['stats']['scoreDistribution']])
+                info_rating['votes'] = total_votes
+
+        # Trailer
+        trailer = None
+        if anilist_res and anilist_res.get('trailer'):
+            try:
+                if anilist_res['trailer']['site'] == 'youtube':
+                    trailer = f"plugin://plugin.video.youtube/play/?video_id={anilist_res['trailer']['id']}"
+                else:
+                    trailer = f"plugin://plugin.video.dailymotion_com/?url={anilist_res['trailer']['id']}&mode=playVideo"
+            except (KeyError, TypeError):
+                pass
+
+        # Playcount
+        playcount = None
+        if res["total_episodes_count"] != 0 and res["watched_episodes_count"] == res["total_episodes_count"]:
+            playcount = 1
+
+        # Premiered/year
+        premiered = None
+        year = None
+        if anilist_res and anilist_res.get('startDate'):
+            start_date = anilist_res.get('startDate')
+            if isinstance(start_date, dict):
+                premiered = '{}-{:02}-{:02}'.format(start_date.get('year', 0), start_date.get('month', 1), start_date.get('day', 1))
+                year = start_date.get('year', None)
+
+        # Cast
+        cast = None
+        if anilist_res and anilist_res.get('characters'):
+            try:
+                cast = []
+                for i, x in enumerate(anilist_res['characters'].get('edges', [])):
+                    role = x['node']['name']['userPreferred']
+                    actor = x['voiceActors'][0]['name']['userPreferred']
+                    actor_hs = x['voiceActors'][0]['image']['large']
+                    cast.append({'name': actor, 'role': role, 'thumbnail': actor_hs, 'index': i})
+            except (IndexError, KeyError, TypeError):
+                pass
+
+        # UniqueIDs
+        unique_ids = {
+            'anilist_id': str(anilist_id),
+            'mal_id': str(mal_id),
+            'kitsu_id': str(kitsu_id),
+            **database.get_mapping_ids(anilist_id, 'anilist_id'),
+            **database.get_mapping_ids(mal_id, 'mal_id'),
+            **database.get_mapping_ids(kitsu_id, 'kitsu_id')
+        }
+
+        # Art/Images
+        image = f'https://wsrv.nl/?url=https://simkl.in/posters/{res["show"]["poster"]}_m.jpg'
+        show_meta = database.get_show_meta(mal_id)
+        kodi_meta = pickle.loads(show_meta.get('art')) if show_meta else {}
+        poster = image
+        banner = None
+        fanart = kodi_meta.get('fanart', image)
+        # AniList fallback for missing images
+        if anilist_res and anilist_res.get('coverImage'):
+            if not image:
+                image = anilist_res['coverImage'].get('extraLarge')
+            if not poster:
+                poster = anilist_res['coverImage'].get('extraLarge')
+            if not fanart:
+                fanart = anilist_res['coverImage'].get('extraLarge')
+        if anilist_res and anilist_res.get('bannerImage'):
+            banner = anilist_res.get('bannerImage')
 
         info = {
-            'UniqueIDs': {
-                'anilist_id': str(anilist_id),
-                'mal_id': str(mal_id),
-                'kitsu_id': str(kitsu_id),
-                **database.get_mapping_ids(anilist_id, 'anilist_id'),
-                **database.get_mapping_ids(mal_id, 'mal_id'),
-                **database.get_mapping_ids(kitsu_id, 'kitsu_id')
-            },
+            'UniqueIDs': unique_ids,
             'title': title,
+            'plot': plot,
+            'genre': genre,
+            'studio': studio,
+            'status': status,
+            'duration': duration,
+            'country': country,
             'mediatype': 'tvshow',
-            'year': res['show']['year'],
+            'year': year if year else res['show']['year'],
             'last_watched': res['last_watched_at'],
             'user_rating': res['user_rating']
         }
+        if info_rating:
+            info['rating'] = info_rating
+        if playcount:
+            info['playcount'] = playcount
+        if premiered:
+            info['premiered'] = premiered
+        if cast:
+            info['cast'] = cast
+        if trailer:
+            info['trailer'] = trailer
 
-        if res["total_episodes_count"] != 0 and res["watched_episodes_count"] == res["total_episodes_count"]:
-            info['playcount'] = 1
-
-        image = f'https://wsrv.nl/?url=https://simkl.in/posters/{res["show"]["poster"]}_m.jpg'
-
-        show_meta = database.get_show_meta(mal_id)
-        kodi_meta = pickle.loads(show_meta.get('art')) if show_meta else {}
         base = {
             "name": '%s - %d/%d' % (title, res["watched_episodes_count"], res["total_episodes_count"]),
             "url": f'watchlist_to_ep/{mal_id}/{res["watched_episodes_count"]}',
             "image": image,
-            'fanart': kodi_meta['fanart'] if kodi_meta.get('fanart') else image,
+            "poster": poster,
+            'fanart': fanart,
+            "banner": banner,
             "info": info
         }
 
@@ -200,7 +340,7 @@ class SimklWLF(WatchlistFlavorBase):
         return utils.parse_view(base, True, False, dub)
 
     @div_flavor
-    def _base_next_up_view(self, res, mal_dub=None):
+    def _base_next_up_view(self, res, mal_dub=None, anilist_res=None):
         show_ids = res['show']['ids']
         anilist_id = show_ids.get('anilist')
         mal_id = show_ids.get('mal')
