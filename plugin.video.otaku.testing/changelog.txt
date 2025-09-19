@@ -1,3 +1,7 @@
+Changelog v5.2.52 (2025-09-19):
+- Fix small bug with mappings
+- Fix Up Next for Watchlists 
+
 Changelog v5.2.51 (2025-09-19):
 - Added New Episode Meta Api
 - Fixed transfer items in Premiumize

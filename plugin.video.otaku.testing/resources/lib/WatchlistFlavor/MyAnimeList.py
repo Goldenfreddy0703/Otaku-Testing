@@ -383,7 +383,7 @@ class MyAnimeListWLF(WatchlistFlavorBase):
         return utils.parse_view(base, True, False, dub)
 
     @div_flavor
-    def _base_next_up_view(self, res, mal_dub=None):
+    def _base_next_up_view(self, res, mal_dub=None, anilist_res=None):
         mal_id = res['node']['id']
         dub = True if mal_dub and mal_dub.get(str(mal_id)) else False
 

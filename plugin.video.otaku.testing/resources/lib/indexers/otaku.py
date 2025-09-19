@@ -328,8 +328,8 @@ class OtakuAPI:
         import threading
         meta_cache = {}
 
-        def fetch_anidb():
-            meta_cache['anidb'] = self.get_anidb_episode_meta(mal_id)
+        # def fetch_anidb():
+        #     meta_cache['anidb'] = self.get_anidb_episode_meta(mal_id)
 
         def fetch_simkl():
             simkl_raw = self.get_simkl_episode_meta(mal_id)
@@ -345,7 +345,7 @@ class OtakuAPI:
             meta_cache['kitsu'] = self.get_kitsu_episode_meta(mal_id)
 
         threads = [
-            threading.Thread(target=fetch_anidb),
+            # threading.Thread(target=fetch_anidb),
             threading.Thread(target=fetch_simkl),
             threading.Thread(target=fetch_jikan),
             threading.Thread(target=fetch_anizip),
@@ -357,7 +357,8 @@ class OtakuAPI:
             t.join()
 
         # Use AniDB as base, fallback to Simkl, then Jikan
-        base_ep_list = meta_cache['anidb'] if meta_cache['anidb'] else meta_cache['simkl'] if meta_cache['simkl'] else meta_cache['jikan']
+        # base_ep_list = meta_cache['anidb'] if meta_cache['anidb'] else meta_cache['simkl'] if meta_cache['simkl'] else meta_cache['jikan']
+        base_ep_list = meta_cache['simkl'] if meta_cache['simkl'] else meta_cache['jikan']
         mapfunc = partial(self.parse_episode_view, mal_id=mal_id, season=season, poster=poster, fanart=fanart, clearart=clearart, clearlogo=clearlogo, eps_watched=eps_watched, update_time=update_time, tvshowtitle=tvshowtitle, dub_data=dub_data, filler_data=filler_data, meta_cache=meta_cache)
         all_results = sorted(list(map(mapfunc, base_ep_list)), key=lambda x: x['info']['episode'])
 

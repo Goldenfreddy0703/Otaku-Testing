@@ -170,8 +170,12 @@ class SIMKLAPI:
                 anime_id = r[0]['ids']['simkl']
                 return anime_id
 
-    def get_mapping_ids(self, send_id, anime_id):
-        # return_id = anidb, ann, mal, offjp, wikien, wikijp, instagram, imdb, tmdb, tw, tvdbslug, anilist, animeplanet, anisearch, kitsu, livechart, traktslug
+    def get_mapping_ids_from_simkl(self, anime_id, send_id):
+        # Query local database for all available IDs
+        meta_ids = database.get_mappings(anime_id, send_id)
+        if meta_ids:
+            return meta_ids  # Return the full mapping dictionary
+        # Fallback to SIMKL API if not found
         simkl_id = self.get_id(send_id, anime_id)
         params = {
             'extended': 'full',
@@ -180,4 +184,8 @@ class SIMKLAPI:
         response = client.request(f'{self.baseUrl}/anime/{simkl_id}', params=params)
         if response:
             r = json.loads(response)
-            return r['ids']
+            if 'ids' in r:
+                return r['ids']
+            else:
+                control.log(f"SIMKLAPI.get_mapping_ids: 'ids' not found in response for anime_id {anime_id}", 'warning')
+        return {}

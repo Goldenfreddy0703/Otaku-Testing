@@ -17,7 +17,10 @@ class KitsuWLF(WatchlistFlavorBase):
     _URL = "https://kitsu.io/api"
     _TITLE = "Kitsu"
     _IMAGE = "kitsu.png"
-    _mapping = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.mapping = []
 
     def __headers(self):
         headers = {
@@ -371,7 +374,7 @@ class KitsuWLF(WatchlistFlavorBase):
         return utils.parse_view(base, True, False, dub)
 
     @div_flavor
-    def _base_next_up_view(self, res, eres, mal_dub=None):
+    def _base_next_up_view(self, res, eres, mal_dub=None, anilist_res=None):
         kitsu_id = eres['id']
         mal_id = self.mapping_mal(kitsu_id)
         dub = True if mal_dub and mal_dub.get(str(mal_id)) else False
@@ -462,9 +465,10 @@ class KitsuWLF(WatchlistFlavorBase):
                     mal_id = i['attributes']['externalId']
                     break
         if not mal_id:
-            ids = SIMKLAPI().get_mapping_ids('kitsu', kitsu_id)
-            mal_id = ids['mal']
-            database.add_mapping_id(mal_id, 'mal_id', mal_id)
+            ids = SIMKLAPI().get_mapping_ids_from_simkl(kitsu_id, 'kitsu_id')
+            mal_id = ids.get('mal', '')
+            if mal_id:
+                database.add_mapping_id(mal_id, 'mal_id', mal_id)
         return mal_id
 
     def get_library_entries(self, kitsu_id):

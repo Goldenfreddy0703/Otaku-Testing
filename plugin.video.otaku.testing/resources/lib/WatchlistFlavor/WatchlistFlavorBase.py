@@ -119,7 +119,7 @@ class WatchlistFlavorBase:
     @staticmethod
     def get_flavor_id_simkl(mal_id, flavor):
         from resources.lib.indexers.simkl import SIMKLAPI
-        ids = SIMKLAPI().get_mapping_ids(mal_id, flavor)
+        ids = SIMKLAPI().get_mapping_ids_from_simkl(flavor, mal_id)
         flavor_id = ids[flavor]
         database.add_mapping_id(mal_id, flavor, flavor_id)
         return flavor_id
