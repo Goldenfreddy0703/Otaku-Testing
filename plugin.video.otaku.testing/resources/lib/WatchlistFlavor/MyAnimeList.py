@@ -278,8 +278,12 @@ class MyAnimeListWLF(WatchlistFlavorBase):
             start_date = anilist_res.get('startDate')
         if start_date:
             if isinstance(start_date, dict):
-                premiered = '{}-{:02}-{:02}'.format(start_date.get('year', 0), start_date.get('month', 1), start_date.get('day', 1))
-                year = start_date.get('year', None)
+                premiered = '{}-{:02}-{:02}'.format(
+                    int(start_date.get('year', 0) or 0),
+                    int(start_date.get('month', 1) or 1),
+                    int(start_date.get('day', 1) or 1)
+                )
+                year = int(start_date.get('year', 0) or 0) if start_date.get('year') is not None else None
             else:
                 premiered = str(start_date)
                 try:

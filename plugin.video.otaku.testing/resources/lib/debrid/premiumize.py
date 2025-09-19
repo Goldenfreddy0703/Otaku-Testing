@@ -128,7 +128,9 @@ class Premiumize:
     def get_oldest_items(self):
         r = client.request(f'{self.base_url}/transfer/list', headers=self.headers())
         transfers = json.loads(r)['transfers'] if r else []
-        return sorted(transfers, key=lambda x: x['created_at'])
+        # Filter out items missing 'created_at' to avoid KeyError
+        transfers_with_created = [x for x in transfers if 'created_at' in x]
+        return sorted(transfers_with_created, key=lambda x: x['created_at'])
 
     def add_to_cloud(self, link):
         postData = {'src': link}

@@ -1,3 +1,8 @@
+Changelog v5.2.51 (2025-09-19):
+- Added New Episode Meta Api
+- Fixed transfer items in Premiumize
+- Fixed Premiered in Watchlist
+
 Changelog v5.2.50 (2025-09-18):
 - Added more Meta to Watchlists
 

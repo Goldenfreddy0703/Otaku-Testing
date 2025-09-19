@@ -1,6 +1,6 @@
 import pickle
 
-from resources.lib.indexers import simkl, anizip, jikanmoe, kitsu, anidb
+from resources.lib.indexers import simkl, anizip, jikanmoe, kitsu, anidb, otaku
 from resources.lib.ui import control, database
 
 if control.settingids.browser_api == 'otaku':
@@ -34,6 +34,8 @@ def get_anime_init(mal_id):
             data = anidb.ANIDBAPI().get_episodes(mal_id, show_meta)
         elif meta_api == 'kitsu':
             data = kitsu.KitsuAPI().get_episodes(mal_id, show_meta)
+        elif meta_api == 'otaku':
+            data = otaku.OtakuAPI().get_episodes(mal_id, show_meta)
 
     else:
         data = simkl.SIMKLAPI().get_episodes(mal_id, show_meta)

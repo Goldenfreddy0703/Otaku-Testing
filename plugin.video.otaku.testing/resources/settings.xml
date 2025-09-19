@@ -270,6 +270,7 @@
 							<option label="jikanmoe">jikanmoe</option>
 							<option label="anidb">anidb</option>
 							<option label="kitsu">kitsu</option>
+							<option label="otaku">otaku</option>
 						</options>
 					</constraints>
 					<control type="spinner" format="string"/>

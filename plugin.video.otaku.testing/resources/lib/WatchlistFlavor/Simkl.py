@@ -247,8 +247,11 @@ class SimklWLF(WatchlistFlavorBase):
         if anilist_res and anilist_res.get('startDate'):
             start_date = anilist_res.get('startDate')
             if isinstance(start_date, dict):
-                premiered = '{}-{:02}-{:02}'.format(start_date.get('year', 0), start_date.get('month', 1), start_date.get('day', 1))
-                year = start_date.get('year', None)
+                y = int(start_date.get('year', 0) or 0)
+                m = int(start_date.get('month', 1) or 1)
+                d = int(start_date.get('day', 1) or 1)
+                premiered = '{}-{:02}-{:02}'.format(y, m, d)
+                year = y if y else None
 
         # Cast
         cast = None
