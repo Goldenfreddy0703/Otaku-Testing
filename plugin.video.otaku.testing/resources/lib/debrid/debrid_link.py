@@ -79,6 +79,10 @@ class DebridLink:
         premium = response['value']['premiumLeft'] > 0
         control.setSetting('debridlink.username', username)
         control.ok_dialog(control.ADDON_NAME, f'Debrid-Link {control.lang(30024)}')
+        control.setBool('show.uncached', True)
+        control.setBool('uncached.autoruninforground', False)
+        control.setBool('uncached.autoruninbackground', False)
+        control.setBool('uncached.autoskipuncached', True)
         if not premium:
             control.setSetting('debridlink.auth.status', 'Expired')
             control.ok_dialog(f'{control.ADDON_NAME}: Debrid-Link', control.lang(30025))

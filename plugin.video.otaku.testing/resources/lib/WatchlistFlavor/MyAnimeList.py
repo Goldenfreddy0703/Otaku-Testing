@@ -185,7 +185,7 @@ class MyAnimeListWLF(WatchlistFlavorBase):
     def _base_watchlist_status_view(self, res, mal_dub=None, anilist_res=None):
         mal_id = res['node']['id']
         if not mal_id:
-            control.log(f"Mal ID not found for {mal_id}", 'warning')
+            control.log(f"Mal ID not found for {mal_id}", level='warning')
 
         dub = True if mal_dub and mal_dub.get(str(mal_id)) else False
 

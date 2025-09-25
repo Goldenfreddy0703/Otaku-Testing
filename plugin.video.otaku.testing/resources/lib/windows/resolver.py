@@ -231,7 +231,7 @@ class Resolver(BaseWindow):
                 if monitor.playing:
                     break
             else:
-                control.log('no xbmc playing source found; Continuing code', 'warning')
+                control.log('no xbmc playing source found; Continuing code', level='warning')
             del monitor
             self.close()
             if not self.abort:
@@ -311,11 +311,7 @@ class Resolver(BaseWindow):
                     f"[CR]"
                     f"This source is not cached. Would you like to cache it now?")
 
-        if source['debrid_provider'] == 'Debrid-Link':
-            control.ok_dialog(heading, 'Cache Resolver has not been added for Debrid-Link')
-            return
-
-        if source['debrid_provider'] in ['Alldebrid', 'Real-Debrid']:
+        if source['debrid_provider'] in ['Alldebrid', 'Real-Debrid', 'Debrid-Link']:
             # Get an instance of the debrid API and check torrent status early.
             torrent_status = api.get_torrent_status(source['magnet'])
             # torrent_status returns (torrent_id, status, torrent_info)
@@ -361,7 +357,7 @@ class Resolver(BaseWindow):
             control.progressDialog.close()
             import traceback
             control.ok_dialog(control.ADDON_NAME, f'Error: {e}')
-            control.log(traceback.format_exc(), 'error')
+            control.log(traceback.format_exc(), level='error')
             return
 
         best_match = control.getBool('best_match')

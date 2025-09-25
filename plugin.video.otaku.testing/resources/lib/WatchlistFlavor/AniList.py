@@ -210,7 +210,7 @@ class AniListWLF(WatchlistFlavorBase):
         mal_id = res.get('idMal')
 
         if not mal_id:
-            control.log(f"Mal ID not found for {anilist_id}", 'warning')
+            control.log(f"Mal ID not found for {anilist_id}", level='warning')
 
         dub = True if mal_dub and mal_dub.get(str(mal_id)) else False
 
@@ -246,7 +246,7 @@ class AniListWLF(WatchlistFlavorBase):
                 info['trailer'] = f"plugin://plugin.video.dailymotion_com/?url={res['trailer']['id']}&mode=playVideo"
         except TypeError:
             pass
-        
+
         try:
             info['rating'] = {'score': res.get('averageScore') / 10.0}
         except TypeError:

@@ -71,7 +71,15 @@ class OtakuAPI:
         return meta_ids.get('anidb_id')
 
     def get_anidb_episode_meta(self, mal_id):
+        import time
         anidb_id = self.get_anidb_id(mal_id)
+        # Rate limit: ensure at least 4 seconds between requests
+        last_request = control.getInt('anidb_last_request')
+        now = int(time.time())
+        if last_request > 0:
+            elapsed = now - last_request
+            if elapsed < 4:
+                time.sleep(4 - elapsed)
         params = {
             'request': 'anime',
             'client': self.anidbClientName,
@@ -80,6 +88,7 @@ class OtakuAPI:
             'aid': anidb_id
         }
         response = client.request(self.anidbBaseUrl, params=params)
+        control.setInt('anidb_last_request', int(time.time()))
         episodes = []
         if response:
             import xml.etree.ElementTree as ET
@@ -214,30 +223,30 @@ class OtakuAPI:
         url = f"{mal_id}/{episode}"
         # Fallback logic for title
         title = (
-            (anidb_meta.get('title') if anidb_meta else None) or
-            (simkl_meta.get('title') if simkl_meta else None) or
-            (jikan_meta.get('title') if jikan_meta else None) or
-            (anizip_meta['title']['en'] if anizip_meta and anizip_meta.get('title') and 'en' in anizip_meta['title'] else None) or
-            (kitsu_meta['attributes'].get('canonicalTitle') if kitsu_meta and kitsu_meta.get('attributes') and kitsu_meta['attributes'].get('canonicalTitle') else None) or
-            res.get('title') or
-            res.get('episode') or
-            f"Episode {episode}"
+            (anidb_meta.get('title') if anidb_meta else None)
+            or (simkl_meta.get('title') if simkl_meta else None)
+            or (jikan_meta.get('title') if jikan_meta else None)
+            or (anizip_meta['title']['en'] if anizip_meta and anizip_meta.get('title') and 'en' in anizip_meta['title'] else None)
+            or (kitsu_meta['attributes'].get('canonicalTitle') if kitsu_meta and kitsu_meta.get('attributes') and kitsu_meta['attributes'].get('canonicalTitle') else None)
+            or res.get('title')
+            or res.get('episode')
+            or f"Episode {episode}"
         )
         # Fallback logic for image (AniDB does not provide images)
         image = (
-            (self.simklImagePath % simkl_meta['img'] if simkl_meta and simkl_meta.get('img') else None) or
-            (anizip_meta['image'] if anizip_meta and anizip_meta.get('image') else None) or
-            (kitsu_meta['attributes']['thumbnail']['original'] if kitsu_meta and kitsu_meta.get('attributes') and kitsu_meta['attributes'].get('thumbnail') and kitsu_meta['attributes']['thumbnail'].get('original') else None) or
-            poster
+            (self.simklImagePath % simkl_meta['img'] if simkl_meta and simkl_meta.get('img') else None)
+            or (anizip_meta['image'] if anizip_meta and anizip_meta.get('image') else None)
+            or (kitsu_meta['attributes']['thumbnail']['original'] if kitsu_meta and kitsu_meta.get('attributes') and kitsu_meta['attributes'].get('thumbnail') and kitsu_meta['attributes']['thumbnail'].get('original') else None)
+            or poster
         )
         # Fallback logic for plot
         plot = (
-            (anidb_meta.get('summary') if anidb_meta else None) or
-            (simkl_meta.get('description') if simkl_meta else None) or
-            (jikan_meta.get('synopsis') if jikan_meta else None) or
-            (anizip_meta.get('overview') if anizip_meta else None) or
-            (kitsu_meta['attributes'].get('synopsis') if kitsu_meta and kitsu_meta.get('attributes') and kitsu_meta['attributes'].get('synopsis') else None) or
-            'No plot available'
+            (anidb_meta.get('summary') if anidb_meta else None)
+            or (simkl_meta.get('description') if simkl_meta else None)
+            or (jikan_meta.get('synopsis') if jikan_meta else None)
+            or (anizip_meta.get('overview') if anizip_meta else None)
+            or (kitsu_meta['attributes'].get('synopsis') if kitsu_meta and kitsu_meta.get('attributes') and kitsu_meta['attributes'].get('synopsis') else None)
+            or 'No plot available'
         )
         info = {
             'UniqueIDs': {
@@ -328,8 +337,8 @@ class OtakuAPI:
         import threading
         meta_cache = {}
 
-        # def fetch_anidb():
-        #     meta_cache['anidb'] = self.get_anidb_episode_meta(mal_id)
+        def fetch_anidb():
+            meta_cache['anidb'] = self.get_anidb_episode_meta(mal_id)
 
         def fetch_simkl():
             simkl_raw = self.get_simkl_episode_meta(mal_id)
@@ -345,7 +354,7 @@ class OtakuAPI:
             meta_cache['kitsu'] = self.get_kitsu_episode_meta(mal_id)
 
         threads = [
-            # threading.Thread(target=fetch_anidb),
+            threading.Thread(target=fetch_anidb),
             threading.Thread(target=fetch_simkl),
             threading.Thread(target=fetch_jikan),
             threading.Thread(target=fetch_anizip),
@@ -357,8 +366,7 @@ class OtakuAPI:
             t.join()
 
         # Use AniDB as base, fallback to Simkl, then Jikan
-        # base_ep_list = meta_cache['anidb'] if meta_cache['anidb'] else meta_cache['simkl'] if meta_cache['simkl'] else meta_cache['jikan']
-        base_ep_list = meta_cache['simkl'] if meta_cache['simkl'] else meta_cache['jikan']
+        base_ep_list = meta_cache['anidb'] if meta_cache['anidb'] else meta_cache['simkl'] if meta_cache['simkl'] else meta_cache['jikan']
         mapfunc = partial(self.parse_episode_view, mal_id=mal_id, season=season, poster=poster, fanart=fanart, clearart=clearart, clearlogo=clearlogo, eps_watched=eps_watched, update_time=update_time, tvshowtitle=tvshowtitle, dub_data=dub_data, filler_data=filler_data, meta_cache=meta_cache)
         all_results = sorted(list(map(mapfunc, base_ep_list)), key=lambda x: x['info']['episode'])
 

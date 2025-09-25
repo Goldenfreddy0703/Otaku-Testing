@@ -208,10 +208,10 @@ class WatchlistPlayer(player):
 
         # Only refresh if the last watched item actually changed
         if previous_last_watched != current_mal_id:
-            control.log(f'Last watched changed from {previous_last_watched} to {current_mal_id} - refreshing menu', 'info')
+            control.log(f'Last watched changed from {previous_last_watched} to {current_mal_id} - refreshing menu')
             control.refresh()
         else:
-            control.log(f'Last watched unchanged ({current_mal_id}) - no refresh needed', 'info')
+            control.log(f'Last watched unchanged ({current_mal_id}) - no refresh needed')
 
         # Continue with audio/subtitle setup which is needed immediately
         if self.type not in ['embed', 'direct']:
@@ -257,7 +257,7 @@ class WatchlistPlayer(player):
             if intro_start < 1:
                 intro_start = 1
             intro_end = intro_start + (control.getInt('skipintro.duration') * 60)
-            control.log('Using default intro skip times - no aniskip data found', 'info')
+            control.log('Using default intro skip times - no aniskip data found')
 
         # Monitor for intro skip opportunity
         while self.isPlaying():
@@ -268,7 +268,7 @@ class WatchlistPlayer(player):
                 # Auto skip ONLY if enabled AND we have aniskip data
                 if self.skipintro_aniskip_auto and has_aniskip_data:
                     self.seekTime(intro_end)
-                    control.log(f'Auto-skipped intro: {intro_start}-{intro_end}', 'info')
+                    control.log(f'Auto-skipped intro: {intro_start}-{intro_end}')
                 else:
                     # Show skip intro dialog (works for both aniskip data and default times)
                     PlayerDialogs().show_skip_intro(has_aniskip_data, intro_end)
@@ -296,7 +296,7 @@ class WatchlistPlayer(player):
             if self.skipoutro_aniskip_auto and has_aniskip_outro and self.current_time >= self.skipoutro_start and self.skipoutro_start > 0:
                 if self.skipoutro_end > 0:
                     self.seekTime(self.skipoutro_end)
-                    control.log(f'Auto-skipped outro: {self.skipoutro_start}-{self.skipoutro_end}', 'info')
+                    control.log(f'Auto-skipped outro: {self.skipoutro_start}-{self.skipoutro_end}')
                 break
 
             # Handle dialog display

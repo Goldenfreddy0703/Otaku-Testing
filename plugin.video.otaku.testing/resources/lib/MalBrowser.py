@@ -1779,7 +1779,6 @@ class MalBrowser(BrowserBase):
             'mpaa': res.get('rating'),
         }
 
-
         try:
             start_date = res['aired']['from']
             kodi_meta['premiered'] = start_date[:10]

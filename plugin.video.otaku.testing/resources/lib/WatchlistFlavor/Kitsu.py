@@ -189,7 +189,7 @@ class KitsuWLF(WatchlistFlavorBase):
         mal_id = self.mapping_mal(kitsu_id)
 
         if not mal_id:
-            control.log(f"Mal ID not found for {kitsu_id}", 'warning')
+            control.log(f"Mal ID not found for {kitsu_id}", level='warning')
 
         dub = True if mal_dub and mal_dub.get(str(mal_id)) else False
 
@@ -454,7 +454,6 @@ class KitsuWLF(WatchlistFlavorBase):
             base['url'] = f"play_movie/{mal_id}/"
             base['info']['mediatype'] = 'movie'
             return utils.parse_view(base, False, True, dub)
-
         return utils.parse_view(base, True, False, dub)
 
     def mapping_mal(self, kitsu_id):

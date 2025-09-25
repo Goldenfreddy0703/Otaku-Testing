@@ -1,5 +1,4 @@
 import json
-import pickle
 
 from bs4 import BeautifulSoup, SoupStrainer
 from resources.lib.ui import database, source_utils

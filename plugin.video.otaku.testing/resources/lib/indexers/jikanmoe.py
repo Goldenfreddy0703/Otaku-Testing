@@ -19,6 +19,7 @@ class JikanAPI:
             return json.loads(response)['data']
 
     def get_episode_meta(self, mal_id):
+        res_data = []
         url = f'{self.baseUrl}/anime/{mal_id}/episodes'
         response = client.request(url)
         if response:

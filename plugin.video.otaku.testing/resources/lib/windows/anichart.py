@@ -55,15 +55,15 @@ class Anichart(BaseWindow):
 
     def onDoubleClick(self, controlId):
         # immediate activate on double-click
-        control.log(f"Double click detected on control: {controlId}", level='debug')
+        control.log(f"Double click detected on control: {controlId}")
         if controlId == 1000:  # only handle double-clicks on our anime list
-            control.log("Handling double click action", level='debug')
+            control.log("Handling double click action")
             self.handle_action(controlId)
 
     def onAction(self, action):
         actionID = action.getId()
-        control.log(f"Action detected: {actionID}", level='debug')
-        
+        control.log(f"Action detected: {actionID}")
+
         # back navigation
         if actionID in [xbmcgui.ACTION_NAV_BACK,
                         xbmcgui.ACTION_BACKSPACE,
@@ -72,35 +72,35 @@ class Anichart(BaseWindow):
         # Handle different input methods differently
         elif actionID == xbmcgui.ACTION_SELECT_ITEM:
             # Traditional input (remote, keyboard) - single click activates
-            control.log("Traditional input detected - single click activation", level='debug')
+            control.log("Traditional input detected - single click activation")
             self.handle_action(actionID)
         elif actionID in [xbmcgui.ACTION_TOUCH_TAP,
                           xbmcgui.ACTION_MOUSE_LEFT_CLICK]:
             # Touch/mouse input - require double tap/click
-            control.log("Touch/mouse input detected - checking for double tap", level='debug')
+            control.log("Touch/mouse input detected - checking for double tap")
             current_time = time.time()
             current_position = self.display_list.getSelectedPosition() if self.getFocusId() == 1000 else -1
-            
+
             # Check if this is a double-tap (same position within 0.5 seconds)
             time_diff = current_time - self.last_action_time
-            is_double_tap = (time_diff < 0.5 and
-                             current_position == self.last_touch_position and
-                             current_position != -1)
-            
+            is_double_tap = (time_diff < 0.5
+                             and current_position == self.last_touch_position
+                             and current_position != -1)
+
             if is_double_tap:
-                control.log("Double tap detected - activating", level='debug')
+                control.log("Double tap detected - activating")
                 self.handle_action(actionID)
                 # Reset to prevent triple-tap activation
                 self.last_action_time = 0
                 self.last_touch_position = -1
             else:
-                control.log(f"First tap detected at position {current_position}", level='debug')
+                control.log(f"First tap detected at position {current_position}")
                 # Store tap info for potential double-tap
                 self.last_action_time = current_time
                 self.last_touch_position = current_position
         elif actionID == xbmcgui.ACTION_MOUSE_DOUBLE_CLICK:
             # Direct double-click event - activate immediately
-            control.log("Direct double-click detected - activating", level='debug')
+            control.log("Direct double-click detected - activating")
             self.handle_action(actionID)
 
         # rest of your existing context‐menu code…

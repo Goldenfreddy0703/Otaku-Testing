@@ -1606,7 +1606,7 @@ msgid "Install Trakt Script"
 msgstr ""
 
 msgctxt "#30399"
-msgid "Skip UnCached Sources (Real-Debrid, AllDebrid)"
+msgid "Skip UnCached Sources (Real-Debrid, AllDebrid, Debrid-Link)"
 msgstr ""
 
 msgctxt "#30400"

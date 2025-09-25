@@ -1,5 +1,5 @@
 from resources.lib.ui import control
-from resources.lib.WatchlistFlavor import AniList, Kitsu, MyAnimeList, Simkl
+from resources.lib.WatchlistFlavor import AniList, Kitsu, MyAnimeList, Simkl  # noQA
 from resources.lib.WatchlistFlavor.WatchlistFlavorBase import WatchlistFlavorBase
 
 

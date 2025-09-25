@@ -27,7 +27,7 @@ def load_video_from_url(in_url):
             break
 
     if found_extractor is None:
-        control.log("[*E*] No extractor found for %s" % in_url, 'info')
+        control.log("[*E*] No extractor found for %s" % in_url, level='info')
         return None
 
     try:
@@ -102,7 +102,7 @@ def __check_video_list(refer_url, vidlist, add_referer=False,
             item_url = item[1]
             temp_req = client.request(item_url, limit=0, headers=headers, output='extended')
             if temp_req[1] != '200':
-                control.log("[*] Skiping Invalid Url: %s - status = %d" % (item[1], temp_req.status_code))
+                control.log("[*] Skiping Invalid Url: %s - status = %d" % (item[1], temp_req.status_code), level='error')
                 continue  # Skip Item.
 
             out_url = temp_req[5]
@@ -112,7 +112,7 @@ def __check_video_list(refer_url, vidlist, add_referer=False,
             nlist.append((item[0], out_url, item[2]))
         except Exception as e:
             # Just don't add source.
-            control.log('Error when checking: {0}'.format(e))
+            control.log('Error when checking: {0}'.format(e), level='error')
             pass
 
     return nlist

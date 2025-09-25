@@ -84,13 +84,15 @@ def closeBusyDialog():
         execute('Dialog.Close(busydialognocancel)')
 
 
-def log(msg, level="info"):
+def log(msg, level="debug"):
     if level == 'info':
         level = xbmc.LOGINFO
     elif level == 'warning':
         level = xbmc.LOGWARNING
     elif level == 'error':
         level = xbmc.LOGERROR
+    elif level == 'debug':
+        level = xbmc.LOGDEBUG
     else:
         level = xbmc.LOGNONE
     xbmc.log(f'{ADDON_NAME.upper()} ({HANDLE}): {msg}', level)
@@ -404,14 +406,14 @@ def xbmc_add_dir(name, url, art, info, draw_cm, bulk_add, isfolder, isplayable):
                     mal_ids = getStringList('fanart.mal_ids')
                     fanart_selections = getStringList('fanart.selections')
                     mal_id = str(info["UniqueIDs"]["mal_id"])
-                    
+
                     fanart_select = ''
                     try:
                         index = mal_ids.index(mal_id)
                         fanart_select = fanart_selections[index] if index < len(fanart_selections) else ''
                     except (ValueError, IndexError):
                         pass
-                    
+
                     art['fanart'] = fanart_select if fanart_select else random.choice(art['fanart'])
                 else:
                     art['fanart'] = OTAKU_FANART
@@ -435,13 +437,13 @@ def bulk_draw_items(video_data):
 def draw_items(video_data, content_type=''):
     # Widget rate limiting - detect if this is a widget request
     is_widget = xbmc.getInfoLabel('Container.PluginName') != ADDON_ID
-    
+
     if is_widget:
         # This is a widget request - add delay to respect rate limits
         widget_delay = getInt('widgets.delay') or 1000  # Default 1 second (1000ms)
-        log(f"Widget detected - adding {widget_delay}ms delay", level='debug')
+        log(f"Widget detected - adding {widget_delay}ms delay")
         xbmc.sleep(widget_delay)
-    
+
     if len(video_data) > 99:
         bulk_draw_items(video_data)
     else:

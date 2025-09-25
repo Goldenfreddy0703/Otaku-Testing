@@ -250,10 +250,6 @@ class Sources(BrowserBase):
             'seeders': res['seeders']
         }
 
-        # If the debrid provider is EasyDebrid, treat it as a hoster link
-        if source.get('debrid_provider', '').lower() == 'easydebrid':
-            source['type'] = 'hoster'
-
         match = re.match(r'(\d+).(\d+) (\w+)', res['size'])
         if match:
             source['byte_size'] = source_utils.convert_to_bytes(float(f'{match.group(1)}.{match.group(2)}'), match.group(3))
@@ -264,10 +260,11 @@ class Sources(BrowserBase):
         return source
 
     def append_cache_uncached_noduplicates(self):
+        # Keep one source per (hash, debrid_provider) so multiple providers can show for the same torrent
         unique = {}
         for source in self.sources:
-            key = source.get('hash')
-            if not key:
+            key = (source.get('hash'), source.get('debrid_provider'))
+            if not key[0]:
                 continue
             if key in unique:
                 current = unique[key]

@@ -47,3 +47,22 @@ def getArt(meta_ids, mtype):
                 items = [backgroundPath + item["file_path"] for item in res['logos'] if item.get('file_path')]
                 art['clearart'] = items
     return art
+
+
+def get_episode_titles(tmdb_id, season_number, episode_number):
+    params = {
+        'include_image_language': 'en,ja,null',
+        "api_key": apiKey
+    }
+    response = client.request(f'{baseUrl}tv/{tmdb_id}/season/{season_number}/episode/{episode_number}/translations', params=params)
+    res = json.loads(response) if response else {}
+
+    # Extract all 'name' fields from translations
+    names = []
+    translations = res.get('translations', [])
+    for t in translations:
+        data = t.get('data', {})
+        name = data.get('name')
+        if name:
+            names.append(name)
+    return names

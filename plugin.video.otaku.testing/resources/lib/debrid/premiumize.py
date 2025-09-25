@@ -139,7 +139,7 @@ class Premiumize:
         if response.get('status') == 'success':
             control.log(f"Successfully added to cloud: {link}")
         else:
-            control.log(f"Failed to add to cloud: {link}", level=control.LOGERROR)
+            control.log(f"Failed to add to cloud: {link}", level='error')
         return response
 
     def resolve_hoster(self, source):

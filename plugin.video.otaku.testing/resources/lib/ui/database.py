@@ -28,7 +28,7 @@ def get(function, duration, *args, **kwargs):
             return_data = ast.literal_eval(cache_result['value'])
         except:
             import traceback
-            control.log(traceback.format_exc(), 'error')
+            control.log(traceback.format_exc(), level='error')
             return_data = None
         return return_data
 
@@ -209,6 +209,13 @@ def get_info(api_name):
         return api_info
 
 
+def get_mal_ids(anime_id, send_id):
+    with SQL(control.mappingDB) as cursor:
+        cursor.execute(f'SELECT * FROM anime WHERE {send_id}=?', (anime_id,))
+        mappings = cursor.fetchall()
+        return mappings if mappings else []
+
+
 def get_mappings(anime_id, send_id):
     with SQL(control.mappingDB) as cursor:
         cursor.execute(f'SELECT * FROM anime WHERE {send_id}=?', (anime_id,))
@@ -327,10 +334,10 @@ class SQL:
             self.lock.release()
         if exc_type:
             import traceback
-            control.log('database error')
-            control.log(f"{''.join(traceback.format_exception(exc_type, exc_val, exc_tb))}", 'error')
+            control.log('database error', level='error')
+            control.log(f"{''.join(traceback.format_exception(exc_type, exc_val, exc_tb))}", level='error')
         if exc_type is OperationalError:
             import traceback
-            control.log('database error')
-            control.log(f"{''.join(traceback.format_exception(exc_type, exc_val, exc_tb))}", 'error')
+            control.log('database error', level='error')
+            control.log(f"{''.join(traceback.format_exception(exc_type, exc_val, exc_tb))}", level='error')
             return True

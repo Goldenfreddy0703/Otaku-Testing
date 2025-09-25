@@ -1,3 +1,11 @@
+Changelog v5.2.53 (2025-09-23):
+- Added Tmdb Helper Support
+- Added persistent AniDB rate limiting
+- Changed EasyDebrid source type
+- Alot of flake8 corrections
+- Fix bug with debrid providers not showing
+- Fix Small bug with Premiered Data
+
 Changelog v5.2.52 (2025-09-19):
 - Fix small bug with mappings
 - Fix Up Next for Watchlists 

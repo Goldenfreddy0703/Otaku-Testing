@@ -166,7 +166,7 @@ class KitsuAPI:
             filler_data = anime_filler.get_data(kodi_meta['ename'])
         else:
             filler_data = None
-        return self.process_episode_view(mal_id, poster, fanart, clearart, clearlogo,  eps_watched, tvshowtitle, dub_data, filler_data)
+        return self.process_episode_view(mal_id, poster, fanart, clearart, clearlogo, eps_watched, tvshowtitle, dub_data, filler_data)
 
     def get_anime(self, filter_type, page):
         perpage = 25

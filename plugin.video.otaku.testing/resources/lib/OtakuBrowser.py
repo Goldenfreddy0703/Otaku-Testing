@@ -64,7 +64,6 @@ class OtakuBrowser(BrowserBase):
                     mal_items_flat.append(entry_with_relation)
 
         anilist_res = self.get_anilist_base_res(mal_ids)
-        control.log(mal_ids)
         get_meta.collect_meta(mal_items_flat)
         get_meta.collect_meta(anilist_res)  # anilist_res is now a list
         # Build AniList lookup by MAL ID
@@ -94,6 +93,20 @@ class OtakuBrowser(BrowserBase):
         self.database_update_show(mal_res)
         get_meta.collect_meta([mal_res])
         return database.get_show(mal_res['mal_id'])
+
+    def get_anime_data(self, mal_id):
+        """
+        Fetch full anime data from Jikan API by MAL ID.
+        Returns the parsed JSON response or None on error.
+        """
+        mal_res = database.get(self.get_mal_base_res, 24, f"{self._BASE_URL}/anime/{mal_id}")
+        data = mal_res.get('data', None)
+        mal_id = data['mal_id']
+        # Optionally fetch AniList data if needed
+        anilist_res = self.get_anilist_base_res([mal_id])
+        get_meta.collect_meta([data])
+        get_meta.collect_meta(anilist_res)
+        return self.database_update_show(data, anilist_res)
 
     def get_season_year(self, period='current'):
         date = datetime.datetime.today()
@@ -1825,7 +1838,13 @@ class OtakuBrowser(BrowserBase):
             year = mal_res.get('year', int(start_date[:4]))
         elif anilist_res and anilist_res.get('startDate'):
             start_date = anilist_res.get('startDate')
-            premiered = '{}-{:02}-{:02}'.format(start_date['year'], start_date['month'], start_date['day'])
+            year = start_date.get('year')
+            month = start_date.get('month')
+            day = start_date.get('day')
+            if None not in (year, month, day):
+                premiered = '{}-{:02}-{:02}'.format(year, month, day)
+            else:
+                premiered = ''
             year = start_date['year']
 
         # Cast
@@ -1970,7 +1989,6 @@ class OtakuBrowser(BrowserBase):
 
         return base
 
-
     def database_update_show(self, mal_res=None, anilist_res=None):
         """
         Combines MAL and AniList data for database update.
@@ -2006,7 +2024,13 @@ class OtakuBrowser(BrowserBase):
             start_date = mal_res['aired']['from']
         elif anilist_res and anilist_res.get('startDate'):
             sd = anilist_res['startDate']
-            start_date = '{}-{:02}-{:02}'.format(sd['year'], sd['month'], sd['day'])
+            year = sd.get('year')
+            month = sd.get('month')
+            day = sd.get('day')
+            if None not in (year, month, day):
+                start_date = '{}-{:02}-{:02}'.format(year, month, day)
+            else:
+                start_date = ''
 
         # Episodes
         episodes = mal_res.get('episodes') if mal_res and 'episodes' in mal_res else (anilist_res.get('episodes') if anilist_res and 'episodes' in anilist_res else None)

@@ -19,7 +19,15 @@ class ANIDBAPI:
         return meta_ids.get('anidb_id')
 
     def get_episode_meta(self, mal_id):
+        import time
         anidb_id = self.get_anidb_id(mal_id)
+        # Use Kodi settings for persistent rate limiting
+        last_request = control.getInt('anidb_last_request')
+        now = int(time.time())
+        if last_request > 0:
+            elapsed = now - last_request
+            if elapsed < 4:
+                time.sleep(4 - elapsed)
         params = {
             'request': 'anime',
             'client': self.client_name,
@@ -28,6 +36,7 @@ class ANIDBAPI:
             'aid': anidb_id
         }
         response = client.request(self.base_url, params=params)
+        control.setInt('anidb_last_request', int(time.time()))
         alt_titles = []
         episodes = []
         if response:
