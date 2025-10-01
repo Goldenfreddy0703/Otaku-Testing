@@ -1,3 +1,9 @@
+Changelog v5.2.54 (2025-10-01):
+- Fix AST constructor recursion depth mismatch error in database cache
+- Fix NoneType error in worker threads
+- Added defensive checks for corrupted cache data
+- Extended settings now work with Otaku APIs
+
 Changelog v5.2.53 (2025-09-23):
 - Added Tmdb Helper Support
 - Added persistent AniDB rate limiting

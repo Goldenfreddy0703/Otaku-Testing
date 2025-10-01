@@ -463,7 +463,10 @@
 					<dependencies>
 						<dependency type="visible">
 							<and>
-								<condition setting="browser.api">mal</condition>
+								<or>
+									<condition setting="browser.api">mal</condition>
+									<condition setting="browser.api">otaku</condition>
+								</or>
 								<condition setting="contentstatus.bool">true</condition>
 							</and>
 						</dependency>
@@ -499,7 +502,10 @@
 					<dependencies>
 						<dependency type="visible">
 							<and>
-								<condition setting="browser.api">mal</condition>
+								<or>
+									<condition setting="browser.api">mal</condition>
+									<condition setting="browser.api">otaku</condition>
+								</or>
 								<condition setting="contentrating.bool">true</condition>
 							</and>
 						</dependency>

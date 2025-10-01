@@ -26,11 +26,13 @@ def get(function, duration, *args, **kwargs):
     if cache_result and is_cache_valid(cache_result['date'], duration):
         try:
             return_data = ast.literal_eval(cache_result['value'])
+            return return_data
         except:
             import traceback
             control.log(traceback.format_exc(), level='error')
-            return_data = None
-        return return_data
+            # Cache is corrupted, invalidate it and fetch fresh data
+            control.log("Cache corrupted for key: %s, fetching fresh data" % key, level='warning')
+            # Don't return None, fall through to fetch fresh data
 
     fresh_result = repr(function(*args, **kwargs))
     cache_insert(key, fresh_result)
