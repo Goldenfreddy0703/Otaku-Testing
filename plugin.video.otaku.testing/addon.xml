@@ -4,7 +4,6 @@
     <import addon="xbmc.python" version="3.0.1"/>
     <import addon="script.module.beautifulsoup4"/>
     <import addon="script.module.inputstreamhelper"/>
-    <import addon="script.module.requests"/>
     <import addon="context.otaku.testing" version="1.0.27"/>
   </requires>
   <extension library="default.py" point="xbmc.python.pluginsource">

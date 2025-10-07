@@ -1,6 +1,5 @@
 import pickle
 import datetime
-import json
 import random
 
 from functools import partial
@@ -137,9 +136,9 @@ class SIMKLAPI:
             'extended': 'full',
             'client_id': self.ClientID
         }
-        response = client.request(f'{self.baseUrl}/anime/{simkl_id}', params=params)
+        response = client.get(f'{self.baseUrl}/anime/{simkl_id}', params=params)
         if response:
-            return json.loads(response)
+            return response.json()
         return {}
 
     def get_episode_meta(self, mal_id):
@@ -153,9 +152,9 @@ class SIMKLAPI:
             'extended': 'full',
             'client_id': self.ClientID
         }
-        response = client.request(f'{self.baseUrl}/anime/episodes/{simkl_id}', params=params)
+        response = client.get(f'{self.baseUrl}/anime/episodes/{simkl_id}', params=params)
         if response:
-            return json.loads(response)
+            return response.json()
         return {}
 
     def get_id(self, send_id, anime_id):
@@ -163,9 +162,9 @@ class SIMKLAPI:
             send_id: anime_id,
             "client_id": self.ClientID,
         }
-        response = client.request(f'{self.baseUrl}/search/id', params=params)
+        response = client.get(f'{self.baseUrl}/search/id', params=params)
         if response:
-            r = json.loads(response)
+            r = response.json()
             if r:
                 anime_id = r[0]['ids']['simkl']
                 return anime_id
@@ -181,9 +180,9 @@ class SIMKLAPI:
             'extended': 'full',
             'client_id': self.ClientID
         }
-        response = client.request(f'{self.baseUrl}/anime/{simkl_id}', params=params)
+        response = client.get(f'{self.baseUrl}/anime/{simkl_id}', params=params)
         if response:
-            r = json.loads(response)
+            r = response.json()
             if 'ids' in r:
                 return r['ids']
             else:

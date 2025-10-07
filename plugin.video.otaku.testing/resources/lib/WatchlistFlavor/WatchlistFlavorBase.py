@@ -1,6 +1,5 @@
 import pickle
 import random
-import json
 
 from resources.lib.ui import control, client, database
 
@@ -90,8 +89,8 @@ class WatchlistFlavorBase:
             'type': "mal",
             "id": mal_id
         }
-        response = client.request('https://armkai.vercel.app/api/search', params=params)
-        res = json.loads(response) if response else {}
+        response = client.get('https://armkai.vercel.app/api/search', params=params)
+        res = response.json() if response else {}
         flavor_id = res.get(flavor[:-3])
         database.add_mapping_id(mal_id, flavor, flavor_id)
         return flavor_id
@@ -110,8 +109,8 @@ class WatchlistFlavorBase:
             'id': mal_id,
             'providor': 'MyAnimeList'
         }
-        response = client.request('https://find-my-anime.dtimur.de/api', params=params)
-        res = json.loads(response) if response else []
+        response = client.get('https://find-my-anime.dtimur.de/api', params=params)
+        res = response.json() if response else []
         flavor_id = res[0]['providerMapping'][mapping] if res else None
         database.add_mapping_id(mal_id, flavor, flavor_id)
         return flavor_id

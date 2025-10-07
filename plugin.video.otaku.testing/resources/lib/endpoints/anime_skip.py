@@ -1,4 +1,3 @@
-import json
 from resources.lib.ui import client, database
 
 api_info = database.get_info('Anime-Skip')
@@ -26,15 +25,20 @@ def get_episode_ids(anilist_id, episode):
         'serviceId': anilist_id
     }
 
-    response = client.request(base_url, headers=headers, post={'query': query, 'variables': variables}, jpost=True)
-    if response:
-        res = json.loads(response)['data']['findShowsByExternalId']
-        id_list = []
-        for resx in res:
-            for x in resx['episodes']:
-                if x['number'] and int(x['number']) == episode:
-                    id_list.append(x['id'])
-        return id_list
+    response = client.post(base_url, headers=headers, json_data={'query': query, 'variables': variables})
+    if response and response.ok:
+        try:
+            data = response.json()
+            res = data.get('data', {}).get('findShowsByExternalId', [])
+            id_list = []
+            for resx in res:
+                for x in resx.get('episodes', []):
+                    if x.get('number') and int(x['number']) == episode:
+                        id_list.append(x['id'])
+            return id_list
+        except (ValueError, KeyError, TypeError) as e:
+            from resources.lib.ui import control
+            control.log(f'Anime-Skip API error: {str(e)}', 'error')
     return []
 
 
@@ -53,11 +57,17 @@ def get_time_stamps(id_list):
     variables = {}
     for x in range(len(id_list)):
         variables['episodeId'] = id_list[x]
-        response = client.request(base_url, headers=headers, post={'query': query, 'variables': variables}, jpost=True)
-        if response:
-            res = json.loads(response)['data']['findTimestampsByEpisodeId']
-            if res:
-                return res
+        response = client.post(base_url, headers=headers, json_data={'query': query, 'variables': variables})
+        if response and response.ok:
+            try:
+                data = response.json()
+                res = data.get('data', {}).get('findTimestampsByEpisodeId', [])
+                if res:
+                    return res
+            except (ValueError, KeyError, TypeError) as e:
+                from resources.lib.ui import control
+                control.log(f'Anime-Skip timestamp API error: {str(e)}', 'error')
+                continue
     return {}
 
 

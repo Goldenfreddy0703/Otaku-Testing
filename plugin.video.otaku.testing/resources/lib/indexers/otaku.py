@@ -1,7 +1,6 @@
 import pickle
 import datetime
 import time
-import json
 import random
 
 from functools import partial
@@ -40,9 +39,9 @@ class OtakuAPI:
                 'page[limit]': 20,
                 'page[offset]': (page - 1) * 20
             }
-            response = client.request(url, params=params)
+            response = client.get(url, params=params)
             if response:
-                res = json.loads(response)
+                res = response.json()
                 res_data.extend(res['data'])
                 if 'next' not in res['links']:
                     break
@@ -55,10 +54,10 @@ class OtakuAPI:
         params = {
             'mal_id': mal_id
         }
-        response = client.request(f'{self.anizipBaseUrl}/mappings', params=params)
+        response = client.get(f'{self.anizipBaseUrl}/mappings', params=params)
         episodes = []
         if response:
-            result = json.loads(response)
+            result = response.json()
             if 'episodes' in result:
                 for res in result['episodes']:
                     if str(res).isdigit():
@@ -87,12 +86,12 @@ class OtakuAPI:
             'protover': 1,
             'aid': anidb_id
         }
-        response = client.request(self.anidbBaseUrl, params=params)
+        response = client.get(self.anidbBaseUrl, params=params)
         control.setInt('anidb_last_request', int(time.time()))
         episodes = []
         if response:
             import xml.etree.ElementTree as ET
-            root = ET.fromstring(response)
+            root = ET.fromstring(response.text)
             for ep in root.findall('.//episode'):
                 epno_text = ep.find('epno').text
                 if epno_text is None:
@@ -129,9 +128,9 @@ class OtakuAPI:
                 'mal': mal_id,
                 'client_id': self.simklClientID
             }
-            response = client.request(f'{self.simklBaseUrl}/search/id', params=params)
+            response = client.get(f'{self.simklBaseUrl}/search/id', params=params)
             if response:
-                r = json.loads(response)
+                r = response.json()
                 if r:
                     simkl_id = r[0]['ids']['simkl']
                     database.add_mapping_id(mal_id, 'simkl_id', simkl_id)
@@ -143,21 +142,21 @@ class OtakuAPI:
             'extended': 'full',
             'client_id': self.simklClientID
         }
-        response = client.request(f'{self.simklBaseUrl}/anime/episodes/{simkl_id}', params=params)
+        response = client.get(f'{self.simklBaseUrl}/anime/episodes/{simkl_id}', params=params)
         if response:
-            return json.loads(response)
+            return response.json()
         return []
 
     def get_anime_info(self, mal_id):
-        response = client.request(f'{self.baseUrl}/anime/{mal_id}')
+        response = client.get(f'{self.baseUrl}/anime/{mal_id}')
         if response:
-            return json.loads(response)['data']
+            return response.json()['data']
 
     def get_episode_meta(self, mal_id):
         url = f'{self.baseUrl}/anime/{mal_id}/episodes'
-        response = client.request(url)
+        response = client.get(url)
         if response:
-            res = json.loads(response)
+            res = response.json()
             if not res['pagination']['has_next_page']:
                 res_data = res['data']
             else:
@@ -166,9 +165,9 @@ class OtakuAPI:
                     params = {
                         'page': i
                     }
-                    response = client.request(url, params=params)
+                    response = client.get(url, params=params)
                     if response:
-                        r = json.loads(response)
+                        r = response.json()
                         if not r['pagination']['has_next_page']:
                             res_data += r['data']
                             break
@@ -425,6 +424,6 @@ class OtakuAPI:
             "page": page,
             "filter": filter_type
         }
-        response = client.request(f'{self.baseUrl}/top/anime', params=params)
+        response = client.get(f'{self.baseUrl}/top/anime', params=params)
         if response:
-            return json.loads(response)
+            return response.json()

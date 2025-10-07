@@ -35,12 +35,12 @@ class ANIDBAPI:
             'protover': 1,
             'aid': anidb_id
         }
-        response = client.request(self.base_url, params=params)
+        response = client.get(self.base_url, params=params)
         control.setInt('anidb_last_request', int(time.time()))
         alt_titles = []
         episodes = []
         if response:
-            root = ET.fromstring(response)
+            root = ET.fromstring(response.text)
             # Parse the <titles> element for alternative titles.
             titles_elem = root.find('titles')
             if titles_elem is not None:

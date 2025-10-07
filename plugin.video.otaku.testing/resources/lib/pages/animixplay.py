@@ -6,7 +6,7 @@ import urllib.parse
 from functools import partial
 
 from bs4 import BeautifulSoup
-from resources.lib.ui import control, database, client
+from resources.lib.ui import control, database
 from resources.lib.ui.BrowserBase import BrowserBase
 
 
@@ -24,20 +24,22 @@ class Sources(BrowserBase):
         # title = kodi_meta.get('ename') or kodi_meta.get('name')
         title = kodi_meta.get('name')
         title = self._clean_title(title)
+
+        control.log(f"AnimixPlay: Searching for '{title}' episode {episode}, languages: {srcs}")
         all_results = []
         headers = {'Origin': self._BASE_URL[:-1],
                    'Referer': self._BASE_URL}
         r = database.get(
-            client.request,
+            self._post_request,
             8,
             self._BASE_URL + 'api/search',
-            XHR=True,
-            post={'qfast': title},
+            data={'qfast': title},
             headers=headers
         )
         if r:
             soup = BeautifulSoup(json.loads(r).get('result'), 'html.parser')
             items = soup.find_all('a')
+            control.log(f"AnimixPlay: Found {len(items)} search results")
             slugs = []
 
             for item in items:
@@ -53,18 +55,25 @@ class Sources(BrowserBase):
             if not slugs:
                 if len(items) > 0:
                     slugs = [items[0].get('href')]
+                    control.log(f"AnimixPlay: No exact match, using first result")
+
+            control.log(f"AnimixPlay: Processing {len(slugs)} slugs")
             if slugs:
                 slugs = list(slugs.keys()) if isinstance(slugs, dict) else slugs
                 mapfunc = partial(self._process_animixplay, title=title, episode=episode)
                 all_results = list(map(mapfunc, slugs))
                 all_results = list(itertools.chain(*all_results))
+
+        control.log(f"AnimixPlay: Returning {len(all_results)} sources")
         return all_results
 
     def _process_animixplay(self, slug, title, episode):
         sources = []
         lang = 3 if slug[-3:] == 'dub' else 2
+        lang_str = 'DUB' if lang == 3 else 'SUB'
+        control.log(f"AnimixPlay: Processing {lang_str} slug: {slug}")
         slug_url = urllib.parse.urljoin(self._BASE_URL, slug)
-        r = database.get(client.request, 8, slug_url, referer=self._BASE_URL)
+        r = database.get(self._get_request, 8, slug_url, headers={'Referer': self._BASE_URL})
         eplist = re.search(r'<div\s*id="epslistplace".+?>([^<]+)', r)
         if eplist:
             eplist = json.loads(eplist.group(1).strip())
@@ -72,11 +81,11 @@ class Sources(BrowserBase):
             if ep in eplist.keys():
                 playbunny = 'https://play.bunnycdn.to/'
                 esurl = '{0}hs/{1}'.format(playbunny, eplist.get(ep).split('/')[-1])
-                epage = database.get(client.request, 8, esurl, referer=playbunny)
+                epage = database.get(self._get_request, 8, esurl, headers={'Referer': playbunny})
                 ep_id = re.search(r'<div\s*id="mg-player"\s*data-id="([^"]+)', epage)
                 if ep_id:
                     ep_url = '{0}hs/getSources?id={1}'.format(playbunny, ep_id.group(1))
-                    ep_src = database.get(client.request, 8, ep_url, referer=playbunny)
+                    ep_src = database.get(self._get_request, 8, ep_url, headers={'Referer': playbunny})
                     try:
                         ep_src = json.loads(ep_src)
                     except:
@@ -106,5 +115,6 @@ class Sources(BrowserBase):
                             'skip': skip
                         }
                         sources.append(source)
+                        control.log(f"AnimixPlay: Found {lang_str} source from bunny server")
 
         return sources

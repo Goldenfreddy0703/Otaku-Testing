@@ -1,6 +1,5 @@
 import pickle
 import random
-import json
 
 from resources.lib.ui import utils, database, client, control, get_meta
 from resources.lib.WatchlistFlavor.WatchlistFlavorBase import WatchlistFlavorBase
@@ -31,8 +30,8 @@ class SimklWLF(WatchlistFlavorBase):
             'client_id': self.client_id,
         }
 
-        r = client.request(f'{self._URL}/oauth/pin', params=params)
-        device_code = json.loads(r) if r else {}
+        r = client.get(f'{self._URL}/oauth/pin', params=params)
+        device_code = r.json() if r else {}
 
         copied = control.copy2clip(device_code["user_code"])
         display_dialog = (f"{control.lang(30021).format(control.colorstr('https://simkl.com/pin'))}[CR]"
@@ -48,14 +47,14 @@ class SimklWLF(WatchlistFlavorBase):
                 return
             control.sleep(device_code['interval'] * 1000)
 
-            r = client.request(f'{self._URL}/oauth/pin/{device_code["user_code"]}', params=params)
-            r = json.loads(r) if r else {}
+            r = client.get(f'{self._URL}/oauth/pin/{device_code["user_code"]}', params=params)
+            r = r.json() if r else {}
             if r.get('result') == 'OK':
                 self.token = r['access_token']
                 login_data = {'token': self.token}
-                r = client.request(f'{self._URL}/users/settings', headers=self.__headers(), post={}, jpost=True)
+                r = client.post(f'{self._URL}/users/settings', headers=self.__headers(), json_data={})
                 if r:
-                    user = json.loads(r)['user']
+                    user = r.json()['user']
                     login_data['username'] = user['name']
                 return login_data
             new_display_dialog = f"{display_dialog}[CR]Code Valid for {control.colorstr(device_code['expires_in'] - i * device_code['interval'])} Seconds"
@@ -468,8 +467,8 @@ class SimklWLF(WatchlistFlavorBase):
             'extended': 'full',
             # 'next_watch_info': 'yes'
         }
-        r = client.request(f'{self._URL}/sync/all-items/anime/{status}', headers=self.__headers(), params=params)
-        return json.loads(r) if r else {}
+        r = client.get(f'{self._URL}/sync/all-items/anime/{status}', headers=self.__headers(), params=params)
+        return r.json() if r else {}
 
     def update_list_status(self, mal_id, status):
         data = {
@@ -480,9 +479,9 @@ class SimklWLF(WatchlistFlavorBase):
                 }
             }]
         }
-        r = client.request(f'{self._URL}/sync/add-to-list', headers=self.__headers(), post=data, jpost=True)
+        r = client.post(f'{self._URL}/sync/add-to-list', headers=self.__headers(), json_data=data)
         if r:
-            r = json.loads(r)
+            r = r.json()
             if not r['not_found']['shows'] or not r['not_found']['shows']:
                 if status == 'completed' and r.get('added', {}).get('shows', [{}])[0].get('to') == 'watching':
                     return 'watching'
@@ -498,9 +497,9 @@ class SimklWLF(WatchlistFlavorBase):
                 "episodes": [{'number': i} for i in range(1, int(episode) + 1)]
             }]
         }
-        r = client.request(f'{self._URL}/sync/history', headers=self.__headers(), post=data, jpost=True)
+        r = client.post(f'{self._URL}/sync/history', headers=self.__headers(), json_data=data)
         if r:
-            r = json.loads(r)
+            r = r.json()
             if not r['not_found']['shows'] or not r['not_found']['movies']:
                 return True
         return False
@@ -518,9 +517,9 @@ class SimklWLF(WatchlistFlavorBase):
         if score == 0:
             url = f"{url}/remove"
 
-        r = client.request(url, headers=self.__headers(), post=data, jpost=True)
+        r = client.post(url, headers=self.__headers(), json_data=data)
         if r:
-            r = json.loads(r)
+            r = r.json()
             if not r['not_found']['shows'] or not r['not_found']['movies']:
                 return True
         return False
@@ -533,9 +532,9 @@ class SimklWLF(WatchlistFlavorBase):
                 }
             }]
         }
-        r = client.request(f"{self._URL}/sync/history/remove", headers=self.__headers(), post=data, jpost=True)
+        r = client.post(f"{self._URL}/sync/history/remove", headers=self.__headers(), json_data=data)
         if r:
-            r = json.loads(r)
+            r = r.json()
             if not r['not_found']['shows'] or not r['not_found']['movies']:
                 return True
         return False

@@ -1412,9 +1412,9 @@ class AniListBrowser(BrowserBase):
 
     def get_watch_order(self, mal_id):
         url = 'https://chiaki.site/?/tools/watch_order/id/{}'.format(mal_id)
-        response = client.request(url)
+        response = client.get(url)
         if response:
-            soup = BeautifulSoup(response, 'html.parser')
+            soup = BeautifulSoup(response.text, 'html.parser')
         else:
             soup = None
 
@@ -1549,8 +1549,8 @@ class AniListBrowser(BrowserBase):
         }
         '''
 
-        result = client.request(self._BASE_URL, post={'query': query, 'variables': variables}, jpost=True)
-        results = json.loads(result)
+        response = client.post(self._BASE_URL, json_data={'query': query, 'variables': variables})
+        results = response.json()
 
         if "errors" in results.keys():
             return
@@ -1662,8 +1662,8 @@ class AniListBrowser(BrowserBase):
         }
         '''
 
-        result = client.request(self._BASE_URL, post={'query': query, 'variables': variables}, jpost=True)
-        results = json.loads(result)
+        response = client.post(self._BASE_URL, json_data={'query': query, 'variables': variables})
+        results = response.json()
 
         if "errors" in results.keys():
             return
@@ -1769,8 +1769,8 @@ class AniListBrowser(BrowserBase):
         }
         '''
 
-        result = client.request(self._BASE_URL, post={'query': query, 'variables': variables}, jpost=True)
-        results = json.loads(result)
+        response = client.post(self._BASE_URL, json_data={'query': query, 'variables': variables})
+        results = response.json()
 
         if "errors" in results.keys():
             return
@@ -1870,8 +1870,8 @@ class AniListBrowser(BrowserBase):
         }
         '''
 
-        r = client.request(self._BASE_URL, post={'query': query, 'variables': variables}, jpost=True)
-        results = json.loads(r)
+        response = client.post(self._BASE_URL, json_data={'query': query, 'variables': variables})
+        results = response.json()
 
         if "errors" in results.keys():
             return
@@ -1965,8 +1965,8 @@ class AniListBrowser(BrowserBase):
         }
         '''
 
-        r = client.request(self._BASE_URL, post={'query': query, 'variables': variables}, jpost=True)
-        results = json.loads(r)
+        response = client.post(self._BASE_URL, json_data={'query': query, 'variables': variables})
+        results = response.json()
 
         if "errors" in results.keys():
             return
@@ -2024,8 +2024,8 @@ class AniListBrowser(BrowserBase):
         }
         '''
 
-        r = client.request(self._BASE_URL, post={'query': query, 'variables': variables}, jpost=True)
-        results = json.loads(r)
+        response = client.post(self._BASE_URL, json_data={'query': query, 'variables': variables})
+        results = response.json()
 
         if "errors" in results.keys():
             return
@@ -2100,8 +2100,8 @@ class AniListBrowser(BrowserBase):
             }
         }
         '''
-        r = client.request(self._BASE_URL, post={'query': query, 'variables': variables}, jpost=True)
-        results = json.loads(r)
+        response = client.post(self._BASE_URL, json_data={'query': query, 'variables': variables})
+        results = response.json()
 
         if "errors" in results.keys():
             return
@@ -2403,8 +2403,8 @@ class AniListBrowser(BrowserBase):
         }
         '''
 
-        r = client.request(self._BASE_URL, post={'query': query}, jpost=True)
-        results = json.loads(r)
+        response = client.post(self._BASE_URL, json_data={'query': query})
+        results = response.json()
         if not results:
             # genres_list = ['Action', 'Adventure', 'Comedy', 'Drama', 'Ecchi', 'Fantasy', 'Hentai', "Horror", 'Mahou Shoujo', 'Mecha', 'Music', 'Mystery', 'Psychological', 'Romance', 'Sci-Fi', 'Slice of Life', 'Sports', 'Supernatural', 'Thriller']
             genres_list = ['error']
@@ -2566,8 +2566,8 @@ class AniListBrowser(BrowserBase):
         return self.process_genre_view(query, variables, base_plugin_url, page)
 
     def process_genre_view(self, query, variables, base_plugin_url, page):
-        r = client.request(self._BASE_URL, post={'query': query, 'variables': variables}, jpost=True)
-        results = json.loads(r)
+        response = client.post(self._BASE_URL, json_data={'query': query, 'variables': variables})
+        results = response.json()
         anime_res = results['data']['Page']['ANIME']
         hasNextPage = results['data']['Page']['pageInfo']['hasNextPage']
 
@@ -2606,8 +2606,8 @@ class AniListBrowser(BrowserBase):
         }
         '''
 
-        r = client.request(self._BASE_URL, post={'query': query}, jpost=True)
-        results = json.loads(r)
+        response = client.post(self._BASE_URL, json_data={'query': query})
+        results = response.json()
         if not results:
             genres_list = ['Action', 'Adventure', 'Comedy', 'Drama', 'Ecchi', 'Fantasy', 'Hentai', "Horror", 'Mahou Shoujo', 'Mecha', 'Music', 'Mystery', 'Psychological', 'Romance', 'Sci-Fi', 'Slice of Life', 'Sports', 'Supernatural', 'Thriller']
         else:

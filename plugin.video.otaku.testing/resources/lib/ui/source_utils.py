@@ -3,7 +3,7 @@ import string
 import xbmc
 
 
-from resources.lib.ui import control, client
+from resources.lib.ui import control
 
 res = ['EQ', '480p', '720p', '1080p', '4k']
 
@@ -233,26 +233,100 @@ def get_size(size=0):
 
 
 def get_fuzzy_match(query, filenames):
-    # import difflib
-    # threshold_percent = control.getInt('general.fuzzy')
-    # threshold = threshold_percent / 100.0
-    # query_lower = query.lower()
-    # filenames_lower = [f.lower() for f in filenames]
+    """
+    Multi-stage fuzzy matching for torrent/file selection.
+    Uses local algorithms for accuracy and speed (no external API dependency).
 
-    # scored = []
-    # for i, name in enumerate(filenames_lower):
-    #     ratio = difflib.SequenceMatcher(None, query_lower, name).ratio()
-    #     if ratio >= threshold:
-    #         scored.append((i, ratio))
+    Returns: List of indices that match the query, sorted by best match first
+    """
+    from difflib import SequenceMatcher
 
-    # # Optional: sort by best match first
-    # scored.sort(key=lambda x: x[1], reverse=True)
-    # return [i for i, _ in scored]
-    import json
-    filenames_query = ','.join(filenames)
-    response = client.request('https://armkai.vercel.app/api/fuzzypacks', params={"dict": filenames_query, "match": query})
-    resp = json.loads(response) if response else []
-    return resp
+    if not query or not filenames:
+        return []
+
+    # Normalize query for matching
+    query_clean = cleanTitle(query)
+    query_lower = query.lower()
+
+    # Stage 1: Exact match (case-insensitive)
+    exact_matches = []
+    for i, filename in enumerate(filenames):
+        if query_lower in filename.lower():
+            exact_matches.append((i, 1.0))  # Perfect score
+
+    if exact_matches:
+        control.log(f"Fuzzy Match: Found {len(exact_matches)} exact matches for '{query}'")
+        return [i for i, _ in exact_matches]
+
+    # Stage 2: Token-based matching (handles reordered words)
+    query_tokens = set(query_clean.split())
+    token_matches = []
+
+    for i, filename in enumerate(filenames):
+        filename_clean = cleanTitle(filename)
+        filename_tokens = set(filename_clean.split())
+
+        # Calculate token overlap
+        common_tokens = query_tokens & filename_tokens
+        if common_tokens:
+            # Jaccard similarity: intersection / union
+            jaccard = len(common_tokens) / len(query_tokens | filename_tokens)
+
+            # Token coverage: what % of query tokens are present
+            coverage = len(common_tokens) / len(query_tokens) if query_tokens else 0
+
+            # Combined score (weighted average)
+            score = (jaccard * 0.4) + (coverage * 0.6)
+
+            if score >= 0.5:  # Threshold: at least 50% match
+                token_matches.append((i, score))
+
+    if token_matches:
+        token_matches.sort(key=lambda x: x[1], reverse=True)
+        control.log(f"Fuzzy Match: Found {len(token_matches)} token matches for '{query}' (best: {token_matches[0][1]:.2f})")
+        return [i for i, _ in token_matches]
+
+    # Stage 3: Sequence matching with difflib (handles typos, partial matches)
+    sequence_matches = []
+    threshold = control.getInt('general.fuzzy') / 100.0 if control.getInt('general.fuzzy') > 0 else 0.6
+
+    for i, filename in enumerate(filenames):
+        filename_clean = cleanTitle(filename)
+
+        # Use SequenceMatcher for similarity ratio
+        ratio = SequenceMatcher(None, query_clean, filename_clean).ratio()
+
+        if ratio >= threshold:
+            sequence_matches.append((i, ratio))
+
+    if sequence_matches:
+        sequence_matches.sort(key=lambda x: x[1], reverse=True)
+        control.log(f"Fuzzy Match: Found {len(sequence_matches)} sequence matches for '{query}' (best: {sequence_matches[0][1]:.2f})")
+        return [i for i, _ in sequence_matches]
+
+    # Stage 4: Fallback - Close matches with lower threshold
+    fallback_matches = []
+
+    for i, filename in enumerate(filenames):
+        filename_clean = cleanTitle(filename)
+
+        # Try both ways (query in filename, filename in query)
+        ratio1 = SequenceMatcher(None, query_clean, filename_clean).ratio()
+        ratio2 = SequenceMatcher(None, query_lower, filename.lower()).ratio()
+
+        max_ratio = max(ratio1, ratio2)
+
+        if max_ratio >= 0.4:  # Lower threshold for fallback
+            fallback_matches.append((i, max_ratio))
+
+    if fallback_matches:
+        fallback_matches.sort(key=lambda x: x[1], reverse=True)
+        control.log(f"Fuzzy Match: Found {len(fallback_matches)} fallback matches for '{query}' (best: {fallback_matches[0][1]:.2f})")
+        return [i for i, _ in fallback_matches[:10]]  # Limit to top 10
+
+    # No matches found
+    control.log(f"Fuzzy Match: No matches found for '{query}'")
+    return []
 
 
 def get_best_match(dict_key, dictionary_list, episode, pack_select=False):

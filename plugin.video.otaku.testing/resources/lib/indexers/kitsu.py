@@ -1,7 +1,6 @@
 import pickle
 import datetime
 import time
-import json
 import random
 
 from functools import partial
@@ -20,9 +19,9 @@ class KitsuAPI:
 
     def get_anime_info(self, mal_id):
         kitsu_id = self.get_kitsu_id(mal_id)
-        response = client.request(f'{self.baseUrl}/anime/{kitsu_id}')
+        response = client.get(f'{self.baseUrl}/anime/{kitsu_id}')
         if response:
-            return json.loads(response)['data']
+            return response.json()['data']
 
     def get_episode_meta(self, kitsu_id):
         url = f'{self.baseUrl}/anime/{kitsu_id}/episodes'
@@ -33,9 +32,9 @@ class KitsuAPI:
                 'page[limit]': 20,
                 'page[offset]': (page - 1) * 20
             }
-            response = client.request(url, params=params)
+            response = client.get(url, params=params)
             if response:
-                res = json.loads(response)
+                res = response.json()
                 res_data.extend(res['data'])
                 if 'next' not in res['links']:
                     break
@@ -175,6 +174,6 @@ class KitsuAPI:
             "page[offset]": (page - 1) * perpage,
             "filter[status]": filter_type
         }
-        response = client.request(f'{self.baseUrl}/anime', params=params)
+        response = client.get(f'{self.baseUrl}/anime', params=params)
         if response:
-            return json.loads(response)
+            return response.json()

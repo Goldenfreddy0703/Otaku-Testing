@@ -3558,6 +3558,30 @@
 
 			<!-- Hidden Settings -->
 			<group id="9" label="" help="">
+				<!-- Internal cache storage (not user-facing) -->
+				<setting id="cache.useragent" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="cache.useragent.timestamp" type="number" label="" help="">
+					<level>4</level>
+					<default>0</default>
+				</setting>
+				<setting id="cache.mobile.useragent" type="string" label="" help="">
+					<level>4</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+				</setting>
+				<setting id="cache.mobile.useragent.timestamp" type="number" label="" help="">
+					<level>4</level>
+					<default>0</default>
+				</setting>
+				
 				<setting id="otaku.version" type="string" label="" help="">
 					<level>4</level>
 					<default/>

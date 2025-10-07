@@ -38,8 +38,7 @@ class Sources(BrowserBase):
             8,
             self._BASE_URL + 'ajax/anime/search',
             data=params,
-            headers=headers,
-            XHR=True
+            headers=headers
         )
 
         if 'NOT FOUND' in r:
@@ -48,8 +47,7 @@ class Sources(BrowserBase):
                 8,
                 self._BASE_URL + 'filter',
                 data=params,
-                headers=headers,
-                XHR=True
+                headers=headers
             )
 
             mlink = SoupStrainer('div', {'class': 'ani items'})
@@ -86,6 +84,7 @@ class Sources(BrowserBase):
 
     def _process_aw(self, slug, title, episode, langs):
         sources = []
+        sources_found_per_lang = {}  # Track if we found sources for each language
         headers = {'Referer': self._BASE_URL}
         r = database.get(
             self._get_request, 8,
@@ -101,8 +100,7 @@ class Sources(BrowserBase):
         r = database.get(
             self._get_request, 8,
             '{0}ajax/episode/list/{1}'.format(self._BASE_URL, sid),
-            headers=headers, data=params,
-            XHR=True
+            headers=headers, data=params
         )
         res = json.loads(r).get('result')
         try:
@@ -117,26 +115,32 @@ class Sources(BrowserBase):
                 r = database.get(
                     self._get_request, 8,
                     '{0}ajax/server/list/{1}'.format(self._BASE_URL, e_id),
-                    data=params, headers=headers,
-                    XHR=True
+                    data=params, headers=headers
                 )
                 eres = json.loads(r).get('result')
                 scrapes = 0
                 for lang in langs:
+                    # Skip this language if we already found sources for it
+                    if lang in sources_found_per_lang:
+                        control.log(f"AniWave: Skipping '{lang}' - already have sources")
+                        continue
+
                     elink = SoupStrainer('div', {'data-type': lang})
                     sdiv = BeautifulSoup(eres, "html.parser", parse_only=elink)
                     srcs = sdiv.find_all('li')
+                    control.log(f"AniWave: Found {len(srcs)} servers for lang '{lang}'")
                     for src in srcs:
                         edata_id = src.get('data-link-id')
                         edata_name = src.text
+                        control.log(f"AniWave: Checking server '{edata_name}' (ID: {edata_id})")
                         if any(x in self.clean_embed_title(edata_name) for x in self.embeds()):
+                            control.log(f"AniWave: Processing server '{edata_name}'")
                             vrf = self.generate_vrf(edata_id)
                             params = {'vrf': vrf}
                             r = self._get_request(
                                 '{0}ajax/server/{1}'.format(self._BASE_URL, edata_id),
                                 data=params,
-                                headers=headers,
-                                XHR=True
+                                headers=headers
                             )
                             scrapes += 1
                             resp = json.loads(r).get('result')
@@ -162,6 +166,12 @@ class Sources(BrowserBase):
                                         subs = {}
                                     headers.update({'Origin': self._BASE_URL[:-1]})
                                     res = self._get_request(srclink, headers=headers)
+
+                                    # Check if request was successful
+                                    if not res:
+                                        control.log(f"AniWave: Failed to fetch m3u8 from {srclink}")
+                                        continue
+
                                     quals = re.findall(r'#EXT.+?RESOLUTION=\d+x(\d+).*\n(?!#)(.+)', res)
                                     src_hdrs = {'User-Agent': 'iPad', 'Referer': urllib.parse.urljoin(srclink, '/')}
                                     for qual, qlink in quals:
@@ -195,6 +205,10 @@ class Sources(BrowserBase):
                                         if skip:
                                             source.update({'skip': skip})
                                         sources.append(source)
+
+                                    # Mark that we found sources for this language and break
+                                    sources_found_per_lang[lang] = True
+                                    break  # Exit server loop - we got sources
                             else:
                                 source = {
                                     'release_title': '{0} - Ep {1}'.format(title, episode),
@@ -214,6 +228,10 @@ class Sources(BrowserBase):
                                 if skip:
                                     source.update({'skip': skip})
                                 sources.append(source)
+
+                                # Mark that we found sources for this language and break
+                                sources_found_per_lang[lang] = True
+                                break  # Exit server loop - we got sources
         except:
             import traceback
             traceback.print_exc()

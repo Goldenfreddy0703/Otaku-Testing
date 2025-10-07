@@ -189,11 +189,11 @@ class Sources(GetSources):
             all_sources = nyaa.Sources().get_sources(query, mal_id, episode, status, media_type)
         else:
             all_sources = database.get(nyaa.Sources().get_sources, 8, query, mal_id, episode, status, media_type, key='nyaa')
-        
+
         # Defensive check to ensure all_sources is not None
         if all_sources is None:
             all_sources = {'cached': [], 'uncached': []}
-        
+
         self.torrentUnCacheSources += all_sources['uncached']
         self.torrentCacheSources += all_sources['cached']
         self.torrentSources += all_sources['cached'] + all_sources['uncached']
@@ -204,11 +204,11 @@ class Sources(GetSources):
             all_sources = animetosho.Sources().get_sources(query, mal_id, episode, status, media_type)
         else:
             all_sources = database.get(animetosho.Sources().get_sources, 8, query, mal_id, episode, status, media_type, key='animetosho')
-        
+
         # Defensive check to ensure all_sources is not None
         if all_sources is None:
             all_sources = {'cached': [], 'uncached': []}
-        
+
         self.torrentUnCacheSources += all_sources['uncached']
         self.torrentCacheSources += all_sources['cached']
         self.torrentSources += all_sources['cached'] + all_sources['uncached']

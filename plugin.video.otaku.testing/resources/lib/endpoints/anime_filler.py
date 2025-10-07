@@ -11,9 +11,9 @@ def get_data(anime_eng_title):
     if anime_eng_title:
         anime_url = re.sub(r'\W', '-', anime_eng_title)
         try:
-            response = client.request(f'{url}/{anime_url}')
+            response = client.get(f'{url}/{anime_url}')
             if response:
-                soup = BeautifulSoup(response, 'html.parser')
+                soup = BeautifulSoup(response.text, 'html.parser')
                 soup_all = soup.find('table', class_="EpisodeList").tbody.find_all('tr')
                 filler_list = [i.span.text for i in soup_all]
         except AttributeError:

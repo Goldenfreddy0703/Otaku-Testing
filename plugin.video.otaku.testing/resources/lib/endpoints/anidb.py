@@ -15,10 +15,10 @@ params = {
 
 def get_episode_meta(anidb_id):
     params['aid'] = anidb_id
-    r = client.request(base_url, params=params)
+    r = client.get(base_url, params=params)
     episode_meta = {}
     if r:
-        root = ET.fromstring(r)
+        root = ET.fromstring(r.text)
         # namespaces = {'xml': 'http://www.w3.org/XML/1998/namespace'}
         for episode in root.findall('.//episode'):
             episode_num = episode.find('epno').text

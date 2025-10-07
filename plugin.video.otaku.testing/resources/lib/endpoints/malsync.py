@@ -1,5 +1,3 @@
-import json
-
 from resources.lib.ui import client
 
 baseUrl = 'https://api.malsync.moe'
@@ -8,9 +6,9 @@ baseUrl = 'https://api.malsync.moe'
 def get_slugs(mal_id, site=''):
     slugs = []
     if site in ['Gogoanime', 'Zoro', 'animepahe']:
-        response = client.request(f'{baseUrl}/mal/anime/{mal_id}')
+        response = client.get(f'{baseUrl}/mal/anime/{mal_id}')
         if response:
-            resp = json.loads(response)['Sites'].get(site)
+            resp = response.json()['Sites'].get(site)
             if resp:
                 for key in resp.keys():
                     slugs.append(resp[key].get('url'))
@@ -19,9 +17,9 @@ def get_slugs(mal_id, site=''):
 
 def get_title(mal_id, site=''):
     if site in ['Gogoanime', 'Zoro', 'animepahe']:
-        response = client.request(f'{baseUrl}/mal/anime/{mal_id}')
+        response = client.get(f'{baseUrl}/mal/anime/{mal_id}')
         if response:
-            resp = json.loads(response)['Sites'].get(site)
+            resp = response.json()['Sites'].get(site)
             if resp:
                 for key in resp.keys():
                     title = resp[key].get('title')

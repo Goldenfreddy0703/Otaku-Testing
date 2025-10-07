@@ -23,6 +23,7 @@ class Sources(BrowserBase):
         self.paging = control.getInt('animetosho.paging')
 
     def get_sources(self, show, mal_id, episode, status, media_type):
+        control.log(f"Animetosho: Starting search for '{show}' episode {episode}")
         if media_type == "movie":
             return self.get_movie_sources(show, mal_id)
 
@@ -42,10 +43,13 @@ class Sources(BrowserBase):
                 part = mal_mapping['thetvdb_part']
 
         episode_sources = self.get_episode_sources(show, mal_id, episode, part, status)
+        control.log(f"Animetosho: Found {len(episode_sources)} episode-specific sources")
         show_sources = self.get_show_sources(show, mal_id, episode, part)
+        control.log(f"Animetosho: Found {len(show_sources)} show/batch sources")
         self.sources = episode_sources + show_sources
 
         self.append_cache_uncached_noduplicates()
+        control.log(f"Animetosho: Returning {len(self.cached)} cached + {len(self.uncached)} uncached = {len(self.cached) + len(self.uncached)} total sources")
         return {'cached': self.cached, 'uncached': self.uncached}
 
     def get_episode_sources(self, show, mal_id, episode, part, status):
@@ -185,9 +189,9 @@ class Sources(BrowserBase):
         return {'cached': self.cached, 'uncached': self.uncached}
 
     def process_animetosho_episodes(self, url, params, mal_id, episode, season, part):
-        response = client.request(url, params=params)
+        response = client.get(url, params=params)
         if response:
-            html = response
+            html = response.text
             soup = BeautifulSoup(html, "html.parser")
             soup_all = soup.find('div', id='content').find_all('div', class_='home_list_entry')
             rex = r'(magnet:)+[^"]*'
@@ -233,9 +237,9 @@ class Sources(BrowserBase):
         return []
 
     def process_animetosho_movie(self, url, params, mal_id):
-        response = client.request(url, params=params)
+        response = client.get(url, params=params)
         if response:
-            html = response
+            html = response.text
             soup = BeautifulSoup(html, "html.parser")
             # Assuming the movie results use the same container as episodes:
             soup_all = soup.find('div', id='content').find_all('div', class_='home_list_entry')
@@ -317,10 +321,11 @@ class Sources(BrowserBase):
                 continue
             if key in unique:
                 current = unique[key]
+                # Compare seeders first; if equal, compare byte_size
                 if source.get('seeders', -1) > current.get('seeders', -1):
                     unique[key] = source
-                elif (source.get('seeders', -1) == current.get('seeders', -1) and
-                      source.get('byte_size', 0) > current.get('byte_size', 0)):
+                elif (source.get('seeders', -1) == current.get('seeders', -1)
+                      and source.get('byte_size', 0) > current.get('byte_size', 0)):
                     unique[key] = source
             else:
                 unique[key] = source

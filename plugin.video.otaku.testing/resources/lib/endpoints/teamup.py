@@ -1,7 +1,6 @@
 import datetime
 import re
 import time
-import json
 
 from resources.lib.ui import client, database
 
@@ -26,9 +25,9 @@ def get_dub_data(en_title):
             'startDate': datetime.datetime.today(),
             'endDate': datetime.datetime.today().date() + datetime.timedelta(days=90)
         }
-        response = client.request(f'{api_url}/{token}/events', headers=headers, params=params)
+        response = client.get(f'{api_url}/{token}/events', headers=headers, params=params)
         if response:
-            teamup_data = json.loads(response)['events']
+            teamup_data = response.json()['events']
 
             dub_list = []
             for teamup_dat in teamup_data:

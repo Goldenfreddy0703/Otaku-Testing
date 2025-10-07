@@ -277,9 +277,9 @@ class MalBrowser(BrowserBase):
 
     def get_watch_order(self, mal_id):
         url = 'https://chiaki.site/?/tools/watch_order/id/{}'.format(mal_id)
-        response = client.request(url)
+        response = client.get(url)
         if response:
-            soup = BeautifulSoup(response, 'html.parser')
+            soup = BeautifulSoup(response.text, 'html.parser')
         else:
             soup = None
 
@@ -1514,9 +1514,9 @@ class MalBrowser(BrowserBase):
 
     @staticmethod
     def get_base_res(url, params=None):
-        r = client.request(url, params=params)
+        r = client.get(url, params=params)
         if r:
-            return json.loads(r)
+            return r.json()
 
     def get_airing_calendar_res(self, day, page=1):
         url = f'{self._BASE_URL}/schedules?kids=false&sfw=false&limit=25&page={page}&filter={day}'

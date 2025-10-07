@@ -1,7 +1,6 @@
 import pickle
 import datetime
 import time
-import json
 import random
 
 from functools import partial
@@ -14,16 +13,16 @@ class JikanAPI:
         self.baseUrl = "https://api.jikan.moe/v4"
 
     def get_anime_info(self, mal_id):
-        response = client.request(f'{self.baseUrl}/anime/{mal_id}')
+        response = client.get(f'{self.baseUrl}/anime/{mal_id}')
         if response:
-            return json.loads(response)['data']
+            return response.json()['data']
 
     def get_episode_meta(self, mal_id):
         res_data = []
         url = f'{self.baseUrl}/anime/{mal_id}/episodes'
-        response = client.request(url)
+        response = client.get(url)
         if response:
-            res = json.loads(response)
+            res = response.json()
             if not res['pagination']['has_next_page']:
                 res_data = res['data']
             else:
@@ -32,9 +31,9 @@ class JikanAPI:
                     params = {
                         'page': i
                     }
-                    response = client.request(url, params=params)
+                    response = client.get(url, params=params)
                     if response:
-                        r = json.loads(response)
+                        r = response.json()
                         if not r['pagination']['has_next_page']:
                             res_data += r['data']
                             break
@@ -168,6 +167,6 @@ class JikanAPI:
             "page": page,
             "filter": filter_type
         }
-        response = client.request(f'{self.baseUrl}/top/anime', params=params)
+        response = client.get(f'{self.baseUrl}/top/anime', params=params)
         if response:
-            return json.loads(response)
+            return response.json()

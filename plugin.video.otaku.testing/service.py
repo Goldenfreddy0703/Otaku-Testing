@@ -87,9 +87,9 @@ def sync_watchlist(silent=False):
 def update_dub_json():
     control.log("### Updating Dub json")
     with open(control.maldubFile, 'w') as file:
-        response = client.request('https://raw.githubusercontent.com/MAL-Dubs/MAL-Dubs/main/data/dubInfo.json')
+        response = client.get('https://raw.githubusercontent.com/MAL-Dubs/MAL-Dubs/main/data/dubInfo.json')
         if response:
-            mal_dub_list = json.loads(response)["dubbed"]
+            mal_dub_list = response.json()["dubbed"]
             mal_dub = {str(item): {'dub': True} for item in mal_dub_list}
             json.dump(mal_dub, file)
             control.log("### Dubs updated successfully")

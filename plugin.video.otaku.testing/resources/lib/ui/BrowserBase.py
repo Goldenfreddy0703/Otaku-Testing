@@ -78,24 +78,28 @@ class BrowserBase(object):
         return "%s/%s" % (self._BASE_URL, url)
 
     @staticmethod
-    def _send_request(url, data=None, headers=None, XHR=False):
-        return client.request(url, post=data, headers=headers, XHR=XHR)
+    def _send_request(url, data=None, headers=None):
+        if data:
+            response = client.post(url, data=data, headers=headers)
+        else:
+            response = client.get(url, headers=headers)
+        return response.text if response else None
 
     def _post_request(self, url, data={}, headers=None):
         return self._send_request(url, data, headers)
 
-    def _get_request(self, url, data=None, headers=None, XHR=False):
+    def _get_request(self, url, data=None, headers=None):
         if data:
             url = "%s?%s" % (url, urllib.parse.urlencode(data))
-        return self._send_request(url, data=None, headers=headers, XHR=XHR)
+        return self._send_request(url, data=None, headers=headers)
 
     @staticmethod
     def _get_redirect_url(url, headers=None):
         if headers is None:
             headers = {}
-        t = client.request(url, redirect=False, headers=headers, output='extended')
-        if t:
-            return t[2].get('Location')
+        response = client.get(url, redirect=False, headers=headers)
+        if response:
+            return response.headers.get('Location')
         return ''
 
     @staticmethod

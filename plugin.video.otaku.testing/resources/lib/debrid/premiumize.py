@@ -1,4 +1,3 @@
-import json
 import urllib.parse
 
 from resources.lib.ui import source_utils, client, control, database
@@ -22,8 +21,8 @@ class Premiumize:
 
     def auth(self):
         data = {'client_id': self.client_id, 'response_type': 'device_code'}
-        r = client.request('https://www.premiumize.me/token', post=data, jpost=True)
-        resp = json.loads(r) if r else {}
+        r = client.post('https://www.premiumize.me/token', json_data=data)
+        resp = r.json() if r else {}
         self.OauthTotalTimeout = self.OauthTimeout = resp['expires_in']
         self.OauthTimeStep = int(resp['interval'])
         copied = control.copy2clip(resp['user_code'])
@@ -45,8 +44,8 @@ class Premiumize:
             self.status()
 
     def status(self):
-        r = client.request(f'{self.base_url}/account/info', headers=self.headers())
-        user_information = json.loads(r) if r else {}
+        r = client.get(f'{self.base_url}/account/info', headers=self.headers())
+        user_information = r.json() if r else {}
         premium = user_information['premium_until'] > 0
         control.setSetting('premiumize.username', user_information['customer_id'])
         control.ok_dialog(control.ADDON_NAME, f'Premiumize {control.lang(30024)}')
@@ -62,8 +61,8 @@ class Premiumize:
             return False
         control.progressDialog.update(int(self.OauthTimeout / self.OauthTotalTimeout * 100))
         data = {'client_id': self.client_id, 'code': device_code, 'grant_type': 'device_code'}
-        r = client.request('https://www.premiumize.me/token', post=data, jpost=True)
-        token = json.loads(r) if r else {}
+        r = client.post('https://www.premiumize.me/token', json_data=data)
+        token = r.json() if r else {}
         if r and 'access_token' in token:
             self.token = token['access_token']
             control.setSetting('premiumize.token', self.token)
@@ -77,38 +76,38 @@ class Premiumize:
 
     def search_folder(self, query):
         params = {'q': query}
-        r = client.request(f'{self.base_url}/folder/search', headers=self.headers(), params=params)
-        return json.loads(r)['content'] if r else None
+        r = client.get(f'{self.base_url}/folder/search', headers=self.headers(), params=params)
+        return r.json()['content'] if r else None
 
     def list_folder(self, folderid=None):
         params = {'id': folderid} if folderid else None
-        r = client.request(f"{self.base_url}/folder/list", headers=self.headers(), params=params)
-        return json.loads(r)['content'] if r else None
+        r = client.get(f"{self.base_url}/folder/list", headers=self.headers(), params=params)
+        return r.json()['content'] if r else None
 
     def hash_check(self, hashlist):
         params = urllib.parse.urlencode([('items[]', hash) for hash in hashlist])
         url = f'{self.base_url}/cache/check?{params}'
-        r = client.request(url, headers=self.headers())
-        return json.loads(r) if r else None
+        r = client.get(url, headers=self.headers())
+        return r.json() if r else None
 
     def direct_download(self, src):
         postData = {'src': src}
-        r = client.request(f'{self.base_url}/transfer/directdl', headers=self.headers(), post=postData)
-        return json.loads(r) if r else None
+        r = client.post(f'{self.base_url}/transfer/directdl', headers=self.headers(), data=postData)
+        return r.json() if r else None
 
     def addMagnet(self, src):
         postData = {'src': src}
-        r = client.request(f'{self.base_url}/transfer/create', headers=self.headers(), post=postData)
-        return json.loads(r) if r else None
+        r = client.post(f'{self.base_url}/transfer/create', headers=self.headers(), data=postData)
+        return r.json() if r else None
 
     def transfer_list(self):
-        r = client.request(f'{self.base_url}/transfer/list', headers=self.headers())
-        return json.loads(r)['transfers'] if r else None
+        r = client.get(f'{self.base_url}/transfer/list', headers=self.headers())
+        return r.json()['transfers'] if r else None
 
     def delete_torrent(self, torrent_id):
         params = {'id': torrent_id}
-        r = client.request(f'{self.base_url}/transfer/delete', headers=self.headers(), post=params)
-        return json.loads(r) if r else None
+        r = client.post(f'{self.base_url}/transfer/delete', headers=self.headers(), data=params)
+        return r.json() if r else None
 
     def manage_storage_space(self):
         storage_info = self.get_storage_info()
@@ -122,20 +121,20 @@ class Premiumize:
                     break
 
     def get_storage_info(self):
-        r = client.request(f'{self.base_url}/account/info', headers=self.headers())
-        return json.loads(r) if r else None
+        r = client.get(f'{self.base_url}/account/info', headers=self.headers())
+        return r.json() if r else None
 
     def get_oldest_items(self):
-        r = client.request(f'{self.base_url}/transfer/list', headers=self.headers())
-        transfers = json.loads(r)['transfers'] if r else []
+        r = client.get(f'{self.base_url}/transfer/list', headers=self.headers())
+        transfers = r.json()['transfers'] if r else []
         # Filter out items missing 'created_at' to avoid KeyError
         transfers_with_created = [x for x in transfers if 'created_at' in x]
         return sorted(transfers_with_created, key=lambda x: x['created_at'])
 
     def add_to_cloud(self, link):
         postData = {'src': link}
-        r = client.request(f'{self.base_url}/transfer/create', headers=self.headers(), post=postData)
-        response = json.loads(r) if r else {}
+        r = client.post(f'{self.base_url}/transfer/create', headers=self.headers(), data=postData)
+        response = r.json() if r else {}
         if response.get('status') == 'success':
             control.log(f"Successfully added to cloud: {link}")
         else:

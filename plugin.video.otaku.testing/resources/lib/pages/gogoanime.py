@@ -14,9 +14,9 @@ def get_backup(mal_id, source):
         "type": "myanimelist",
         "id": mal_id
     }
-    result = client.request("https://arm2.vercel.app/api/kaito-b", params=params)
+    result = client.get("https://arm2.vercel.app/api/kaito-b", params=params)
     if result:
-        result = json.loads(result)
+        result = result.json()
         result = result.get('Pages', {}).get(source, {})
     return result
 
@@ -122,7 +122,10 @@ class Sources(BrowserBase):
 
         soup = BeautifulSoup(r, 'html.parser')
         sources = []
-        for element in soup.select('.anime_muti_link > ul > li'):
+        elements = soup.select('.anime_muti_link > ul > li')
+        control.log(f"GogoAnime: Found {len(elements)} servers for episode {episode}")
+
+        for element in elements:
             server = element.get('class')[0]
             link = element.a.get('data-video')
 
@@ -146,5 +149,8 @@ class Sources(BrowserBase):
                     'sub': source_utils.getSubtitle_lang(title),
                 }
                 sources.append(source)
+                control.log(f"GogoAnime: Found source from server '{server}'")
+                # Early exit - we found a working source, no need to check more servers
+                break
 
         return sources

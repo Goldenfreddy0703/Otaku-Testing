@@ -1,4 +1,3 @@
-import json
 import time
 from resources.lib.ui import client, control, source_utils, database
 
@@ -33,9 +32,9 @@ class DebridLink:
             'code': self.DeviceCode,
             'grant_type': 'urn:ietf:params:oauth:grant-type:device_code'
         }
-        r = client.request(url, post=data, headers={'User-Agent': self.USER_AGENT})
+        r = client.post(url, data=data, headers={'User-Agent': self.USER_AGENT})
         if r:
-            response = json.loads(r)
+            response = r.json()
             control.progressDialog.close()
             self.token = response.get('access_token')
             self.refresh = response.get('refresh_token')
@@ -47,9 +46,9 @@ class DebridLink:
     def auth(self):
         url = '{0}/oauth/device/code'.format(self.api_url[:-3])
         data = {'client_id': self.ClientID, 'scope': 'get.post.delete.seedbox get.account'}
-        r = client.request(url, post=data, headers={'User-Agent': self.USER_AGENT})
+        r = client.post(url, data=data, headers={'User-Agent': self.USER_AGENT})
         if r:
-            resp = json.loads(r)
+            resp = r.json()
             self.OauthTotalTimeout = self.OauthTimeout = resp['expires_in']
             self.OauthTimeStep = resp['interval']
             self.DeviceCode = resp['device_code']
@@ -73,8 +72,8 @@ class DebridLink:
 
     def status(self):
         url = f"{self.api_url[:-3]}/account/infos"
-        response = client.request(url, headers=self.headers())
-        response = json.loads(response)
+        response = client.get(url, headers=self.headers())
+        response = response.json()
         username = response['value']['pseudo']
         premium = response['value']['premiumLeft'] > 0
         control.setSetting('debridlink.username', username)
@@ -96,8 +95,8 @@ class DebridLink:
             'client_id': self.ClientID
         }
         url = f"{self.api_url[:-3]}/oauth/token"
-        response = client.request(url, post=postData, headers={'User-Agent': self.USER_AGENT})
-        response = json.loads(response)
+        response = client.post(url, data=postData, headers={'User-Agent': self.USER_AGENT})
+        response = response.json()
         if response.get('access_token'):
             self.token = response['access_token']
             control.setSetting('debridlink.token', self.token)
@@ -109,8 +108,8 @@ class DebridLink:
             'async': 'true'
         }
         url = f"{self.api_url}/seedbox/add"
-        r = client.request(url, post=postData, headers=self.headers())
-        return json.loads(r).get('value') if r else None
+        r = client.post(url, data=postData, headers=self.headers())
+        return r.json().get('value') if r else None
 
     def resolve_single_magnet(self, hash_, magnet, episode, pack_select):
         files = self.addMagnet(magnet)['files']
@@ -126,6 +125,66 @@ class DebridLink:
         if selected_file is None:
             return
         return selected_file
+
+    def get_torrent_status(self, magnet):
+        """
+        Given a magnet link, get torrent data needed for further resolution.
+        Returns a tuple: (torrent_id, status, torrent_info)
+        If the torrent cannot be selected, returns (None, None, None).
+        """
+        magnet_data = self.addMagnet(magnet)
+        if not magnet_data or not magnet_data['id']:
+            control.ok_dialog(control.ADDON_NAME, "BAD LINK")
+            return None, None, None
+        status = magnet_data.get('downloadPercent') == 100
+        return magnet, status, magnet_data
+
+    def magnet_status(self, magnet_id):
+        url = f'{self.api_url}/seedbox/{magnet_id}/infos'
+        r = client.get(url, headers=self.headers())
+        return r.json()['value'] if r else None
+
+    def resolve_uncached_source(self, source, runinbackground, runinforground, pack_select):
+        heading = f'{control.ADDON_NAME}: Cache Resolver'
+        if runinforground:
+            control.progressDialog.create(heading, "Caching Progress")
+        stream_link = None
+        magnet = source['magnet']
+        magnet_data = self.addMagnet(magnet)
+        magnet_id = magnet_data['id']
+        magnet_status = self.magnet_status(magnet_id)
+        while magnet_status.get('downloadPercent') < 100.0:
+            if runinforground and (control.progressDialog.iscanceled() or control.wait_for_abort(5)):
+                break
+            magnet_status = self.magnet_status(magnet_id)
+            status = magnet_status.get('name')
+            progress = magnet_status.get('downloadPercent')
+            speed = magnet_status.get('downloadSpeed')
+            seeders = magnet_status.get('peersConnected')
+
+            if runinforground:
+                f_body = (f"Status: {status}[CR]"
+                          f"Progress: {round(progress, 2)} %[CR]"
+                          f"Seeders: {seeders}[CR]"
+                          f"Speed: {source_utils.get_size(speed)}")
+                control.progressDialog.update(int(progress), f_body)
+            control.sleep(5000)
+
+        if magnet_status.get('downloadPercent') == 100.0:
+            folder_details = [{'link': x.get('downloadUrl'), 'path': x.get('name').split('/')[-1]} for x in magnet_status.get('files')]
+            if len(folder_details) == 1:
+                stream_link = folder_details[0]['link']
+            else:
+                selected_file = source_utils.get_best_match('path', folder_details, source['episode_re'], pack_select)
+                if not selected_file or not selected_file['path']:
+                    self.delete_magnet(magnet_id)
+                    return
+                stream_link = selected_file['link']
+        else:
+            self.delete_magnet(magnet_id)
+        if runinforground:
+            control.progressDialog.close()
+        return stream_link
 
     @staticmethod
     def resolve_cloud(source, pack_select):

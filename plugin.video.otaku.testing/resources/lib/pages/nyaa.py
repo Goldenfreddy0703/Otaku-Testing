@@ -62,6 +62,7 @@ class Sources(BrowserBase):
         query = f'{show} "- {episode_zfill}"'
         query += f'|"S{season_zfill}E{episode_zfill}"'
 
+        control.log(f"Nyaa: Searching for episode {episode_zfill}")
         params = {
             'f': '0',
             'c': '1_0',
@@ -70,6 +71,8 @@ class Sources(BrowserBase):
             'o': 'desc'
         }
         nyaa_sources += self.process_nyaa_episodes(self._BASE_URL, params, mal_id, episode_zfill, season_zfill, part)
+        control.log(f"Nyaa: Found {len(nyaa_sources)} sources from primary search")
+
         if status in ["FINISHED", "Finished Airing"]:
             query = '%s "Batch"|"Complete Series"' % show
             episodes = pickle.loads(database.get_show(mal_id)['kodi_meta'])['episodes']
@@ -84,6 +87,7 @@ class Sources(BrowserBase):
                 query += f'|"S{season_zfill}E{episode_zfill}"'
 
             query += f'|"- {episode_zfill}"'
+            control.log(f"Nyaa: Searching batch/complete series")
             params = {
                 'f': '0',
                 'c': '1_0',
@@ -91,14 +95,19 @@ class Sources(BrowserBase):
                 's': 'seeders',
                 'o': 'desc'
             }
-            nyaa_sources += self.process_nyaa_episodes(self._BASE_URL, params, mal_id, episode_zfill, season_zfill, part)
+            batch_sources = self.process_nyaa_episodes(self._BASE_URL, params, mal_id, episode_zfill, season_zfill, part)
+            nyaa_sources += batch_sources
+            control.log(f"Nyaa: Found {len(batch_sources)} batch sources, total: {len(nyaa_sources)}")
 
+        control.log(f"Nyaa: Doing fallback search without sorting")
         params = {
             'f': '0',
             'c': '1_0',
             'q': query.replace(' ', '+')
         }
-        nyaa_sources += self.process_nyaa_episodes(self._BASE_URL, params, mal_id, episode_zfill, season_zfill, part)
+        fallback_sources = self.process_nyaa_episodes(self._BASE_URL, params, mal_id, episode_zfill, season_zfill, part)
+        nyaa_sources += fallback_sources
+        control.log(f"Nyaa: Found {len(fallback_sources)} fallback sources, total: {len(nyaa_sources)}")
 
         show = show.lower()
         if 'season' in show:
@@ -119,10 +128,14 @@ class Sources(BrowserBase):
             'q': query.replace(' ', '+')
         }
 
-        nyaa_sources += self.process_nyaa_episodes(self._BASE_URL, params, mal_id, episode_zfill, season_zfill, part)
+        additional_sources = self.process_nyaa_episodes(self._BASE_URL, params, mal_id, episode_zfill, season_zfill, part)
+        nyaa_sources += additional_sources
+        control.log(f"Nyaa: Found {len(additional_sources)} additional sources, total: {len(nyaa_sources)}")
+        control.log(f"Nyaa: Episode search complete - returning {len(nyaa_sources)} total sources")
         return nyaa_sources
 
     def get_show_sources(self, show, mal_id, episode, part):
+        control.log(f"Nyaa: Searching show/batch sources for '{show}'")
         season = database.get_episode(mal_id)['season']
         season_zfill = str(season).zfill(2)
         episode_zfill = episode.zfill(2)
@@ -137,9 +150,11 @@ class Sources(BrowserBase):
         }
 
         nyaa_sources = self.process_nyaa_episodes(self._BASE_URL, params, mal_id, episode_zfill, season_zfill, part)
+        control.log(f"Nyaa: Show search complete - found {len(nyaa_sources)} sources")
         return nyaa_sources
 
     def get_movie_sources(self, query, mal_id):
+        control.log(f"Nyaa: Searching movie sources for '{query}'")
         params = {
             'f': '0',
             'c': '1_2',
@@ -155,9 +170,9 @@ class Sources(BrowserBase):
         return {'cached': self.cached, 'uncached': self.uncached}
 
     def process_nyaa_episodes(self, url, params, mal_id, episode_zfill, season_zfill, part):
-        response = client.request(url, params=params)
+        response = client.get(url, params=params)
         if response:
-            html = response
+            html = response.text
             mlink = SoupStrainer('div', {'class': 'table-responsive'})
             soup = BeautifulSoup(html, "html.parser", parse_only=mlink)
             rex = r'(magnet:)+[^"]*'
@@ -189,9 +204,9 @@ class Sources(BrowserBase):
             return all_results
 
     def process_nyaa_movie(self, url, params, mal_id):
-        response = client.request(url, params=params)
+        response = client.get(url, params=params)
         if response:
-            res = response
+            res = response.text
             results = BeautifulSoup(res, 'html.parser')
             rex = r'(magnet:)+[^"]*'
             search_results = [
@@ -271,8 +286,8 @@ class Sources(BrowserBase):
                 # Compare seeders first; if equal, compare byte_size
                 if source.get('seeders', -1) > current.get('seeders', -1):
                     unique[key] = source
-                elif (source.get('seeders', -1) == current.get('seeders', -1) and
-                      source.get('byte_size', 0) > current.get('byte_size', 0)):
+                elif (source.get('seeders', -1) == current.get('seeders', -1)
+                      and source.get('byte_size', 0) > current.get('byte_size', 0)):
                     unique[key] = source
             else:
                 unique[key] = source

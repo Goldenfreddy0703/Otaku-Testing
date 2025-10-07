@@ -1,4 +1,3 @@
-import json
 import urllib.parse
 from resources.lib.ui import client, control, source_utils
 
@@ -16,8 +15,8 @@ class AllDebrid:
 
     def auth(self):
         params = {'agent': self.agent_identifier}
-        r = client.request(f'{self.base_url}/pin/get', params=params)
-        resp = json.loads(r)['data'] if r else {}
+        r = client.get(f'{self.base_url}/pin/get', params=params)
+        resp = r.json()['data'] if r else {}
         self.OauthTotalTimeout = self.OauthTimeout = int(resp['expires_in'])
         copied = control.copy2clip(resp['pin'])
         display_dialog = (f"{control.lang(30021).format(control.colorstr(resp['base_url']))}[CR]"
@@ -46,8 +45,8 @@ class AllDebrid:
             'agent': self.agent_identifier,
             'apikey': self.token
         }
-        r = client.request(f'{self.base_url}/user', params=params)
-        res = json.loads(r)['data'] if r else {}
+        r = client.get(f'{self.base_url}/user', params=params)
+        res = r.json()['data'] if r else {}
         user_information = res['user']
         premium = user_information['isPremium']
         control.setSetting('alldebrid.username', user_information['username'])
@@ -68,8 +67,8 @@ class AllDebrid:
             return False
         control.progressDialog.update(int(self.OauthTimeout / self.OauthTotalTimeout * 100))
         params['agent'] = self.agent_identifier
-        r = client.request(f'{self.base_url}/pin/check', params=params)
-        resp = json.loads(r)['data'] if r else {}
+        r = client.get(f'{self.base_url}/pin/check', params=params)
+        resp = r.json()['data'] if r else {}
         if resp.get('activated'):
             self.token = resp['apikey']
             control.setSetting('alldebrid.token', self.token)
@@ -82,8 +81,8 @@ class AllDebrid:
             'apikey': self.token,
             'magnets': magnet_hash
         }
-        r = client.request(f'{self.base_url}/magnet/upload', params=params)
-        return json.loads(r)['data'] if r else None
+        r = client.get(f'{self.base_url}/magnet/upload', params=params)
+        return r.json()['data'] if r else None
 
     def resolve_hoster(self, url):
         params = {
@@ -91,8 +90,8 @@ class AllDebrid:
             'apikey': self.token,
             'link': url
         }
-        r = client.request(f'{self.base_url}/link/unlock', params=params)
-        resolve = json.loads(r)['data'] if r else {}
+        r = client.get(f'{self.base_url}/link/unlock', params=params)
+        resolve = r.json()['data'] if r else {}
         return resolve.get('link')
 
     def magnet_status(self, magnet_id):
@@ -101,16 +100,16 @@ class AllDebrid:
             'apikey': self.token,
             'id': magnet_id
         }
-        r = client.request(f'{self.base_url}/magnet/status', params=params)
-        return json.loads(r)['data'] if r else None
+        r = client.get(f'{self.base_url}/magnet/status', params=params)
+        return r.json()['data'] if r else None
 
     def list_torrents(self):
         params = {
             'agent': self.agent_identifier,
             'apikey': self.token
         }
-        r = client.request(f'{self.base_url}/user/links', params=params)
-        return json.loads(r)['data'] if r else None
+        r = client.get(f'{self.base_url}/user/links', params=params)
+        return r.json()['data'] if r else None
 
     def link_info(self, link):
         params = {
@@ -120,8 +119,8 @@ class AllDebrid:
         }
         encoded_params = urllib.parse.urlencode(params, doseq=True)
         url = f'{self.base_url}/link/infos?{encoded_params}'
-        r = client.request(url)
-        return json.loads(r)['data'] if r else None
+        r = client.get(url)
+        return r.json()['data'] if r else None
 
     def resolve_single_magnet(self, hash_, magnet, episode, pack_select):
         magnet_id = self.addMagnet(magnet)['magnets'][0]['id']
@@ -155,8 +154,8 @@ class AllDebrid:
             'apikey': self.token,
             'id': magnet_id
         }
-        r = client.request(f'{self.base_url}/magnet/delete', params=params)
-        return r is not None
+        r = client.get(f'{self.base_url}/magnet/delete', params=params)
+        return r and r.ok
 
     def get_torrent_status(self, magnet):
         """

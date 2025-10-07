@@ -282,9 +282,9 @@ class OtakuBrowser(BrowserBase):
 
     def get_watch_order(self, mal_id):
         url = 'https://chiaki.site/?/tools/watch_order/id/{}'.format(mal_id)
-        response = client.request(url)
+        response = client.get(url)
         if response:
-            soup = BeautifulSoup(response, 'html.parser')
+            soup = BeautifulSoup(response.text, 'html.parser')
         else:
             soup = None
 
@@ -1519,9 +1519,9 @@ class OtakuBrowser(BrowserBase):
 
     @staticmethod
     def get_mal_base_res(url, params=None):
-        r = client.request(url, params=params)
+        r = client.get(url, params=params)
         if r:
-            return json.loads(r)
+            return r.json()
 
     @staticmethod
     def get_anilist_base_res(mal_ids, page=1, media_type="ANIME"):
@@ -1610,8 +1610,8 @@ class OtakuBrowser(BrowserBase):
                 "malIds": mal_ids,
                 "type": media_type
             }
-            result = client.request(_ANILIST_BASE_URL, post={'query': query, 'variables': variables}, jpost=True)
-            results = json.loads(result)
+            result = client.post(_ANILIST_BASE_URL, json_data={'query': query, 'variables': variables})
+            results = result.json()
             page_data = results.get('data', {}).get('Page', {})
             media = page_data.get('media', [])
             all_media.extend(media)

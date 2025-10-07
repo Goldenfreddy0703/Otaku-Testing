@@ -287,19 +287,19 @@ class Resolver(BaseWindow):
                 headers["Cookie"] = cookie
                 headers["User-Agent"] = ua
 
-        limit = None if '.m3u8' in url else '0'
-        linkInfo = client.request(url, headers=headers, limit=limit, output='extended', error=True)
-        if linkInfo[1] not in ['200', '201']:
+        response = client.get(url, headers=headers)
+        if not response or str(response.status_code) not in ['200', '201']:
+            status = response.status_code if response else 'failed'
             raise Exception('could not resolve %s. status_code=%s' %
-                            (link, linkInfo[1]))
-        resp_headers = linkInfo[2]
+                            (link, status))
+        resp_headers = dict(response.headers)
         if 'Content-Type' not in resp_headers.keys():
             if 'Content-Length' not in resp_headers.keys():
                 resp_headers.update({'Content-Type': 'video/MP2T'})
         elif resp_headers['Content-Type'] == 'application/octet-stream' and '.m3u8' in url:
             resp_headers.update({'Content-Type': 'video/MP2T'})
         return {
-            "url": link if '|' in link else linkInfo[5],
+            "url": link if '|' in link else response.url,
             "headers": resp_headers,
         }
 
@@ -322,7 +322,7 @@ class Resolver(BaseWindow):
             torrent_id, status, torrent_info = torrent_status
             if source['debrid_provider'] == 'Alldebrid':
                 api.delete_magnet(torrent_id)
-            else:
+            elif source['debrid_provider'] == 'Real-Debrid':
                 api.deleteTorrent(torrent_id)
 
         # If the file is already cached, bypass any prompting.

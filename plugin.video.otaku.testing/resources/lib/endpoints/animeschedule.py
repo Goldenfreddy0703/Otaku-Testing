@@ -1,7 +1,6 @@
 import datetime
 import re
 import time
-import json
 
 from bs4 import BeautifulSoup
 from resources.lib.ui import client, database
@@ -14,9 +13,9 @@ def get_route(mal_id):
     params = {
         "mal-ids": mal_id
     }
-    response = client.request(f"{base_url}/anime", params=params)
+    response = client.get(f"{base_url}/anime", params=params)
     if response:
-        data = json.loads(response)
+        data = response.json()
         return data['anime'][0]['route']
     return ''
 
@@ -27,9 +26,9 @@ def get_dub_time(mal_id):
     if not route:
         route = get_route(mal_id)
         database.update_show(mal_id, show['kodi_meta'], route)
-    response = client.request(f'https://animeschedule.net/anime/{route}')
+    response = client.get(f'https://animeschedule.net/anime/{route}')
     if response:
-        soup = BeautifulSoup(response, 'html.parser')
+        soup = BeautifulSoup(response.text, 'html.parser')
         soup_all = soup.find_all('div', class_='release-time-wrapper')
         for soup in soup_all:
             if 'dub:' in soup.text.lower():

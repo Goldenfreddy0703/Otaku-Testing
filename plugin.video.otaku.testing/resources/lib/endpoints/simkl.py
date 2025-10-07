@@ -11,9 +11,9 @@ class Simkl:
         self.anime_cache = {}
 
     def update_calendar(self):
-        response = client.request(baseUrl)
+        response = client.get(baseUrl)
         if response:
-            simkl_cache = json.loads(response)
+            simkl_cache = response.json()
             self.set_cached_data(simkl_cache)
 
     def get_calendar_data(self, mal_id):
@@ -24,9 +24,9 @@ class Simkl:
         if simkl_cache:
             self.simkl_cache = simkl_cache
         else:
-            response = client.request(baseUrl)
+            response = client.get(baseUrl)
             if response:
-                self.simkl_cache = json.loads(response)
+                self.simkl_cache = response.json()
                 self.set_cached_data(self.simkl_cache)
             else:
                 return None
@@ -53,9 +53,9 @@ class Simkl:
         if simkl_cache:
             self.simkl_cache = simkl_cache
         else:
-            response = client.request(baseUrl)
+            response = client.get(baseUrl)
             if response:
-                self.simkl_cache = json.loads(response)
+                self.simkl_cache = response.json()
                 self.set_cached_data(self.simkl_cache)
             else:
                 return None

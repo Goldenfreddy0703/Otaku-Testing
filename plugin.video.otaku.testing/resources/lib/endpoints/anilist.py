@@ -114,8 +114,8 @@ class Anilist:
         }
         '''
 
-        r = client.request(self._BASE_URL, post={'query': query, 'variables': variables}, jpost=True)
-        results = json.loads(r)
+        r = client.post(self._BASE_URL, json_data={'query': query, 'variables': variables})
+        results = r.json()
 
         if "errors" in results.keys():
             return
@@ -240,8 +240,8 @@ class Anilist:
                 "malIds": mal_ids,
                 "type": media_type
             }
-            result = client.request(_ANILIST_BASE_URL, post={'query': query, 'variables': variables}, jpost=True)
-            results = json.loads(result)
+            result = client.post(_ANILIST_BASE_URL, json_data={'query': query, 'variables': variables})
+            results = result.json()
             page_data = results.get('data', {}).get('Page', {})
             media = page_data.get('media', [])
             all_media.extend(media)

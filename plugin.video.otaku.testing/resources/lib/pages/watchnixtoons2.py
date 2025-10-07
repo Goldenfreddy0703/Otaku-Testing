@@ -1,42 +1,13 @@
 import pickle
 import re
 import time
-import ssl
 import urllib.parse
 import json
-from urllib3.poolmanager import PoolManager
 from bs4 import BeautifulSoup
-from resources.lib.ui import control, database
+from resources.lib.ui import control, database, client
+from resources.lib.ui.BrowserBase import BrowserBase
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
-
-# Import requests for the TLS adapters approach
-try:
-    import requests
-    from requests.adapters import HTTPAdapter
-    from requests.packages.urllib3.exceptions import InsecureRequestWarning
-    requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-    REQUESTS_AVAILABLE = True
-except ImportError:
-    REQUESTS_AVAILABLE = False
-
-from resources.lib.ui.BrowserBase import BrowserBase
-
-
-class TLS11HttpAdapter(HTTPAdapter):
-    """Transport adapter that allows us to use TLSv1.1 - compatible with OpenSSL 1.1.1"""
-    def init_poolmanager(self, connections, maxsize, block=False):
-        self.poolmanager = PoolManager(
-            num_pools=connections, maxsize=maxsize, block=block, ssl_version=ssl.PROTOCOL_TLSv1_1
-        )
-
-
-class TLS12HttpAdapter(HTTPAdapter):
-    """Transport adapter that allows us to use TLSv1.2 - compatible with OpenSSL 1.1.1"""
-    def init_poolmanager(self, connections, maxsize, block=False):
-        self.poolmanager = PoolManager(
-            num_pools=connections, maxsize=maxsize, block=block, ssl_version=ssl.PROTOCOL_TLSv1_2
-        )
 
 
 class Sources(BrowserBase):
@@ -48,26 +19,12 @@ class Sources(BrowserBase):
         self.request_delay = 1.2  # Conservative rate limiting to avoid blocks
         self._cache = {}  # Simple response cache
         self._cache_lock = threading.Lock()
-
-        if REQUESTS_AVAILABLE:
-            # Use the proven WNT2 approach with TLS adapters and connection pooling
-            self.session = requests.Session()
-            self.session.headers.update({'Connection': 'keep-alive'})
-            # Connection pooling for faster requests
-            adapter = HTTPAdapter(pool_connections=10, pool_maxsize=20, max_retries=2)
-            self.session.mount('http://', adapter)
-            self.session.mount('https://', adapter)
-            self.tls_adapters = [TLS12HttpAdapter(), TLS11HttpAdapter()]
-            self.session_cookies = {}
-        else:
-            # Fallback to client module
-            self.session = None
+        self._last_request_time = 0
+        # Clear any previous session state
+        client.clear_session()
 
     def _make_request(self, url, method='GET', data=None, headers=None, timeout=8, use_cache=True):
-        """Make a request using WNT2's proven Cloudflare bypass approach with caching"""
-        if not REQUESTS_AVAILABLE or not self.session:
-            # Fallback to original client approach
-            return self._make_request_fallback(url, method, data, headers)
+        """Make a request using enhanced client with WNT2's proven Cloudflare bypass approach"""
 
         # Check cache first for GET requests
         cache_key = f"{method}:{url}"
@@ -77,7 +34,7 @@ class Sources(BrowserBase):
                     return self._cache[cache_key]
 
         try:
-            # Use WNT2's proven approach
+            # Use WNT2's proven headers approach
             my_headers = {
                 'User-Agent': self._WNT2_UA,
                 'Accept': 'text/html,application/xhtml+xml,application/xml,application/json;q=0.9,image/webp,*/*;q=0.8',
@@ -88,62 +45,42 @@ class Sources(BrowserBase):
             if headers:
                 my_headers.update(headers)
 
-            # Parse domain for TLS adapter mounting
-            uri = urllib.parse.urlparse(url)
-            domain = uri.scheme + '://' + uri.netloc
-
             start_time = time.time()
 
-            # Try up to 2 times with different TLS adapters (like original WNT2)
-            status = 0
-            i = 0
-            response = None
+            # Rate limiting
+            time_since_last = start_time - self._last_request_time
+            if time_since_last < self.request_delay:
+                time.sleep(self.request_delay - time_since_last)
 
-            while status != 200 and i < 2:
-                try:
-                    if method.upper() == 'POST':
-                        response = self.session.post(
-                            url, data=data, headers=my_headers, verify=False,
-                            cookies=self.session_cookies, timeout=timeout
-                        )
-                    else:
-                        response = self.session.get(
-                            url, headers=my_headers, verify=False,
-                            cookies=self.session_cookies, timeout=timeout
-                        )
+            # Try the request with automatic TLS retry on Cloudflare 403
+            # The enhanced client now handles TLS adapter switching automatically
+            if method.upper() == 'POST':
+                response = client.session_request(
+                    url,
+                    method='POST',
+                    data=data,
+                    headers=my_headers,
+                    timeout=timeout,
+                    verify=False
+                )
+            else:
+                response = client.session_request(
+                    url,
+                    method='GET',
+                    headers=my_headers,
+                    timeout=timeout,
+                    verify=False
+                )
 
-                    status = response.status_code
+            self._last_request_time = time.time()
 
-                    if status != 200:
-                        if status == 403 and response.headers.get('server', '').lower() == 'cloudflare':
-                            control.log(f"Cloudflare 403 detected, trying TLS adapter {i+1}")
-                            # Mount the TLS adapter like WNT2 does
-                            self.session.mount(domain, self.tls_adapters[i])
-                        i += 1
-
-                except Exception as e:
-                    control.log(f"Request attempt {i+1} failed: {str(e)}")
-                    if i < 1:
-                        # Try with TLS adapter
-                        self.session.mount(domain, self.tls_adapters[i])
-                    i += 1
-
-            if response and response.status_code == 200:
-                # Store session cookies like WNT2
-                if response.cookies:
-                    self.session_cookies.update(response.cookies.get_dict())
-
-                # Faster rate limiting
-                elapsed = time.time() - start_time
-                if elapsed < self.request_delay:
-                    time.sleep(self.request_delay - elapsed)
-
-                result = response.text
-
+            # response is now a string from session_request (legacy)
+            # We should update to use client.Session() instead for Response objects
+            if response:
                 # Cache successful GET responses
                 if use_cache and method.upper() == 'GET':
                     with self._cache_lock:
-                        self._cache[cache_key] = result
+                        self._cache[cache_key] = response
                         # Keep cache size reasonable
                         if len(self._cache) > 50:
                             # Remove oldest entries
@@ -151,35 +88,13 @@ class Sources(BrowserBase):
                             for key in oldest_keys:
                                 del self._cache[key]
 
-                return result
+                return response
             else:
-                control.log(f"All TLS adapter attempts failed for {url}")
+                control.log(f"Request failed for {url}")
                 return None
 
         except Exception as e:
-            control.log(f"WNT2-style request failed for {url}: {str(e)}", "error")
-            return None
-
-    def _make_request_fallback(self, url, method='GET', data=None, headers=None):
-        """Fallback request method - kept for compatibility"""
-        from ..ui import client
-        try:
-            request_headers = {
-                'User-Agent': self._WNT2_UA,
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.5',
-                'Cache-Control': 'no-cache'
-            }
-
-            if headers:
-                request_headers.update(headers)
-
-            if method.upper() == 'POST':
-                return client.request(url, post=data, headers=request_headers)
-            else:
-                return client.request(url, headers=request_headers)
-        except Exception as e:
-            control.log(f"Fallback request failed for {url}: {str(e)}", "error")
+            control.log(f"Client request failed for {url}: {str(e)}", "error")
             return None
 
     def get_sources(self, mal_id, episode, media_type):
@@ -263,6 +178,9 @@ class Sources(BrowserBase):
 
         # Convert found episodes to sources with concurrent processing
         sources = []
+        sources_found_per_lang = {}  # Track which languages we've found sources for
+
+        control.log(f"WatchNixtoons2: Found {len(found_episodes)} episode variants to process")
 
         def extract_sources_worker(episode_data):
             # Determine if it's SUB or DUB based on title/series
@@ -271,20 +189,28 @@ class Sources(BrowserBase):
             version_type = "DUB" if is_dub else "SUB"
             lang = 3 if is_dub else 2
 
+            # Early exit check - skip if we already have sources for this language
+            if lang in sources_found_per_lang:
+                control.log(f"WatchNixtoons2: Skipping '{version_type}' - already have sources")
+                return None
+
+            control.log(f"WatchNixtoons2: Processing '{version_type}' episode: {episode_data.get('title', 'Unknown')}")
+
             # Get the episode page content
             resp = self._make_request(episode_data['url'])
             if resp:
                 # First try to find direct video sources using the advanced method
                 advanced_sources = self._extract_advanced_sources(episode_data['url'], resp, version_type, lang, episode_data['title'])
                 if advanced_sources:
-                    return advanced_sources
+                    return (advanced_sources, lang)
                 else:
                     # Fallback to basic iframe extraction
                     iframe_sources = self._extract_iframe_sources(resp, version_type, lang, episode_data)
-                    return iframe_sources
+                    if iframe_sources:
+                        return (iframe_sources, lang)
             else:
                 control.log(f"Failed to get episode page: {episode_data['url']}")
-                return []
+            return None
 
         # Process episodes concurrently for faster source extraction
         with ThreadPoolExecutor(max_workers=2) as executor:
@@ -293,12 +219,21 @@ class Sources(BrowserBase):
             for future in as_completed(future_to_episode):
                 episode_data = future_to_episode[future]
                 try:
-                    episode_sources = future.result()
-                    if episode_sources:
+                    result = future.result()
+                    if result:
+                        episode_sources, lang = result
                         sources.extend(episode_sources)
+                        sources_found_per_lang[lang] = True
+                        control.log(f"WatchNixtoons2: Found {len(episode_sources)} sources for lang {lang}")
+
+                        # If we have both SUB and DUB, we can stop early
+                        if len(sources_found_per_lang) >= 2:
+                            control.log("WatchNixtoons2: Found sources for both SUB and DUB - stopping early")
+                            break
                 except Exception as e:
                     control.log(f"Source extraction failed for {episode_data.get('title', 'Unknown')}: {str(e)}")
 
+        control.log(f"WatchNixtoons2: Returning {len(sources)} total sources")
         return sources
 
     def _extract_advanced_sources(self, episode_url, page_content, version_type, lang, title):

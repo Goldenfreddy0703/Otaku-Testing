@@ -1,4 +1,3 @@
-import json
 import time
 import xbmcgui
 from resources.lib.ui import client, control, source_utils
@@ -26,8 +25,8 @@ class EasyDebrid:
     def status(self):
         url = f"{self.base_url}/user/details"
         # Ensure JSON posting if needed; here we use a GET so no post data
-        r = client.request(url, headers=self.headers())
-        resp = json.loads(r) if r else {}
+        r = client.get(url, headers=self.headers())
+        resp = r.json() if r else {}
         if resp and "id" in resp:
             control.setSetting('easydebrid.username', str(resp.get('id')))
             current_time = int(time.time())
@@ -45,8 +44,8 @@ class EasyDebrid:
         """
         url = f"{self.base_url}/link/generate"
         data = {"url": endpoint}
-        r = client.request(url, post=data, headers=self.headers(), jpost=True)
-        resp = json.loads(r) if r else {}
+        r = client.post(url, json_data=data, headers=self.headers())
+        resp = r.json() if r else {}
 
         files = resp.get('files')
         if isinstance(files, list) and episode:
@@ -70,8 +69,8 @@ class EasyDebrid:
             endpoint = [endpoint]
         url = f"{self.base_url}/link/lookup"
         data = {"urls": endpoint}
-        r = client.request(url, post=data, headers=self.headers(), jpost=True)
-        resp = json.loads(r) if r else {}
+        r = client.post(url, json_data=data, headers=self.headers())
+        resp = r.json() if r else {}
         return resp
 
     def resolve_single_magnet(self, hash_, magnet, episode, pack_select):

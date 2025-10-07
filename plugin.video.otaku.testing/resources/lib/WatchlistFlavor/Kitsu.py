@@ -1,7 +1,6 @@
 import time
 import random
 import pickle
-import json
 
 from resources.lib.ui import client, control, database, utils, get_meta
 from resources.lib.WatchlistFlavor.WatchlistFlavorBase import WatchlistFlavorBase
@@ -36,15 +35,15 @@ class KitsuWLF(WatchlistFlavorBase):
             "username": self.auth_var,
             "password": self.password
         }
-        resp = client.request(f'{self._URL}/oauth/token', post=params, jpost=True)
+        resp = client.post(f'{self._URL}/oauth/token', json_data=params)
 
         if not resp:
             return
 
-        data = json.loads(resp)
+        data = resp.json()
         self.token = data['access_token']
-        resp2 = client.request(f'{self._URL}/edge/users', headers=self.__headers(), params={'filter[self]': True})
-        data2 = json.loads(resp2)["data"][0]
+        resp2 = client.get(f'{self._URL}/edge/users', headers=self.__headers(), params={'filter[self]': True})
+        data2 = resp2.json()["data"][0]
 
         login_data = {
             'username': data2["attributes"]["name"],
@@ -60,12 +59,12 @@ class KitsuWLF(WatchlistFlavorBase):
             "grant_type": "refresh_token",
             "refresh_token": control.getSetting('kitsu.refresh')
         }
-        resp = client.request(f'{self._URL}/oauth/token', post=params, jpost=True)
+        resp = client.post(f'{self._URL}/oauth/token', json_data=params)
 
         if not resp:
             return
 
-        data = json.loads(resp)
+        data = resp.json()
         control.setSetting('kitsu.token', data['access_token'])
         control.setSetting('kitsu.refresh', data['refresh_token'])
         control.setInt('kitsu.expiry', int(time.time() + int(data['expires_in'])))
@@ -142,8 +141,8 @@ class KitsuWLF(WatchlistFlavorBase):
         return self.process_watchlist_view(url, params, next_up, f'watchlist_status_type_pages/kitsu/{status}', page)
 
     def process_watchlist_view(self, url, params, next_up, base_plugin_url, page):
-        result = client.request(url, headers=self.__headers(), params=params)
-        result = json.loads(result) if result else {}
+        result = client.get(url, headers=self.__headers(), params=params)
+        result = result.json() if result else {}
         _list = result.get("data", [])
 
         if not result.get('included'):
@@ -475,8 +474,8 @@ class KitsuWLF(WatchlistFlavorBase):
             "filter[user_id]": self.user_id,
             "filter[anime_id]": kitsu_id
         }
-        r = client.request(f'{self._URL}/edge/library-entries', headers=self.__headers(), params=params)
-        r = json.loads(r) if r else {}
+        r = client.get(f'{self._URL}/edge/library-entries', headers=self.__headers(), params=params)
+        r = r.json() if r else {}
         return r
 
     def get_watchlist_anime_entry(self, mal_id):
@@ -516,13 +515,13 @@ class KitsuWLF(WatchlistFlavorBase):
             "page[limit]": "500",
             "include": "anime,anime.mappings,anime.mappings.item",
         }
-        r = client.request(url, headers=self.__headers(), params=params)
-        res = json.loads(r) if r else {}
+        r = client.get(url, headers=self.__headers(), params=params)
+        res = r.json() if r else {}
         paging = res.get('links', {})
         data = res.get('data', [])
         while paging.get('next'):
-            r = client.request(paging['next'], headers=self.__headers())
-            res = json.loads(r) if r else {}
+            r = client.get(paging['next'], headers=self.__headers())
+            res = r.json() if r else {}
             paging = res.get('links', {})
             data += res.get('data', [])
         return data
@@ -556,8 +555,8 @@ class KitsuWLF(WatchlistFlavorBase):
                     }
                 }
             }
-            r = client.request(f'{self._URL}/edge/library-entries', headers=self.__headers(), post=data, jpost=True)
-            return r is not None
+            r = client.post(f'{self._URL}/edge/library-entries', headers=self.__headers(), json_data=data)
+            return r and r.ok
         animeid = int(r['data'][0]['id'])
         data = {
             'data': {
@@ -568,8 +567,8 @@ class KitsuWLF(WatchlistFlavorBase):
                 }
             }
         }
-        r = client.request(f'{self._URL}/edge/library-entries/{animeid}', headers=self.__headers(), post=data, jpost=True, method='PATCH')
-        return r is not None
+        r = client.patch(f'{self._URL}/edge/library-entries/{animeid}', headers=self.__headers(), json_data=data)
+        return r and r.ok
 
     def update_num_episodes(self, mal_id, episode):
         kitsu_id = self._get_mapping_id(mal_id, 'kitsu_id')
@@ -601,8 +600,8 @@ class KitsuWLF(WatchlistFlavorBase):
                     }
                 }
             }
-            r = client.request(f'{self._URL}/edge/library-entries', headers=self.__headers(), post=data, jpost=True)
-            return r is not None
+            r = client.post(f'{self._URL}/edge/library-entries', headers=self.__headers(), json_data=data)
+            return r and r.ok
 
         animeid = int(r['data'][0]['id'])
 
@@ -616,8 +615,8 @@ class KitsuWLF(WatchlistFlavorBase):
                 }
             }
         }
-        r = client.request(f'{self._URL}/edge/library-entries/{animeid}', headers=self.__headers(), post=data, jpost=True, method='PATCH')
-        return r is not None
+        r = client.patch(f'{self._URL}/edge/library-entries/{animeid}', headers=self.__headers(), json_data=data)
+        return r and r.ok
 
     def update_score(self, mal_id, score):
         kitsu_id = self._get_mapping_id(mal_id, 'kitsu_id')
@@ -651,8 +650,8 @@ class KitsuWLF(WatchlistFlavorBase):
                     }
                 }
             }
-            r = client.request(f'{self._URL}/edge/library-entries', headers=self.__headers(), post=data, jpost=True)
-            return r is not None
+            r = client.post(f'{self._URL}/edge/library-entries', headers=self.__headers(), json_data=data)
+            return r and r.ok
 
         animeid = int(r['data'][0]['id'])
         data = {
@@ -664,8 +663,8 @@ class KitsuWLF(WatchlistFlavorBase):
                 }
             }
         }
-        r = client.request(f'{self._URL}/edge/library-entries/{animeid}', headers=self.__headers(), post=data, jpost=True, method='PATCH')
-        return r is not None
+        r = client.patch(f'{self._URL}/edge/library-entries/{animeid}', headers=self.__headers(), json_data=data)
+        return r and r.ok
 
     def delete_anime(self, mal_id):
         kitsu_id = self._get_mapping_id(mal_id, 'kitsu_id')
@@ -679,5 +678,5 @@ class KitsuWLF(WatchlistFlavorBase):
         else:
             return True
 
-        r = client.request(f'{self._URL}/edge/library-entries/{animeid}', headers=self.__headers(), method='DELETE')
-        return r is not None
+        r = client.delete(f'{self._URL}/edge/library-entries/{animeid}', headers=self.__headers())
+        return r and r.ok

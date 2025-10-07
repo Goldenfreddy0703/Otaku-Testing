@@ -1,4 +1,3 @@
-import json
 from resources.lib.ui import client, control, database
 
 api_info = database.get_info('Fanart-TV')
@@ -12,8 +11,8 @@ language = ["ja", 'en'][control.getInt("titlelanguage")]
 def getArt(meta_ids, mtype):
     art = {}
     if mid := meta_ids.get('themoviedb_id') if mtype == 'movies' else meta_ids.get('thetvdb_id'):
-        response = client.request(f'{baseUrl}/{mtype}/{mid}', headers=headers)
-        res = json.loads(response) if response else {}
+        response = client.get(f'{baseUrl}/{mtype}/{mid}', headers=headers)
+        res = response.json() if response else {}
         if res:
             if mtype == 'movies':
                 if res.get('moviebackground'):

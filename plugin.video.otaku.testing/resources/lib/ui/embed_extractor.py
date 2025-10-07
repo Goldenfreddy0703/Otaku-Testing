@@ -56,12 +56,12 @@ def load_video_from_url(in_url):
                 headers[header] = urllib.parse.unquote_plus(headers[header])
                 print(f"Decoded header: {header} = {headers[header]}")
 
-        reqObj = client.request(in_url, headers=headers, output='extended')
-        print(f"Request object: {reqObj}")
+        response = client.get(in_url, headers=headers)
+        print(f"Response object: {response}")
 
-        return found_extractor['parser'](reqObj[5],
-                                         reqObj[0],
-                                         reqObj[2].get('Referer'))
+        return found_extractor['parser'](response.url,
+                                         response.text,
+                                         response.headers.get('Referer'))
     except urllib.error.URLError:
         return None  # Dead link, Skip result
     except:
@@ -100,12 +100,13 @@ def __check_video_list(refer_url, vidlist, add_referer=False,
     for item in vidlist:
         try:
             item_url = item[1]
-            temp_req = client.request(item_url, limit=0, headers=headers, output='extended')
-            if temp_req[1] != '200':
-                control.log("[*] Skiping Invalid Url: %s - status = %d" % (item[1], temp_req.status_code), level='error')
+            response = client.get(item_url, headers=headers)
+            if not response or str(response.status_code) != '200':
+                status = response.status_code if response else 'failed'
+                control.log("[*] Skiping Invalid Url: %s - status = %s" % (item[1], status), level='error')
                 continue  # Skip Item.
 
-            out_url = temp_req[5]
+            out_url = response.url
             if ignore_cookie:
                 out_url = client.strip_cookie_url(out_url)
 
@@ -119,8 +120,8 @@ def __check_video_list(refer_url, vidlist, add_referer=False,
 
 
 def __check_video(url):
-    temp_req = client.request(url, limit=0, output='extended')
-    if temp_req[1] not in ['200', '201']:
+    response = client.get(url)
+    if not response or str(response.status_code) not in ['200', '201']:
         url = None
 
     return url
@@ -173,7 +174,7 @@ def __extract_okru(url, page_content, referer=None):
     aurl = "http://www.ok.ru/dk"
     data = {'cmd': 'videoPlayerMetadata', 'mid': media_id}
     data = urllib.parse.urlencode(data)
-    html = client.request(aurl, post=data)
+    html = client.post(aurl, data=data)
     json_data = json.loads(html)
     if 'error' in json_data:
         return
@@ -221,7 +222,7 @@ def __extract_fusevideo(url, page_content, referer=None):
     r = re.findall(r'<script\s*src="([^"]+)', page_content)
     if r:
         jurl = r[-1]
-        js = client.request(jurl, referer=url)
+        js = client.get(jurl, referer=url)
         match = re.search(r'n\s*=\s*atob\("([^"]+)', js)
         if match:
             jd = base64.b64decode(match.group(1)).decode('utf-8')
@@ -243,7 +244,7 @@ def __extract_dood(url, page_content, referer=None):
         host, media_id = re.findall(pattern, url)[0]
         token = match.group(2)
         nurl = 'https://{0}{1}'.format(host, match.group(1))
-        html = client.request(nurl, referer=url)
+        html = client.get(nurl, referer=url)
         if html:
             headers = {'User-Agent': _EDGE_UA,
                        'Referer': url}
@@ -334,9 +335,9 @@ def __extract_goload(url, page_content, referer=None):
         params = _decrypt(r.group(1), keys[0], iv)
         eurl = 'https://{0}/encrypt-ajax.php?id={1}&alias={2}'.format(
             host, _encrypt(media_id, keys[0], iv), params)
-        response = client.request(eurl, XHR=True)
+        response = client.get(eurl)
         try:
-            response = json.loads(response).get('data')
+            response = json.loads(response.text).get('data')
         except:
             return
         if response:
@@ -385,7 +386,16 @@ def __relative_url(original_url, new_url):
 
 
 def get_sub(sub_url, sub_lang):
-    content = client.request(sub_url)
+    response = client.get(sub_url)
+
+    # Handle both Response objects and string content
+    if hasattr(response, 'text'):
+        content = response.text
+    elif hasattr(response, 'content'):
+        content = response.content.decode('utf-8', errors='ignore')
+    else:
+        content = str(response)
+
     subtitle = xbmcvfs.translatePath('special://temp/')
     fname = f'TemporarySubs.{sub_lang}.srt'
     fpath = os.path.join(subtitle, fname)

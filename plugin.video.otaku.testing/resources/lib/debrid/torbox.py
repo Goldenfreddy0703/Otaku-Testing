@@ -1,5 +1,4 @@
 import xbmcgui
-import json
 
 from resources.lib.ui import source_utils, client, control
 
@@ -21,8 +20,8 @@ class TorBox:
             control.ok_dialog(f'{control.ADDON_NAME}: TorBox Auth', "Invalid API KEY!")
 
     def status(self):
-        r = client.request(f'{self.BaseUrl}/user/me', headers=self.headers())
-        user_info = json.loads(r)['data'] if r else None
+        r = client.get(f'{self.BaseUrl}/user/me', headers=self.headers())
+        user_info = r.json()['data'] if r else None
         if user_info:
             control.setSetting('torbox.username', user_info['email'])
             if user_info['plan'] == 0:
@@ -47,36 +46,32 @@ class TorBox:
             'hash': hashes,
             'format': 'list'
         }
-        r = client.request(url, headers=self.headers(), params=params)
-        return json.loads(r)['data'] if r else None
+        r = client.get(url, headers=self.headers(), params=params)
+        return r.json()['data'] if r else None
 
     def addMagnet(self, magnet):
         url = f'{self.BaseUrl}/torrents/createtorrent'
         data = {
             'magnet': magnet
         }
-        r = client.request(url, headers=self.headers(), post=data)
-        return json.loads(r)['data'] if r else None
+        r = client.post(url, headers=self.headers(), data=data)
+        return r.json()['data'] if r else None
 
     def delete_torrent(self, torrent_id):
-        url = f'{self.BaseUrl}/torrents/controltorrent'
-        data = {
-            'torrent_id': str(torrent_id),
-            'operation': 'delete'
-        }
-        r = client.request(url, headers=self.headers(), post=data, jpost=True)
-        return r is not None
+        headers = self._get_headers()
+        r = client.delete(f'{self.base_url}/torrents/controltorrent', headers=headers, data={'torrent_id': torrent_id, 'operation': 'delete'})
+        return r and r.ok
 
     def list_torrents(self):
         url = f'{self.BaseUrl}/torrents/mylist'
-        r = client.request(url, headers=self.headers())
-        return json.loads(r)['data'] if r else None
+        r = client.get(url, headers=self.headers())
+        return r.json()['data'] if r else None
 
     def get_torrent_info(self, torrent_id):
         url = f'{self.BaseUrl}/torrents/mylist'
         params = {'id': torrent_id, 'bypass_cache': 'true'}
-        r = client.request(url, headers=self.headers(), params=params)
-        return json.loads(r)['data'] if r else None
+        r = client.get(url, headers=self.headers(), params=params)
+        return r.json()['data'] if r else None
 
     def request_dl_link(self, torrent_id, file_id=-1):
         url = f'{self.BaseUrl}/torrents/requestdl'
@@ -86,8 +81,8 @@ class TorBox:
         }
         if file_id >= 0:
             params['file_id'] = file_id
-        r = client.request(url, params=params)
-        return json.loads(r)['data'] if r else None
+        r = client.get(url, params=params)
+        return r.json()['data'] if r else None
 
     def resolve_single_magnet(self, hash_, magnet, episode, pack_select):
         torrent = self.addMagnet(magnet)

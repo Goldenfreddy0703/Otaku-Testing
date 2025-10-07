@@ -1,6 +1,5 @@
 import pickle
 import datetime
-import json
 import random
 
 from functools import partial
@@ -16,9 +15,9 @@ class ANIZIPAPI:
         params = {
             'mal_id': mal_id
         }
-        response = client.request(f'{self.baseUrl}/mappings', params=params)
+        response = client.get(f'{self.baseUrl}/mappings', params=params)
         if response:
-            return json.loads(response)
+            return response.json()
 
     @staticmethod
     def parse_episode_view(res, mal_id, season, poster, fanart, clearart, clearlogo, eps_watched, update_time, tvshowtitle, dub_data, filler_data, episodes=None):

@@ -47,9 +47,9 @@ class Mal:
 
     @staticmethod
     def get_base_res(url, params=None):
-        r = client.request(url, params=params)
-        if r:
-            return json.loads(r)
+        response = client.get(url, params=params)
+        if response:
+            return response.json()
 
     def get_airing_calendar_res(self, day, page=1):
         url = f'{self._BASE_URL}/schedules?kids=false&sfw=false&limit=25&page={page}&filter={day}'
