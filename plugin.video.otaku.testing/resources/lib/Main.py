@@ -1651,6 +1651,29 @@ def PLAY(payload, params):
     if rating := params.get('rating'):
         params['rating'] = ast.literal_eval(rating)
     params['path'] = f"{control.addon_url(f'play/{payload}')}"
+    
+    # Populate params with episode metadata from database if not already present
+    # This ensures metadata is available even when playing from Information dialog
+    if not params.get('tvshowtitle'):
+        episode_data = database.get_episode(mal_id, episode)
+        if episode_data:
+            episode_meta = pickle.loads(episode_data['kodi_meta'])
+            # Merge episode info into params
+            if 'info' in episode_meta:
+                for key, value in episode_meta['info'].items():
+                    if key not in params or not params[key]:
+                        params[key] = value
+            # Merge artwork into params
+            if 'image' in episode_meta:
+                params.setdefault('icon', episode_meta['image'])
+                params.setdefault('thumb', episode_meta['image'])
+            for art_key in ['poster', 'fanart', 'landscape', 'banner', 'clearart', 'clearlogo']:
+                if art_key in episode_meta and (art_key not in params or not params[art_key]):
+                    params[art_key] = episode_meta[art_key]
+            # Also set tvshow.poster for proper display
+            if 'poster' in params:
+                params.setdefault('tvshow.poster', params['poster'])
+    
     if resume:
         resume = float(resume)
         context = control.context_menu([f'Resume from {utils.format_time(resume)}', 'Play from beginning'])
@@ -1715,6 +1738,28 @@ def PLAY_MOVIE(payload, params):
     rescrape = bool(params.get('rescrape'))
     resume = params.get('resume')
     params['path'] = f"{control.addon_url(f'play_movie/{payload}')}"
+    
+    # Populate params with movie metadata from database if not already present
+    # This ensures metadata is available even when playing from Information dialog
+    if not params.get('title'):
+        show = database.get_show(mal_id)
+        if show:
+            show_meta = pickle.loads(show['kodi_meta'])
+            # Merge show info into params
+            for key, value in show_meta.items():
+                if key not in params or not params[key]:
+                    params[key] = value
+        
+        show_meta_art = database.get_show_meta(mal_id)
+        if show_meta_art:
+            art_data = pickle.loads(show_meta_art.get('art'))
+            for art_key in ['poster', 'fanart', 'landscape', 'banner', 'clearart', 'clearlogo']:
+                if art_key in art_data and (art_key not in params or not params[art_key]):
+                    params[art_key] = art_data[art_key]
+            # Also set tvshow.poster for proper display
+            if 'poster' in params:
+                params.setdefault('tvshow.poster', params['poster'])
+    
     if resume:
         resume = float(resume)
         context = control.context_menu([f'Resume from {utils.format_time(resume)}', 'Play from beginning'])

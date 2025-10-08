@@ -204,7 +204,9 @@ class Resolver(BaseWindow):
                 # Run any mimetype hook
                 item = hook_mimetype.trigger(linkInfo['headers']['Content-Type'], item)
 
-            if self.context:
+            # Always set video tags and artwork for proper metadata display
+            # This ensures metadata is shown correctly even when playing from Information dialog
+            if self.params:
                 control.set_videotags(item, self.params)
                 art = {
                     'icon': self.params.get('icon'),
@@ -217,6 +219,8 @@ class Resolver(BaseWindow):
                     'tvshow.poster': self.params.get('tvshow.poster')
                 }
                 item.setArt(art)
+            
+            if self.context:
                 control.playList.add(linkInfo['url'], item)
                 xbmc.Player().play(control.playList, item)
             else:
