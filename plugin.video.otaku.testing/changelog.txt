@@ -1,3 +1,24 @@
+Changelog v5.2.55 (2025-10-08):
+- Major Performance Overhaul - 5-6x faster source scraping
+- Client module now fully requests-compatible with Response objects
+- Client optimized for faster HTTP requests and connection pooling
+- Added WatchNixToons2 as a new embed provider
+- Removed Requests module dependency from WatchNixtoons2
+- Migrated WatchNixtoons2 to use optimized client module
+- Added early exit strategy for embed providers (60-70% faster)
+- Implemented SUB/DUB language tracking to skip duplicate extractions
+- Added MegaCloud extraction optimization for H!Anime
+- Optimized loading speed for menus and episode metadata
+- Faster scraping across all providers
+- Total scrape time reduced from 40-60 seconds to 14-15 seconds
+- Improved fuzzy matching with FuzzyPacks for better title matching
+- Added complete Debrid-Link uncached torrent support
+- Added caching progress dialog with download speed and seeders for Debrid-Link
+- Fixed resolver bug preventing proper torrent deletion on non-RealDebrid providers
+- Removed unnecessary MegaCloud key caching for cleaner code
+- Enhanced logging for Nyaa and Animetosho providers
+- Better maintainability with simplified code structure
+
 Changelog v5.2.54 (2025-10-01):
 - Fix AST constructor recursion depth mismatch error in database cache
 - Fix NoneType error in worker threads
