@@ -58,8 +58,8 @@ class TorBox:
         return r.json()['data'] if r else None
 
     def delete_torrent(self, torrent_id):
-        headers = self._get_headers()
-        r = client.delete(f'{self.base_url}/torrents/controltorrent', headers=headers, data={'torrent_id': torrent_id, 'operation': 'delete'})
+        headers = self.headers()
+        r = client.delete(f'{self.BaseUrl}/torrents/controltorrent', headers=headers, data={'torrent_id': torrent_id, 'operation': 'delete'})
         return r and r.ok
 
     def list_torrents(self):
