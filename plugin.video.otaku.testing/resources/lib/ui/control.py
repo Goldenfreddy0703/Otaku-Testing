@@ -237,6 +237,10 @@ def setGlobalProp(property, value):
     homeWindow.setProperty(property, str(value))
 
 
+def getGlobalProp(property):
+    return homeWindow.getProperty(property)
+
+
 def clearGlobalProp(property):
     homeWindow.clearProperty(property)
 

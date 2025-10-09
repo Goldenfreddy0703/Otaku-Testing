@@ -302,10 +302,14 @@ def clearSearchCatagory(media_type):
 
 
 def remove_search(table, value):
+    norm_value = value.strip()
     with SQL(control.searchHistoryDB) as cursor:
-        cursor.execute(f'DELETE FROM {table} WHERE value=?', (value,))
+        cursor.execute(f'DELETE FROM {table} WHERE value=?', (norm_value,))
+        deleted = cursor.rowcount
         cursor.connection.commit()
         control.refresh()
+        if deleted == 0:
+            control.notify(control.ADDON_NAME, f"Search item not found: '{norm_value}'", time=3000)
 
 
 def dict_factory(cursor, row):

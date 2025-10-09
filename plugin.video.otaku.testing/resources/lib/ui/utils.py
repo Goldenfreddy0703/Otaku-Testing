@@ -64,12 +64,14 @@ def get_format_to_url_mappings():
 
 
 def parse_history_view(res, cm):
+    from urllib.parse import quote
     format = control.getSetting('format')
     format_to_url, _ = get_format_to_url_mappings()
 
     url = format_to_url.get(format)
     if url:
-        return allocate_item(res, f'{url}{res}', True, False, cm, 'search.png', {})
+        encoded_res = quote(res, safe='')
+        return allocate_item(res, f'{url}{encoded_res}', True, False, cm, 'search.png', {})
 
 
 def search_history(search_array, format):

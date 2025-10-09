@@ -209,7 +209,12 @@ class WatchlistPlayer(player):
         # Only refresh if the last watched item actually changed
         if previous_last_watched != current_mal_id:
             control.log(f'Last watched changed from {previous_last_watched} to {current_mal_id} - refreshing menu')
+            # Force a complete menu refresh
             control.refresh()
+            # Set a flag that the menu needs updating
+            control.setGlobalProp('otaku.menu.needs_refresh', 'true')
+            # Also force container refresh
+            control.execute('Container.Refresh()')
         else:
             control.log(f'Last watched unchanged ({current_mal_id}) - no refresh needed')
 
