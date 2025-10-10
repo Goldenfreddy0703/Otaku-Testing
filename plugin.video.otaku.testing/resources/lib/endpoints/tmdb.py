@@ -56,12 +56,18 @@ def get_episode_titles(tmdb_id, season_number, episode_number):
     response = client.get(f'{baseUrl}tv/{tmdb_id}/season/{season_number}/episode/{episode_number}/translations', params=params)
     res = response.json() if response else {}
 
-    # Extract all 'name' fields from translations
-    names = []
+    # Extract English name, fallback to Japanese if not found
     translations = res.get('translations', [])
     for t in translations:
-        data = t.get('data', {})
-        name = data.get('name')
-        if name:
-            names.append(name)
-    return names
+        if t.get('iso_639_1') == 'en':
+            data = t.get('data', {})
+            name = data.get('name')
+            if name:
+                return [name]
+    for t in translations:
+        if t.get('iso_639_1') == 'ja':
+            data = t.get('data', {})
+            name = data.get('name')
+            if name:
+                return [name]
+    return []

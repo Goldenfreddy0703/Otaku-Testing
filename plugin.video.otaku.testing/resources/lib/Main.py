@@ -1923,20 +1923,17 @@ def remove_punctuation(s):
 
 
 def find_episode_by_title(mal_ids, episode_titles):
-    # ...existing code...
-    # After matching episode, extract rating/score and aired date if available
-    # This assumes 'res' or 'ep' is the episode meta dict from Jikan
-    # Add these fields to the info dict where episode match is found
     import time
     from resources.lib.indexers.jikanmoe import JikanAPI
-    from resources.lib.ui.source_utils import cleanTitle
+    from resources.lib.ui.source_utils import get_fuzzy_match
     # Split titles on '|' and clean each part
     split_titles = []
     for t in episode_titles:
         if t:
             split_titles.extend([x.strip() for x in t.split('|') if x.strip()])
-    # Clean and normalize titles, ignore spaces and punctuation
-    cleaned_titles = set(remove_punctuation(cleanTitle(t)).replace(' ', '').lower() for t in split_titles)
+    # Use shared clean_text for normalization (removes punctuation, preserves spaces)
+    from resources.lib.ui.source_utils import clean_text
+    cleaned_titles = [clean_text(t) for t in split_titles]
     jikan_api = JikanAPI()
     requests_made = 0
     last_request_time = time.time()
@@ -1973,29 +1970,55 @@ def find_episode_by_title(mal_ids, episode_titles):
         else:
             control.log(f"Jikan API failed for mal_id {mal_id} after {max_retries} retries.")
             episodes = []
+        # Prepare candidate episode titles from Jikan
+        episode_candidates = []
+        episode_meta_map = []
         for ep in episodes:
             candidates = [
                 ep.get('title', ''),
-                # ep.get('title_japanese', ''),
                 ep.get('title_romanji', '')
             ]
-            split_candidates = []
             for candidate in candidates:
                 if candidate:
-                    split_candidates.extend([x.strip() for x in candidate.split('|') if x.strip()])
-            for candidate in split_candidates:
-                cleaned_candidate = remove_punctuation(cleanTitle(candidate)).replace(' ', '').lower() if candidate else ''
-                # Direct match ignoring spaces and punctuation
-                if cleaned_candidate in cleaned_titles:
-                    control.log(f"MATCH FOUND: Jikan '{candidate}' matched TMDB title.")
+                    episode_candidates.append(candidate)
+                    episode_meta_map.append((candidate, ep))
+        # Use shared clean_text for normalization
+        cleaned_candidates = [clean_text(c) for c in episode_candidates]
+        # Run fuzzy matching for each cleaned title variant individually
+        best_score = -1
+        best_idx = None
+        for cleaned_query in cleaned_titles:
+            match_indices = get_fuzzy_match(cleaned_query, cleaned_candidates)
+            if match_indices:
+                # get_fuzzy_match returns sorted indices by best match first
+                idx = match_indices[0]
+                # Optionally, you could get the score from token/sequence matching for more granularity
+                # For now, just select the first match
+                # If multiple queries match, prefer the one with the highest index (first found)
+                if best_idx is None or idx < best_idx:
+                    best_idx = idx
+        if best_idx is not None:
+            best_candidate, best_ep = episode_meta_map[best_idx]
+            control.log(f"FUZZY MATCH FOUND: Jikan '{best_candidate}' matched TMDB title (fuzzy).")
+            info = {
+                'mal_id': mal_id,
+                'episode_number': best_ep.get('mal_id'),
+                'matched_title': best_candidate,
+            }
+            return info
+        else:
+            # Fallback to direct match if fuzzy fails
+            for idx, candidate in enumerate(cleaned_candidates):
+                if candidate in cleaned_titles:
+                    orig_candidate, ep = episode_meta_map[idx]
+                    control.log(f"DIRECT MATCH FOUND: Jikan '{orig_candidate}' matched TMDB title.")
                     info = {
                         'mal_id': mal_id,
                         'episode_number': ep.get('mal_id'),
-                        'matched_title': candidate,
+                        'matched_title': orig_candidate,
                     }
                     return info
-                else:
-                    control.log(f"No match for Jikan '{candidate}' (cleaned: '{cleaned_candidate}')")
+            control.log(f"No fuzzy or direct match for Jikan episode titles against TMDB titles.")
     return None  # No match found
 
 
