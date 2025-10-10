@@ -1665,6 +1665,13 @@ def PLAY(payload, params):
         params['rating'] = ast.literal_eval(rating)
     params['path'] = f"{control.addon_url(f'play/{payload}')}"
 
+    # Populate params with episode metadata from database if not already present
+    # This ensures metadata is available even when playing from Information dialog
+    if not params.get('tvshowtitle'):
+        episode_data = database.get_episode(mal_id, episode)
+        if episode_data:
+            params = pickle.loads(episode_data['kodi_meta'])
+
     if resume:
         resume = float(resume)
         context = control.context_menu([f'Resume from {utils.format_time(resume)}', 'Play from beginning'])
@@ -1729,6 +1736,22 @@ def PLAY_MOVIE(payload, params):
     rescrape = bool(params.get('rescrape'))
     resume = params.get('resume')
     params['path'] = f"{control.addon_url(f'play_movie/{payload}')}"
+
+    # Populate params with movie metadata from database if not already present
+    # This ensures metadata is available even when playing from Information dialog
+    if not params.get('name'):
+        anime_meta = database.get_show_meta(mal_id)
+        anime_data = database.get_show(mal_id)
+        kodi_meta = pickle.loads(anime_data['kodi_meta'])
+
+        params = {
+            **kodi_meta,
+            'info': kodi_meta,  # video info tags
+            'image': {  # art fields for UI
+                k: (v[0] if isinstance(v, list) else v)
+                for k, v in pickle.loads(anime_meta['art']).items()
+            }
+        }
 
     if resume:
         resume = float(resume)

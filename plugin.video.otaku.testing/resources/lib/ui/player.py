@@ -57,6 +57,7 @@ class WatchlistPlayer(player):
         self.mal_id = mal_id
         self._watchlist_update = watchlist_update
         self.episode = episode
+        self.episodes = database.get_episode_list(self.mal_id)
         self.resume = resume
         self.path = path
         self.type = type
@@ -100,8 +101,6 @@ class WatchlistPlayer(player):
         playList.clear()
 
     def build_playlist(self):
-        episodes = database.get_episode_list(self.mal_id)
-
         if not control.getBool('playlist.unaired'):
             airing_episode = simkl.Simkl().get_calendar_data(self.mal_id)
             if not airing_episode:
@@ -109,9 +108,9 @@ class WatchlistPlayer(player):
 
             if airing_episode:
                 if isinstance(airing_episode, int):
-                    episodes = episodes[:airing_episode]
+                    self.episodes = self.episodes[:airing_episode]
 
-        video_data = indexers.process_episodes(episodes, '') if episodes else []
+        video_data = indexers.process_episodes(self.episodes, '') if self.episodes else []
         playlist = control.bulk_dir_list(video_data, True)[self.episode:]
 
         for i, item in enumerate(playlist):
@@ -225,9 +224,7 @@ class WatchlistPlayer(player):
             self.setup_audio_and_subtitles()
 
         # Handle different media types
-        if self.media_type == 'movie':
-            self.onWatchedPercent()
-        else:
+        if self.episodes:
             # Handle playlist building if needed
             if self.media_type == 'episode' and playList.size() == 1:
                 self.build_playlist()
@@ -240,6 +237,8 @@ class WatchlistPlayer(player):
 
             # Handle outro/playing next functionality
             self._handle_outro_and_playing_next()
+        else:
+            self.onWatchedPercent()
 
         while self.isPlaying():
             self.current_time = int(self.getTime())

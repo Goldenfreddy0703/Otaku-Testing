@@ -329,9 +329,9 @@ def browse(type_, heading, shares, mask=''):
 
 def set_videotags(li, info):
     vinfo: xbmc.InfoTagVideo = li.getVideoInfoTag()
-    if title := info.get('title'):
+    if title := info.get('title') or info.get('title_userPreferred'):
         vinfo.setTitle(title)
-    if media_type := info.get('mediatype'):
+    if media_type := info.get('mediatype') or info.get('format'):
         vinfo.setMediaType(media_type)
     if tvshow_title := info.get('tvshowtitle'):
         vinfo.setTvShowTitle(tvshow_title)
