@@ -1,7 +1,7 @@
 import json
 
 from bs4 import BeautifulSoup, SoupStrainer
-from resources.lib.ui import database, source_utils, control
+from resources.lib.ui import database, source_utils
 from resources.lib.ui.BrowserBase import BrowserBase
 from resources.lib.endpoints import malsync
 
@@ -91,18 +91,9 @@ class Sources(BrowserBase):
             mdiv = BeautifulSoup(html, "html.parser", parse_only=mlink)
             items = mdiv.find_all('button')
 
-            # Track which language we've found sources for
-            sources_found_per_lang = {}
-            control.log(f"AnimePahe: Found {len(items)} quality options")
 
             for item in items:
                 if any(x in item.get('data-src').lower() for x in self.embeds()):
-                    lang = 3 if item.get('data-audio') == 'eng' else 2
-
-                    # Skip if we already have a source for this language
-                    if lang in sources_found_per_lang:
-                        control.log(f"AnimePahe: Skipping duplicate language {lang}")
-                        continue
 
                     qual = int(item.get('data-resolution'))
                     if qual <= 577:
@@ -125,12 +116,10 @@ class Sources(BrowserBase):
                         'seeders': 0,
                         'byte_size': 0,
                         'info': [source_utils.get_embedhost(item.get('data-src')) + (' DUB' if item.get('data-audio') == 'eng' else ' SUB')],
-                        'lang': lang,
+                        'lang': 3 if item.get('data-audio') == 'eng' else 2,
                         'channel': 3,
                         'sub': 1
                     }
                     sources.append(source)
-                    sources_found_per_lang[lang] = True
-                    control.log(f"AnimePahe: Found source for lang {lang}, quality {quality}")
 
         return sources

@@ -240,9 +240,7 @@ class Resolver(BaseWindow):
                     'tvshow.poster': self.image.get('poster') or self.params.get('poster') or '',
                 }
                 item.setArt(art)
-                control.playList.clear()
-                control.playList.add(linkInfo['url'], item)
-                xbmc.Player().play(control.playList, item)
+                xbmcplugin.setResolvedUrl(control.HANDLE, True, item)
             monitor = Monitor()
             for _ in range(30):
                 if monitor.waitForAbort(1) or monitor.playbackerror or monitor.abortRequested():
