@@ -794,18 +794,24 @@ def patch(url, data=None, json_data=None, headers=None, timeout=20, verify=True,
     return Response(content=None, status_code=0, url=url)
 
 
-def delete(url, headers=None, timeout=20, verify=True, cookies=None):
+def delete(url, data=None, json_data=None, headers=None, timeout=20, verify=True, cookies=None):
     """
     Requests-like DELETE method that returns a Response object
 
     Usage:
         response = client.delete(url)
         response = client.delete(url, headers={'Authorization': 'Bearer token'})
+        response = client.delete(url, data={'key': 'value'})
         print(response.status_code)
         if response.ok:
             print("Deleted successfully")
     """
-    result = request(url, method='DELETE', headers=headers or {}, timeout=timeout, verify=verify, cookie=cookies, output='extended')
+    if json_data:
+        result = request(url, post=json_data, jpost=True, method='DELETE', headers=headers or {}, timeout=timeout, verify=verify, cookie=cookies, output='extended')
+    elif data:
+        result = request(url, post=data, method='DELETE', headers=headers or {}, timeout=timeout, verify=verify, cookie=cookies, output='extended')
+    else:
+        result = request(url, method='DELETE', headers=headers or {}, timeout=timeout, verify=verify, cookie=cookies, output='extended')
 
     if result and isinstance(result, tuple) and len(result) >= 5:
         content, status_code, response_headers, request_headers, cookie, response_url = result
