@@ -1,3 +1,7 @@
+Changelog v5.2.58 (2025-10-16):
+- Fixed TorBox when deleting Torrents
+- Updated delete function in Client
+
 Changelog v5.2.57 (2025-10-11):
 - Reverted Resolver to use ResolveURL
 - Fix Quality Sources for Animepahe 
