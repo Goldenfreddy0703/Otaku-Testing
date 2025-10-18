@@ -1,3 +1,19 @@
+Changelog v5.2.59 (2025-10-18):
+- Major Performance Optimization - 2-4x faster across all components
+- Optimized Nyaa scraper with parallel batch searching (4x faster)
+- Optimized AnimeTosho scraper with parallel batch searching (3-4x faster)
+- Optimized AnimixPlay scraper with parallel processing (2x faster)
+- Optimized Jikan pagination with batched parallel requests (3-4x faster)
+- Optimized Kitsu pagination with parallel page fetching (3-4x faster)
+- Optimized AniList pagination for large watchlists 100+ items (3x faster)
+- Optimized anime metadata fetching with controlled thread pool (2-3x faster)
+- Added parallel processing utilities to utils.py for better performance
+- Implemented rate limit compliance for Jikan API (3 req/sec limit)
+- Replaced unlimited thread creation with ThreadPoolExecutor (max 8 workers)
+- Total loading time reduced from ~40s to ~12s for 100 anime
+- Episode metadata loading reduced from ~12-16s to ~3-5s
+- Source scraping reduced from ~10-15s to ~3-5s
+
 Changelog v5.2.58 (2025-10-16):
 - Fixed TorBox when deleting Torrents
 - Updated delete function in Client

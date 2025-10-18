@@ -18,28 +18,51 @@ class JikanAPI:
             return response.json()['data']
 
     def get_episode_meta(self, mal_id):
-        res_data = []
         url = f'{self.baseUrl}/anime/{mal_id}/episodes'
         response = client.get(url)
-        if response:
-            res = response.json()
-            if not res['pagination']['has_next_page']:
-                res_data = res['data']
-            else:
-                res_data = res['data']
-                for i in range(2, res['pagination']['last_visible_page'] + 1):
-                    params = {
-                        'page': i
-                    }
-                    response = client.get(url, params=params)
-                    if response:
-                        r = response.json()
-                        if not r['pagination']['has_next_page']:
-                            res_data += r['data']
-                            break
-                        res_data += r['data']
-                        if i % 3 == 0:
-                            time.sleep(2)
+        if not response:
+            return []
+
+        res = response.json()
+        res_data = res['data']
+
+        # If only one page, return immediately
+        if not res['pagination']['has_next_page']:
+            return res_data
+
+        # Fetch all pages in batches to respect Jikan's 3 req/sec rate limit
+        last_page = res['pagination']['last_visible_page']
+        control.log(f"Jikan: Fetching {last_page} pages of episodes (3 req/sec limit)")
+
+        def fetch_page(page_num):
+            try:
+                params = {'page': page_num}
+                page_response = client.get(url, params=params)
+                if page_response:
+                    return page_response.json()['data']
+                return []
+            except Exception as e:
+                control.log(f"Jikan: Failed to fetch page {page_num}: {str(e)}")
+                return []
+
+        # Split remaining pages into batches of 3 to respect rate limit
+        page_numbers = list(range(2, last_page + 1))
+        batches = [page_numbers[i:i+3] for i in range(0, len(page_numbers), 3)]
+
+        all_page_results = []
+        for i, batch in enumerate(batches):
+            if i > 0:
+                time.sleep(1.1)  # Wait 1.1 seconds between batches (safe margin)
+
+            # Fetch 3 pages in parallel (respects 3 req/sec limit)
+            batch_results = utils.parallel_process(batch, fetch_page, max_workers=3)
+            all_page_results.extend(batch_results)
+
+        # Combine all results
+        for page_data in all_page_results:
+            res_data.extend(page_data)
+
+        control.log(f"Jikan: Fetched {len(res_data)} episodes total")
         return res_data
 
     @staticmethod

@@ -4,7 +4,7 @@ import re
 import urllib.parse
 
 from bs4 import BeautifulSoup, SoupStrainer
-from resources.lib.ui import control, database
+from resources.lib.ui import control, database, utils
 from resources.lib.ui.BrowserBase import BrowserBase
 from resources.lib.endpoints import malsync
 from resources.lib.ui.megacloud_extractor import extract_megacloud_sources

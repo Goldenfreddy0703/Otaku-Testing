@@ -1,11 +1,13 @@
-import threading
+import concurrent.futures
 
 from resources.lib.endpoints import fanart, tmdb
 from resources.lib.ui import database
 
 
 def collect_meta(anime_list):
-    threads = []
+    # Prepare list of anime that need metadata
+    anime_to_fetch = []
+
     for anime in anime_list:
         if 'media' in anime.keys():
             anime = anime.get('media')
@@ -23,11 +25,14 @@ def collect_meta(anime_list):
                 mtype = 'movies'
             else:
                 mtype = 'tv'
-            t = threading.Thread(target=update_meta, args=(mal_id, mtype))
-            t.start()
-            threads.append(t)
-    for thread in threads:
-        thread.join()
+            anime_to_fetch.append((mal_id, mtype))
+
+    # Fetch metadata in parallel with controlled thread pool (max 8 workers)
+    if anime_to_fetch:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+            futures = [executor.submit(update_meta, mal_id, mtype) for mal_id, mtype in anime_to_fetch]
+            # Wait for all to complete
+            concurrent.futures.wait(futures)
 
 
 def update_meta(mal_id, mtype='tv'):

@@ -1,4 +1,5 @@
 import os
+import concurrent.futures
 
 from functools import partial
 from resources.lib.ui import control, database
@@ -141,3 +142,64 @@ def format_time(seconds):
     hours, minutes = divmod(minutes, 60)
 
     return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}"
+
+
+def parallel_fetch(requests_list, max_workers=5, timeout=30):
+    """
+    Execute multiple HTTP requests in parallel using threading.
+
+    Args:
+        requests_list: List of dicts with keys: 'func', 'args' (tuple), 'kwargs' (dict)
+        max_workers: Max number of concurrent threads (default: 5)
+        timeout: Timeout for all requests (default: 30s)
+
+    Returns:
+        List of results in same order as requests_list
+
+    Example:
+        requests = [
+            {'func': client.get, 'args': (url1,), 'kwargs': {'headers': headers}},
+            {'func': client.get, 'args': (url2,), 'kwargs': {'timeout': 10}}
+        ]
+        results = parallel_fetch(requests)
+    """
+    def execute_request(request):
+        try:
+            func = request['func']
+            args = request.get('args', ())
+            kwargs = request.get('kwargs', {})
+            return func(*args, **kwargs)
+        except Exception as e:
+            control.log(f"Parallel request error: {str(e)}")
+            return None
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(execute_request, req) for req in requests_list]
+        try:
+            results = [future.result(timeout=timeout) for future in futures]
+        except concurrent.futures.TimeoutError:
+            control.log("Parallel fetch timeout exceeded")
+            results = [future.result() if future.done() else None for future in futures]
+
+    return results
+
+
+def parallel_process(items, process_func, max_workers=5):
+    """
+    Process multiple items in parallel using threading.
+
+    Args:
+        items: List of items to process
+        process_func: Function to apply to each item
+        max_workers: Max number of concurrent threads (default: 5)
+
+    Returns:
+        List of results in same order as items
+
+    Example:
+        slugs = ['slug1', 'slug2', 'slug3']
+        results = parallel_process(slugs, lambda slug: scraper._process(slug))
+    """
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        results = list(executor.map(process_func, items))
+    return results

@@ -5,7 +5,7 @@ import re
 
 from functools import partial
 from bs4 import BeautifulSoup
-from resources.lib.ui import control, client, database, source_utils
+from resources.lib.ui import control, client, database, source_utils, utils
 from resources.lib.ui.BrowserBase import BrowserBase
 
 
@@ -78,8 +78,11 @@ class Sources(BrowserBase):
             if not slugs:
                 return []
         slugs = list(slugs.keys()) if isinstance(slugs, dict) else slugs
+
+        # Process slugs in parallel for faster scraping
+        control.log(f"GogoAnime: Processing {len(slugs)} slugs in parallel")
         mapfunc = partial(self._process_gogo, show_id=mal_id, episode=episode)
-        all_results = list(map(mapfunc, slugs))
+        all_results = utils.parallel_process(slugs, mapfunc, max_workers=3)
         all_results = list(itertools.chain(*all_results))
         return all_results
 

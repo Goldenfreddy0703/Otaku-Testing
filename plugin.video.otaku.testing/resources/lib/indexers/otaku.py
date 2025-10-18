@@ -32,22 +32,58 @@ class OtakuAPI:
     def get_kitsu_episode_meta(self, mal_id):
         kitsu_id = self.get_kitsu_id(mal_id)
         url = f'{self.kitsuBaseUrl}/anime/{kitsu_id}/episodes'
-        res_data = []
-        page = 1
-        while True:
-            params = {
-                'page[limit]': 20,
-                'page[offset]': (page - 1) * 20
-            }
-            response = client.get(url, params=params)
-            if response:
-                res = response.json()
-                res_data.extend(res['data'])
-                if 'next' not in res['links']:
-                    break
-                page += 1
-                if page % 3 == 0:
-                    time.sleep(2)
+
+        # Fetch first page to determine total pages
+        params = {'page[limit]': 20, 'page[offset]': 0}
+        response = client.get(url, params=params)
+        if not response:
+            return []
+
+        res = response.json()
+        res_data = res['data']
+
+        # If only one page, return immediately
+        if 'next' not in res['links']:
+            return res_data
+
+        # Calculate total pages needed
+        try:
+            total_count = res.get('meta', {}).get('count', len(res_data) * 2)
+            total_pages = (total_count // 20) + (1 if total_count % 20 else 0)
+        except:
+            # Fallback: fetch until no 'next' link
+            total_pages = 10  # Conservative estimate
+
+        control.log(f"Kitsu: Fetching ~{total_pages} pages of episodes in parallel")
+
+        def fetch_page(page_num):
+            try:
+                time.sleep((page_num % 3) * 0.7)  # Stagger requests to respect rate limit
+                params = {
+                    'page[limit]': 20,
+                    'page[offset]': page_num * 20
+                }
+                page_response = client.get(url, params=params)
+                if page_response:
+                    page_res = page_response.json()
+                    return page_res['data'] if page_res.get('data') else []
+                return []
+            except Exception as e:
+                control.log(f"Kitsu: Failed to fetch page {page_num}: {str(e)}")
+                return []
+
+        # Fetch remaining pages in parallel
+        page_numbers = list(range(1, total_pages))
+        all_page_results = utils.parallel_process(page_numbers, fetch_page, max_workers=3)
+
+        # Combine all results
+        for page_data in all_page_results:
+            if page_data:  # Only extend if we got data
+                res_data.extend(page_data)
+            else:
+                break  # Stop if we hit an empty page
+
+        control.log(f"Kitsu: Fetched {len(res_data)} episodes total")
         return res_data
 
     def get_anizip_episode_meta(self, mal_id):
@@ -155,25 +191,49 @@ class OtakuAPI:
     def get_episode_meta(self, mal_id):
         url = f'{self.baseUrl}/anime/{mal_id}/episodes'
         response = client.get(url)
-        if response:
-            res = response.json()
-            if not res['pagination']['has_next_page']:
-                res_data = res['data']
-            else:
-                res_data = res['data']
-                for i in range(2, res['pagination']['last_visible_page'] + 1):
-                    params = {
-                        'page': i
-                    }
-                    response = client.get(url, params=params)
-                    if response:
-                        r = response.json()
-                        if not r['pagination']['has_next_page']:
-                            res_data += r['data']
-                            break
-                        res_data += r['data']
-                        if i % 3 == 0:
-                            time.sleep(2)
+        if not response:
+            return []
+
+        res = response.json()
+        res_data = res['data']
+
+        # If only one page, return immediately
+        if not res['pagination']['has_next_page']:
+            return res_data
+
+        # Fetch all pages in batches to respect Jikan's 3 req/sec rate limit
+        last_page = res['pagination']['last_visible_page']
+        control.log(f"Jikan: Fetching {last_page} pages of episodes (3 req/sec limit)")
+
+        def fetch_page(page_num):
+            try:
+                params = {'page': page_num}
+                page_response = client.get(url, params=params)
+                if page_response:
+                    return page_response.json()['data']
+                return []
+            except Exception as e:
+                control.log(f"Jikan: Failed to fetch page {page_num}: {str(e)}")
+                return []
+
+        # Split remaining pages into batches of 3 to respect rate limit
+        page_numbers = list(range(2, last_page + 1))
+        batches = [page_numbers[i:i+3] for i in range(0, len(page_numbers), 3)]
+
+        all_page_results = []
+        for i, batch in enumerate(batches):
+            if i > 0:
+                time.sleep(1.1)  # Wait 1.1 seconds between batches (safe margin)
+
+            # Fetch 3 pages in parallel (respects 3 req/sec limit)
+            batch_results = utils.parallel_process(batch, fetch_page, max_workers=3)
+            all_page_results.extend(batch_results)
+
+        # Combine all results
+        for page_data in all_page_results:
+            res_data.extend(page_data)
+
+        control.log(f"Jikan: Fetched {len(res_data)} episodes total")
         return res_data
 
     def parse_episode_view(self, res, mal_id, season, poster, fanart, clearart, clearlogo, eps_watched, update_time, tvshowtitle, dub_data, filler_data, episodes=None, meta_cache=None):
