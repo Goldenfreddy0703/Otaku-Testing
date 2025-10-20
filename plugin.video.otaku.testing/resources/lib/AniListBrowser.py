@@ -2114,7 +2114,26 @@ class AniListBrowser(BrowserBase):
     def process_anilist_view(self, json_res, base_plugin_url, page):
         hasNextPage = json_res['pageInfo']['hasNextPage']
         get_meta.collect_meta(json_res['ANIME'])
-        mapfunc = partial(self.base_anilist_view, completed=self.open_completed())
+
+        # PERFORMANCE: Seren-style batch fetch of pre-computed metadata
+        # Get MAL IDs (prefer API, fallback to mappings database)
+        mal_ids = []
+        for item in json_res['ANIME']:
+            # Try API response first
+            mal_id = item.get('idMal')
+
+            # Fallback to mappings database if API doesn't have it
+            if not mal_id:
+                anilist_id = item.get('id')
+                if anilist_id:
+                    mappings = database.get_mappings(anilist_id, 'anilist_id')
+                    mal_id = mappings.get('mal_id')
+
+            if mal_id:
+                mal_ids.append(int(mal_id))
+        precomputed_data = database.get_show_list(mal_ids)
+
+        mapfunc = partial(self.base_anilist_view, completed=self.open_completed(), precomputed_data=precomputed_data)
         all_results = list(filter(lambda x: True if x else False, map(mapfunc, json_res['ANIME'])))
         all_results += self.handle_paging(hasNextPage, base_plugin_url, page)
         return all_results
@@ -2123,7 +2142,25 @@ class AniListBrowser(BrowserBase):
         hasNextPage = json_res['pageInfo']['hasNextPage']
         res = [edge['node']['mediaRecommendation'] for edge in json_res['edges'] if edge['node']['mediaRecommendation']]
         get_meta.collect_meta(res)
-        mapfunc = partial(self.base_anilist_view, completed=self.open_completed())
+
+        # PERFORMANCE: Get MAL IDs (prefer API, fallback to mappings database)
+        mal_ids = []
+        for item in res:
+            # Try API response first
+            mal_id = item.get('idMal')
+
+            # Fallback to mappings database if API doesn't have it
+            if not mal_id:
+                anilist_id = item.get('id')
+                if anilist_id:
+                    mappings = database.get_mappings(anilist_id, 'anilist_id')
+                    mal_id = mappings.get('mal_id')
+
+            if mal_id:
+                mal_ids.append(int(mal_id))
+        precomputed_data = database.get_show_list(mal_ids)
+
+        mapfunc = partial(self.base_anilist_view, completed=self.open_completed(), precomputed_data=precomputed_data)
         all_results = list(filter(lambda x: True if x else False, map(mapfunc, res)))
         all_results += self.handle_paging(hasNextPage, base_plugin_url, page)
         return all_results
@@ -2136,14 +2173,50 @@ class AniListBrowser(BrowserBase):
                 tnode['relationType'] = edge['relationType']
                 res.append(tnode)
         get_meta.collect_meta(res)
-        mapfunc = partial(self.base_anilist_view, completed=self.open_completed())
+
+        # PERFORMANCE: Get MAL IDs (prefer API, fallback to mappings database)
+        mal_ids = []
+        for item in res:
+            # Try API response first
+            mal_id = item.get('idMal')
+
+            # Fallback to mappings database if API doesn't have it
+            if not mal_id:
+                anilist_id = item.get('id')
+                if anilist_id:
+                    mappings = database.get_mappings(anilist_id, 'anilist_id')
+                    mal_id = mappings.get('mal_id')
+
+            if mal_id:
+                mal_ids.append(int(mal_id))
+        precomputed_data = database.get_show_list(mal_ids)
+
+        mapfunc = partial(self.base_anilist_view, completed=self.open_completed(), precomputed_data=precomputed_data)
         all_results = list(filter(lambda x: True if x else False, map(mapfunc, res)))
         return all_results
 
     def process_watch_order_view(self, json_res):
         res = json_res
         get_meta.collect_meta(res)
-        mapfunc = partial(self.base_anilist_view, completed=self.open_completed())
+
+        # PERFORMANCE: Get MAL IDs (prefer API, fallback to mappings database)
+        mal_ids = []
+        for item in res:
+            # Try API response first
+            mal_id = item.get('idMal')
+
+            # Fallback to mappings database if API doesn't have it
+            if not mal_id:
+                anilist_id = item.get('id')
+                if anilist_id:
+                    mappings = database.get_mappings(anilist_id, 'anilist_id')
+                    mal_id = mappings.get('mal_id')
+
+            if mal_id:
+                mal_ids.append(int(mal_id))
+        precomputed_data = database.get_show_list(mal_ids)
+
+        mapfunc = partial(self.base_anilist_view, completed=self.open_completed(), precomputed_data=precomputed_data)
         all_results = list(filter(lambda x: True if x else False, map(mapfunc, res)))
         return all_results
 
@@ -2161,110 +2234,200 @@ class AniListBrowser(BrowserBase):
         return database.get_show(res['idMal'])
 
     @div_flavor
-    def base_anilist_view(self, res, completed=None, mal_dub=None):
+    def base_anilist_view(self, res, completed=None, mal_dub=None, precomputed_data=None):
+        """
+        PERFORMANCE: Seren-style pre-computed metadata approach.
+
+        Uses pre-computed info/cast/art from database instead of building on-the-fly.
+        Falls back to on-the-fly building only if pre-computed data is missing.
+        """
         if not completed:
             completed = {}
+
         anilist_id = res['id']
         mal_id = res.get('idMal')
+
+        # Fallback to mappings database if API doesn't have it
+        if not mal_id:
+            mappings = database.get_mappings(anilist_id, 'anilist_id')
+            mal_id = mappings.get('mal_id')
 
         if not mal_id:
             return
 
-        if not database.get_show(mal_id):
-            self.database_update_show(res)
+        # PERFORMANCE: Try to use pre-computed data first (Seren pattern)
+        use_precomputed = False
+        info = None
+        cast = None
+        art_dict = {}
 
-        show_meta = database.get_show_meta(mal_id)
-        kodi_meta = pickle.loads(show_meta.get('art')) if show_meta else {}
+        if precomputed_data and mal_id in precomputed_data:
+            precomp = precomputed_data[mal_id]
+            # Check if we have valid pre-computed data
+            if precomp.get('info'):
+                use_precomputed = True
+                info = precomp['info'].copy()  # Get pre-computed info dict
+                cast = precomp.get('cast')  # Get pre-computed cast
+                art_dict = precomp.get('art', {}).copy()  # Get pre-computed art
 
-        title = res['title'][self.title_lang] or res['title']['romaji']
+        # Fallback: Build metadata on-the-fly if pre-computed data is missing
+        if not use_precomputed:
+            # Create show in database if it doesn't exist
+            if not database.get_show(mal_id):
+                self.database_update_show(res)
 
+            # Fetch the newly created pre-computed data
+            show_list = database.get_show_list([mal_id])
+            if show_list and mal_id in show_list:
+                precomp = show_list[mal_id]
+                info = precomp.get('info', {}).copy() if precomp.get('info') else {}
+                cast = precomp.get('cast')
+                art_dict = precomp.get('art', {}).copy() if precomp.get('art') else {}
+                use_precomputed = True
+
+        # If still no data, build metadata from res as last resort
+        if not info:
+            info = {'mediatype': 'tvshow'}
+
+        # Fallback: Build missing metadata fields from res if not in pre-computed data
+        if not info.get('plot'):
+            if desc := res.get('description'):
+                desc = desc.replace('<i>', '[I]').replace('</i>', '[/I]')
+                desc = desc.replace('<b>', '[B]').replace('</b>', '[/B]')
+                desc = desc.replace('<br>', '[CR]')
+                desc = desc.replace('\n', '')
+                info['plot'] = desc
+
+        if not info.get('genre'):
+            info['genre'] = res.get('genres')
+
+        if not info.get('studio'):
+            info['studio'] = [x['node'].get('name') for x in res['studios']['edges']]
+
+        if not info.get('status'):
+            info['status'] = res.get('status')
+
+        if not info.get('country'):
+            info['country'] = [res.get('countryOfOrigin', '')]
+
+        if not info.get('premiered'):
+            try:
+                start_date = res.get('startDate')
+                info['premiered'] = '{}-{:02}-{:02}'.format(start_date['year'], start_date['month'], start_date['day'])
+                if not info.get('year'):
+                    info['year'] = start_date['year']
+            except (KeyError, TypeError):
+                pass
+
+        if not info.get('duration'):
+            try:
+                info['duration'] = res['duration'] * 60
+            except (KeyError, TypeError):
+                pass
+
+        if not info.get('rating'):
+            try:
+                info['rating'] = {'score': res.get('averageScore') / 10.0}
+                if res.get('stats') and res['stats'].get('scoreDistribution'):
+                    total_votes = sum([score['amount'] for score in res['stats']['scoreDistribution']])
+                    info['rating']['votes'] = total_votes
+            except (KeyError, TypeError):
+                pass
+
+        if not info.get('trailer'):
+            try:
+                if res['trailer']['site'] == 'youtube':
+                    info['trailer'] = f"plugin://plugin.video.youtube/play/?video_id={res['trailer']['id']}"
+                else:
+                    info['trailer'] = f"plugin://plugin.video.dailymotion_com/?url={res['trailer']['id']}&mode=playVideo"
+            except (KeyError, TypeError):
+                pass
+
+        if not cast and res.get('characters'):
+            try:
+                cast = []
+                for i, x in enumerate(res['characters']['edges']):
+                    role = x['node']['name']['userPreferred']
+                    actor = x['voiceActors'][0]['name']['userPreferred']
+                    actor_hs = x['voiceActors'][0]['image']['large']
+                    cast.append({'name': actor, 'role': role, 'thumbnail': actor_hs, 'index': i})
+            except (IndexError, KeyError, TypeError):
+                pass
+
+        if not info.get('UniqueIDs'):
+            mappings_anilist = database.get_unique_ids(anilist_id, 'anilist_id')
+            mappings_mal = database.get_mappings(mal_id, 'mal_id')
+            info['UniqueIDs'] = {
+                'anilist_id': str(anilist_id),
+                'mal_id': str(mal_id),
+                **mappings_anilist,
+                **mappings_mal
+            }
+
+        # PERFORMANCE: No more pickle.loads() - all artwork is in pre-computed art_dict!
+
+        # PERFORMANCE: Use pre-computed title, but allow override for relations
+        title = info.get('title', res['title'][self.title_lang] or res['title']['romaji'])
+
+        # Add relation info to title
         if res.get('relationType'):
             title += ' [I]%s[/I]' % control.colorstr(res['relationType'], 'limegreen')
 
-        if desc := res.get('description'):
-            desc = desc.replace('<i>', '[I]').replace('</i>', '[/I]')
-            desc = desc.replace('<b>', '[B]').replace('</b>', '[/B]')
-            desc = desc.replace('<br>', '[CR]')
-            desc = desc.replace('\n', '')
+        # Update info dict with the final title
+        info['title'] = title
 
-        info = {
-            'UniqueIDs': {
-                'anilist_id': str(anilist_id),
-                'mal_id': str(mal_id),
-                **database.get_mapping_ids(anilist_id, 'anilist_id'),
-                **database.get_mapping_ids(mal_id, 'mal_id')
-            },
-            'genre': res.get('genres'),
-            'title': title,
-            'plot': desc,
-            'status': res.get('status'),
-            'mediatype': 'tvshow',
-            'country': [res.get('countryOfOrigin', '')]
-        }
+        # PERFORMANCE: Only supplement with dynamic data that changes per-request
+        # Most metadata is already in the pre-computed info dict!
 
+        # Add playcount if show is completed (dynamic per-user data)
         if completed.get(str(mal_id)):
             info['playcount'] = 1
 
-        try:
-            start_date = res.get('startDate')
-            info['premiered'] = '{}-{:02}-{:02}'.format(start_date['year'], start_date['month'], start_date['day'])
-            info['year'] = start_date['year']
-        except TypeError:
-            pass
-
-        try:
-            cast = []
-            for i, x in enumerate(res['characters']['edges']):
-                role = x['node']['name']['userPreferred']
-                actor = x['voiceActors'][0]['name']['userPreferred']
-                actor_hs = x['voiceActors'][0]['image']['large']
-                cast.append({'name': actor, 'role': role, 'thumbnail': actor_hs, 'index': i})
+        # Add cast if available from pre-computed data
+        if cast:
             info['cast'] = cast
-        except IndexError:
-            pass
 
-        info['studio'] = [x['node'].get('name') for x in res['studios']['edges']]
-
-        try:
-            info['rating'] = {'score': res.get('averageScore') / 10.0}
-            if res.get('stats') and res['stats'].get('scoreDistribution'):
-                total_votes = sum([score['amount'] for score in res['stats']['scoreDistribution']])
-                info['rating']['votes'] = total_votes
-        except TypeError:
-            pass
-
-        try:
-            info['duration'] = res['duration'] * 60
-        except TypeError:
-            pass
-
-        try:
-            if res['trailer']['site'] == 'youtube':
-                info['trailer'] = f"plugin://plugin.video.youtube/play/?video_id={res['trailer']['id']}"
-            else:
-                info['trailer'] = f"plugin://plugin.video.dailymotion_com/?url={res['trailer']['id']}&mode=playVideo"
-        except (KeyError, TypeError):
-            pass
-
+        # Dub status (dynamic per-user data)
         dub = True if mal_dub and mal_dub.get(str(mal_id)) else False
 
-        image = res['coverImage']['extraLarge']
+        # PERFORMANCE: Use pre-computed artwork from art_dict
+        # Supplement with AniList images for items without pre-computed art
+        image = art_dict.get('icon') or art_dict.get('poster')
+        poster = art_dict.get('poster')
+        fanart = art_dict.get('fanart')
+        banner = art_dict.get('banner')
+
+        # Fallback to AniList images if pre-computed art is missing
+        anilist_image = res['coverImage']['extraLarge']
+        if not image:
+            image = anilist_image
+        if not poster:
+            poster = anilist_image
+        if not fanart:
+            # Use AniList image as fanart fallback
+            fanart = anilist_image
+        if not banner:
+            banner = res.get('bannerImage')
+
         base = {
             "name": title,
             "url": f'animes/{mal_id}/',
             "image": image,
-            "poster": image,
-            'fanart': kodi_meta['fanart'] if kodi_meta.get('fanart') else image,
-            "banner": res.get('bannerImage'),
+            "poster": poster,
+            'fanart': fanart,
+            "banner": banner,
             "info": info
         }
 
-        if kodi_meta.get('thumb'):
-            base['landscape'] = random.choice(kodi_meta['thumb'])
-        if kodi_meta.get('clearart'):
-            base['clearart'] = random.choice(kodi_meta['clearart'])
-        if kodi_meta.get('clearlogo'):
-            base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+        # Add extra Fanart.tv artwork from pre-computed art_dict
+        if art_dict.get('landscape') or art_dict.get('thumb'):
+            base['landscape'] = art_dict.get('landscape') or art_dict.get('thumb')
+        if art_dict.get('clearart'):
+            base['clearart'] = art_dict.get('clearart')
+        if art_dict.get('clearlogo'):
+            base['clearlogo'] = art_dict.get('clearlogo')
+
+        # Movie/episode logic
         if res['episodes'] == 1:
             base['url'] = f'play_movie/{mal_id}/'
             base['info']['mediatype'] = 'movie'
@@ -2390,7 +2553,72 @@ class AniListBrowser(BrowserBase):
         except (KeyError, TypeError):
             pass
 
+        # Update legacy kodi_meta (pickle) for backward compatibility
         database.update_show(mal_id, pickle.dumps(kodi_meta))
+
+        # PERFORMANCE: Pre-compute and store metadata as JSON for Seren-style list building
+        # Build the info dict that would be passed to InfoTagVideo
+        anilist_id = res.get('id')
+        mappings_mal = database.get_mappings(mal_id, 'mal_id')
+        unique_ids = {'mal_id': str(mal_id)}
+        if anilist_id:
+            unique_ids['anilist_id'] = str(anilist_id)
+            unique_ids.update(database.get_unique_ids(anilist_id, 'anilist_id'))
+        unique_ids.update(mappings_mal)
+
+        info_dict = {
+            'UniqueIDs': unique_ids,
+            'title': title_userPreferred,
+            'plot': desc,
+            'duration': duration,
+            'genre': res.get('genres'),
+            'studio': kodi_meta.get('studio'),
+            'status': res.get('status'),
+            'mediatype': 'tvshow',
+            'country': [res.get('countryOfOrigin', '')],
+        }
+        if kodi_meta.get('rating'):
+            info_dict['rating'] = kodi_meta['rating']
+        if kodi_meta.get('premiered'):
+            info_dict['premiered'] = kodi_meta['premiered']
+        if kodi_meta.get('year'):
+            info_dict['year'] = kodi_meta['year']
+        if kodi_meta.get('trailer'):
+            info_dict['trailer'] = kodi_meta['trailer']
+
+        # Build cast list
+        cast_list = kodi_meta.get('cast')
+
+        # Build art dict - check shows_meta for Fanart.tv artwork first!
+        art_dict = {}
+        show_meta = database.get_show_meta(mal_id)
+        if show_meta and show_meta.get('art'):
+            import pickle as pickle_module
+            try:
+                # Get fanart/banner/clearlogo/clearart from shows_meta (populated by get_meta)
+                meta_art = pickle_module.loads(show_meta['art'])
+                if meta_art:
+                    # IMPORTANT: Convert list values to single URL strings (Kodi expects strings, not lists)
+                    for key, value in meta_art.items():
+                        if isinstance(value, list) and len(value) > 0:
+                            art_dict[key] = value[0]  # Use first URL from list
+                        elif isinstance(value, str):
+                            art_dict[key] = value
+            except Exception:
+                pass
+
+        # Add poster if not already in art_dict
+        poster = res['coverImage'].get('extraLarge')
+        if poster and not art_dict.get('poster'):
+            art_dict['poster'] = poster
+        if poster and not art_dict.get('icon'):
+            art_dict['icon'] = poster
+
+        # Determine anime_schedule_route
+        anime_schedule_route = f'animes/{mal_id}/'
+
+        # Store pre-computed metadata
+        database.update_show_precomputed(mal_id, pickle.dumps(kodi_meta), info_dict, cast_list, art_dict, anime_schedule_route)
 
     def get_genres(self, page, format):
         query = '''
@@ -2589,8 +2817,26 @@ class AniListBrowser(BrowserBase):
             except Exception:
                 pass
 
-        mapfunc = partial(self.base_anilist_view, completed=self.open_completed())
         get_meta.collect_meta(anime_res)
+
+        # PERFORMANCE: Get MAL IDs (prefer API, fallback to mappings database)
+        mal_ids = []
+        for item in anime_res:
+            # Try API response first
+            mal_id = item.get('idMal')
+
+            # Fallback to mappings database if API doesn't have it
+            if not mal_id:
+                anilist_id = item.get('id')
+                if anilist_id:
+                    mappings = database.get_mappings(anilist_id, 'anilist_id')
+                    mal_id = mappings.get('mal_id')
+
+            if mal_id:
+                mal_ids.append(int(mal_id))
+        precomputed_data = database.get_show_list(mal_ids)
+
+        mapfunc = partial(self.base_anilist_view, completed=self.open_completed(), precomputed_data=precomputed_data)
         all_results = list(map(mapfunc, anime_res))
         all_results += self.handle_paging(hasNextPage, base_plugin_url, page)
         return all_results

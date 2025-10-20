@@ -184,6 +184,24 @@ class AniListWLF(WatchlistFlavorBase):
                     entries.append(entrie)
         get_meta.collect_meta(entries)
 
+        # PERFORMANCE: Get MAL IDs (prefer API, fallback to mappings database)
+        mal_ids = []
+        for entry in entries:
+            # Try API response first
+            mal_id = entry['media'].get('idMal')
+
+            # Fallback to mappings database if API doesn't have it
+            if not mal_id:
+                anilist_id = entry['media'].get('id')
+                if anilist_id:
+                    mappings = database.get_mappings(anilist_id, 'anilist_id')
+                    mal_id = mappings.get('mal_id')
+
+            if mal_id:
+                mal_ids.append(int(mal_id))
+
+        show_list = database.get_show_list(mal_ids) if mal_ids else {}
+
         # If sorting by title, sort manually alphabetically.
         if int(self.sort) == 0:
             entries.sort(key=lambda entry: (entry['media']['title'].get(self.title_lang) or "").lower())
@@ -197,30 +215,52 @@ class AniListWLF(WatchlistFlavorBase):
             entries.reverse()
 
         # If next_up is True, reverse the order if needed.
-        all_results = map(self._base_next_up_view, entries) if next_up else map(self.base_watchlist_status_view, entries)
-        all_results = list(all_results)
+        if next_up:
+            all_results = [self._base_next_up_view(entry, show_list) for entry in entries]
+        else:
+            all_results = [self.base_watchlist_status_view(entry, show_list) for entry in entries]
         return all_results
 
     @div_flavor
-    def base_watchlist_status_view(self, res, mal_dub=None):
+    def base_watchlist_status_view(self, res, show_list=None, mal_dub=None):
         progress = res['progress']
         res = res['media']
         anilist_id = res['id']
+
+        # Get MAL ID (prefer API, fallback to mappings database)
         mal_id = res.get('idMal')
+        if not mal_id:
+            mappings = database.get_mappings(anilist_id, 'anilist_id')
+            mal_id = mappings.get('mal_id')
+
+        if mal_id:
+            mal_id = int(mal_id)
 
         if not mal_id:
             control.log(f"Mal ID not found for {anilist_id}", level='warning')
 
         dub = True if mal_dub and mal_dub.get(str(mal_id)) else False
 
+        # PERFORMANCE: Get pre-computed metadata from batch query (Seren-style, no pickle!)
+        precomputed_info = None
+        precomputed_cast = None
+        art_dict = {}
+
+        if show_list and mal_id in show_list:
+            show_data = show_list[mal_id]
+            art_dict = show_data['art'] or {}
+            precomputed_info = show_data['info']
+            precomputed_cast = show_data['cast']
+
         title = res['title'].get(self.title_lang) or res['title'].get('userPreferred')
 
+        # Build info dict from AniList API response
         info = {
             'UniqueIDs': {
                 'anilist_id': str(anilist_id),
                 'mal_id': str(mal_id),
-                **database.get_mapping_ids(anilist_id, 'anilist_id'),
-                **database.get_mapping_ids(mal_id, 'mal_id')
+                **database.get_unique_ids(anilist_id, 'anilist_id'),
+                **database.get_unique_ids(mal_id, 'mal_id')
             },
             'title': title,
             'genre': res.get('genres'),
@@ -251,6 +291,7 @@ class AniListWLF(WatchlistFlavorBase):
         except TypeError:
             pass
 
+        # Plot - PERFORMANCE: Use pre-computed as fallback
         desc = res.get('description')
         if desc:
             desc = desc.replace('<i>', '[I]').replace('</i>', '[/I]')
@@ -258,6 +299,8 @@ class AniListWLF(WatchlistFlavorBase):
             desc = desc.replace('<br>', '[CR]')
             desc = desc.replace('\n', '')
             info['plot'] = desc
+        elif precomputed_info and precomputed_info.get('plot'):
+            info['plot'] = precomputed_info['plot']
 
         try:
             start_date = res.get('startDate')
@@ -265,6 +308,7 @@ class AniListWLF(WatchlistFlavorBase):
         except TypeError:
             pass
 
+        # Cast - PERFORMANCE: Use pre-computed as fallback
         cast = []
         try:
             for i, x in enumerate(res['characters']['edges']):
@@ -274,27 +318,33 @@ class AniListWLF(WatchlistFlavorBase):
                 cast.append({'name': actor, 'role': role, 'thumbnail': actor_hs, 'index': i})
                 info['cast'] = cast
         except IndexError:
-            pass
+            if precomputed_cast:
+                info['cast'] = precomputed_cast
 
-        show_meta = database.get_show_meta(mal_id)
-        kodi_meta = pickle.loads(show_meta.get('art')) if show_meta else {}
-        image = res['coverImage']['extraLarge']
+        # PERFORMANCE: Use pre-computed artwork from art_dict (no pickle!)
+        anilist_image = res['coverImage']['extraLarge']
+        image = art_dict.get('icon') or art_dict.get('poster') or anilist_image
+        poster = art_dict.get('poster') or anilist_image
+        fanart = art_dict.get('fanart') or anilist_image
+        banner = art_dict.get('banner') or res.get('bannerImage')
+
         base = {
             "name": '%s - %d/%d' % (title, progress, res['episodes'] if res['episodes'] else 0),
             "url": f'watchlist_to_ep/{mal_id}/{progress}',
             "image": image,
-            "poster": image,
-            'fanart': kodi_meta['fanart'] if kodi_meta.get('fanart') else image,
-            "banner": res.get('bannerImage'),
+            "poster": poster,
+            'fanart': fanart,
+            "banner": banner,
             "info": info
         }
 
-        if kodi_meta.get('thumb'):
-            base['landscape'] = random.choice(kodi_meta['thumb'])
-        if kodi_meta.get('clearart'):
-            base['clearart'] = random.choice(kodi_meta['clearart'])
-        if kodi_meta.get('clearlogo'):
-            base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+        # Add extra Fanart.tv artwork from pre-computed art_dict
+        if art_dict.get('landscape') or art_dict.get('thumb'):
+            base['landscape'] = art_dict.get('landscape') or art_dict.get('thumb')
+        if art_dict.get('clearart'):
+            base['clearart'] = art_dict.get('clearart')
+        if art_dict.get('clearlogo'):
+            base['clearlogo'] = art_dict.get('clearlogo')
 
         if res['format'] == 'MOVIE' and res['episodes'] == 1:
             base['url'] = f'play_movie/{mal_id}/'
@@ -303,13 +353,33 @@ class AniListWLF(WatchlistFlavorBase):
         return utils.parse_view(base, True, False, dub)
 
     @div_flavor
-    def _base_next_up_view(self, res, mal_dub=None):
+    def _base_next_up_view(self, res, show_list=None, mal_dub=None):
         progress = res['progress']
         res = res['media']
 
         anilist_id = res['id']
+
+        # Get MAL ID (prefer API, fallback to mappings database)
         mal_id = res.get('idMal')
+        if not mal_id:
+            mappings = database.get_mappings(anilist_id, 'anilist_id')
+            mal_id = mappings.get('mal_id')
+
+        if mal_id:
+            mal_id = int(mal_id)
+
         dub = True if mal_dub and mal_dub.get(str(mal_id)) else False
+
+        # PERFORMANCE: Get pre-computed metadata from batch query (Seren-style, no pickle!)
+        precomputed_info = None
+        precomputed_cast = None
+        art_dict = {}
+
+        if show_list and mal_id in show_list:
+            show_data = show_list[mal_id]
+            art_dict = show_data['art'] or {}
+            precomputed_info = show_data['info']
+            precomputed_cast = show_data['cast']
 
         next_up = progress + 1
         episode_count = res['episodes'] if res['episodes'] else 0
@@ -347,8 +417,8 @@ class AniListWLF(WatchlistFlavorBase):
             'UniqueIDs': {
                 'anilist_id': str(anilist_id),
                 'mal_id': str(mal_id),
-                **database.get_mapping_ids(anilist_id, 'anilist_id'),
-                **database.get_mapping_ids(mal_id, 'mal_id')
+                **database.get_unique_ids(anilist_id, 'anilist_id'),
+                **database.get_unique_ids(mal_id, 'mal_id')
             },
             'episode': next_up,
             'title': title,
@@ -359,26 +429,25 @@ class AniListWLF(WatchlistFlavorBase):
             'aired': aired
         }
 
+        # PERFORMANCE: Use pre-computed artwork from art_dict (no pickle!)
+        fanart = art_dict.get('fanart') or image
+
         base = {
             "name": title,
             "url": f"watchlist_to_ep/{mal_id}/{progress}",
             "image": image,
             "info": info,
-            "fanart": image,
+            "fanart": fanart,
             "poster": poster
         }
 
-        show_meta = database.get_show_meta(mal_id)
-        if show_meta:
-            art = pickle.loads(show_meta['art'])
-            if art.get('fanart'):
-                base['fanart'] = art['fanart']
-            if art.get('thumb'):
-                base['landscape'] = random.choice(art['thumb'])
-            if art.get('clearart'):
-                base['clearart'] = random.choice(art['clearart'])
-            if art.get('clearlogo'):
-                base['clearlogo'] = random.choice(art['clearlogo'])
+        # Add extra Fanart.tv artwork from pre-computed art_dict
+        if art_dict.get('landscape') or art_dict.get('thumb'):
+            base['landscape'] = art_dict.get('landscape') or art_dict.get('thumb')
+        if art_dict.get('clearart'):
+            base['clearart'] = art_dict.get('clearart')
+        if art_dict.get('clearlogo'):
+            base['clearlogo'] = art_dict.get('clearlogo')
 
         if res['format'] == 'MOVIE' and res['episodes'] == 1:
             base['url'] = f"play_movie/{mal_id}/"

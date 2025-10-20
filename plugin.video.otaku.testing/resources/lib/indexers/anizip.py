@@ -31,7 +31,7 @@ class ANIZIPAPI:
         info = {
             'UniqueIDs': {
                 'mal_id': str(mal_id),
-                **database.get_mapping_ids(mal_id, 'mal_id')
+                **database.get_unique_ids(mal_id, 'mal_id')
             },
             'plot': res.get('overview', 'No plot available'),
             'title': title,

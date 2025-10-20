@@ -66,6 +66,11 @@ class OtakuBrowser(BrowserBase):
         anilist_res = self.get_anilist_base_res(mal_ids)
         get_meta.collect_meta(mal_items_flat)
         get_meta.collect_meta(anilist_res)  # anilist_res is now a list
+
+        # PERFORMANCE: Seren-style batch fetch of pre-computed metadata
+        # Single SELECT query returns all info/cast/art as JSON
+        precomputed_data = database.get_show_list(mal_ids)
+
         # Build AniList lookup by MAL ID
         anilist_by_mal_id = {item['idMal']: item for item in anilist_res if 'idMal' in item}
 
@@ -73,7 +78,7 @@ class OtakuBrowser(BrowserBase):
             # Extract mal_id from direct item
             mal_id = mal_item.get('mal_id')
             anilist_item = anilist_by_mal_id.get(mal_id)
-            return self.base_otaku_view(mal_item, anilist_item, completed=self.open_completed())
+            return self.base_otaku_view(mal_item, anilist_item, completed=self.open_completed(), precomputed_data=precomputed_data)
 
         all_results = [mapfunc(mal_item) for mal_item in mal_items_flat]
         # Only handle paging if 'pagination' exists
@@ -1667,7 +1672,7 @@ class OtakuBrowser(BrowserBase):
     #     info = {
     #         'UniqueIDs': {
     #             'mal_id': str(mal_id),
-    #             **database.get_mapping_ids(mal_id, 'mal_id')
+    #             **database.get_unique_ids(mal_id, 'mal_id')
     #         },
     #         'title': title,
     #         'mediatype': 'tvshow'
@@ -1752,10 +1757,14 @@ class OtakuBrowser(BrowserBase):
         return self.process_otaku_view(genres, base_plugin_url, page)
 
     @div_flavor
-    def base_otaku_view(self, mal_res, anilist_res=None, completed=None, mal_dub=None):
+    def base_otaku_view(self, mal_res, anilist_res=None, completed=None, mal_dub=None, precomputed_data=None):
         """
-        Combines MAL and AniList data for a single anime entry.
-        Uses MAL as primary, fills missing fields from AniList if available.
+        PERFORMANCE: Seren-style pre-computed metadata approach.
+
+        Now uses pre-computed info/cast/art from database instead of building on-the-fly.
+        This eliminates 200+ lines of heavy processing per list item!
+
+        Falls back to on-the-fly building only if pre-computed data is missing.
         """
         if not completed:
             completed = {}
@@ -1764,116 +1773,143 @@ class OtakuBrowser(BrowserBase):
         mal_id = mal_res.get('mal_id') if mal_res else (anilist_res.get('idMal') if anilist_res else None)
         anilist_id = anilist_res.get('id') if anilist_res else None
 
-        # Update database if not present
-        self.database_update_show(mal_res, anilist_res)
-
-        show_meta = database.get_show_meta(mal_id)
-        kodi_meta = pickle.loads(show_meta.get('art')) if show_meta else {}
-
-        # Title logic: for relations, use 'name' if present, else prefer MAL, fallback to AniList
-        title = None
-        if mal_res:
-            # Use 'name' for relation entries
-            title = mal_res.get('name') or mal_res.get(self.title_lang) or mal_res.get('title')
-        if not title and anilist_res:
-            title = anilist_res['title'].get(self.title_lang) or anilist_res['title'].get('romaji')
-        # Ensure title is always a string
-        if title is None:
-            title = ''
-
-        # Add relation info
-        if mal_res and mal_res.get('relation'):
-            title += ' [I]%s[/I]' % control.colorstr(mal_res['relation'], 'limegreen')
-        elif anilist_res and anilist_res.get('relationType'):
-            title += ' [I]%s[/I]' % control.colorstr(anilist_res['relationType'], 'limegreen')
-
-        # Plot/synopsis
-        plot = mal_res.get('synopsis') if mal_res and mal_res.get('synopsis') else None
-        if not plot and anilist_res and anilist_res.get('description'):
-            desc = anilist_res['description']
-            desc = desc.replace('<i>', '[I]').replace('</i>', '[/I]')
-            desc = desc.replace('<b>', '[B]').replace('</b>', '[/B]')
-            desc = desc.replace('<br>', '[CR]')
-            desc = desc.replace('\n', '')
-            plot = desc
-
-        # Genres
-        genre = [x['name'] for x in mal_res.get('genres', [])] if mal_res else None
-        if (not genre or not genre) and anilist_res:
-            genre = anilist_res.get('genres')
-
-        # Studios
-        studio = [x['name'] for x in mal_res.get('studios', [])] if mal_res else None
-        if (not studio or not studio) and anilist_res:
-            studio = [x['node'].get('name') for x in anilist_res['studios']['edges']]
-
-        # Status
-        status = mal_res.get('status') if mal_res else None
-        if not status and anilist_res:
-            status = anilist_res.get('status')
-
-        # Duration
-        duration = self.duration_to_seconds(mal_res.get('duration')) if mal_res and mal_res.get('duration') else None
-        if not duration and anilist_res and anilist_res.get('duration'):
-            duration = anilist_res['duration'] * 60
-
-        # Country
-        country = None
-        if anilist_res:
-            country = [anilist_res.get('countryOfOrigin', '')]
-
-        # Rating/score
-        rating = mal_res.get('rating') if mal_res else None
-        info_rating = None
-        if mal_res and isinstance(mal_res.get('score'), float):
-            info_rating = {'score': mal_res['score']}
-            if isinstance(mal_res.get('scored_by'), int):
-                info_rating['votes'] = mal_res['scored_by']
-        elif anilist_res and anilist_res.get('averageScore'):
-            info_rating = {'score': anilist_res.get('averageScore') / 10.0}
-            if anilist_res.get('stats') and anilist_res['stats'].get('scoreDistribution'):
-                total_votes = sum([score['amount'] for score in anilist_res['stats']['scoreDistribution']])
-                info_rating['votes'] = total_votes
-
-        # Trailer
-        trailer = None
-        if mal_res and mal_res.get('trailer'):
-            trailer = f"plugin://plugin.video.youtube/play/?video_id={mal_res['trailer']['youtube_id']}"
-        elif anilist_res and anilist_res.get('trailer'):
-            try:
-                if anilist_res['trailer']['site'] == 'youtube':
-                    trailer = f"plugin://plugin.video.youtube/play/?video_id={anilist_res['trailer']['id']}"
-                else:
-                    trailer = f"plugin://plugin.video.dailymotion_com/?url={anilist_res['trailer']['id']}&mode=playVideo"
-            except (KeyError, TypeError):
-                pass
-
-        # Playcount
-        playcount = None
-        if completed and completed.get(str(mal_id)):
-            playcount = 1
-
-        # Premiered/year
-        premiered = None
-        year = None
-        if mal_res and mal_res.get('aired') and mal_res['aired'].get('from'):
-            start_date = mal_res['aired']['from']
-            premiered = start_date[:10]
-            year = mal_res.get('year', int(start_date[:4]))
-        elif anilist_res and anilist_res.get('startDate'):
-            start_date = anilist_res.get('startDate')
-            year = start_date.get('year')
-            month = start_date.get('month')
-            day = start_date.get('day')
-            if None not in (year, month, day):
-                premiered = '{}-{:02}-{:02}'.format(year, month, day)
-            else:
-                premiered = ''
-            year = start_date['year']
-
-        # Cast
+        # PERFORMANCE: Try to use pre-computed data first (Seren pattern)
+        use_precomputed = False
+        info = None
         cast = None
-        if anilist_res and anilist_res.get('characters'):
+        art_dict = {}
+
+        if precomputed_data and mal_id in precomputed_data:
+            precomp = precomputed_data[mal_id]
+            # Check if we have valid pre-computed data
+            if precomp.get('info'):
+                use_precomputed = True
+                info = precomp['info'].copy()  # Get pre-computed info dict
+                cast = precomp.get('cast')  # Get pre-computed cast
+                art_dict = precomp.get('art', {}).copy() if precomp.get('art') else {}  # Get pre-computed art
+
+                # DEBUG: Log what we got from precomputed data
+                if art_dict:
+                    control.log(f"MAL {mal_id}: Precomputed art keys: {list(art_dict.keys())}", level='info')
+                else:
+                    control.log(f"MAL {mal_id}: Precomputed art is EMPTY", level='info')
+
+        # Fallback: Build metadata on-the-fly if pre-computed data is missing
+        if not use_precomputed:
+            # Create show in database if it doesn't exist
+            if not database.get_show(mal_id):
+                self.database_update_show(mal_res, anilist_res)
+
+            # Fetch the newly created pre-computed data
+            show_list = database.get_show_list([mal_id])
+            if show_list and mal_id in show_list:
+                precomp = show_list[mal_id]
+                info = precomp.get('info', {}).copy() if precomp.get('info') else {}
+                cast = precomp.get('cast')
+                art_dict = precomp.get('art', {}).copy() if precomp.get('art') else {}
+                use_precomputed = True
+
+        # If still no data, build metadata from mal_res/anilist_res as last resort
+        if not info:
+            info = {'mediatype': 'tvshow'}
+
+        # Fallback: Build missing metadata fields from mal_res/anilist_res if not in pre-computed data
+        if not info.get('plot'):
+            plot = mal_res.get('synopsis') if mal_res and mal_res.get('synopsis') else None
+            if not plot and anilist_res and anilist_res.get('description'):
+                desc = anilist_res['description']
+                desc = desc.replace('<i>', '[I]').replace('</i>', '[/I]')
+                desc = desc.replace('<b>', '[B]').replace('</b>', '[/B]')
+                desc = desc.replace('<br>', '[CR]')
+                desc = desc.replace('\n', '')
+                plot = desc
+            if plot:
+                info['plot'] = plot
+
+        if not info.get('genre'):
+            genre = [x['name'] for x in mal_res.get('genres', [])] if mal_res else None
+            if not genre and anilist_res:
+                genre = anilist_res.get('genres')
+            if genre:
+                info['genre'] = genre
+
+        if not info.get('studio'):
+            studio = [x['name'] for x in mal_res.get('studios', [])] if mal_res else None
+            if not studio and anilist_res:
+                studio = [x['node'].get('name') for x in anilist_res['studios']['edges']]
+            if studio:
+                info['studio'] = studio
+
+        if not info.get('status'):
+            status = mal_res.get('status') if mal_res else None
+            if not status and anilist_res:
+                status = anilist_res.get('status')
+            if status:
+                info['status'] = status
+
+        if not info.get('duration'):
+            duration = self.duration_to_seconds(mal_res.get('duration')) if mal_res and mal_res.get('duration') else None
+            if not duration and anilist_res and anilist_res.get('duration'):
+                duration = anilist_res['duration'] * 60
+            if duration:
+                info['duration'] = duration
+
+        if not info.get('country'):
+            if anilist_res:
+                country = [anilist_res.get('countryOfOrigin', '')]
+                info['country'] = country
+
+        if not info.get('rating'):
+            info_rating = None
+            if mal_res and isinstance(mal_res.get('score'), float):
+                info_rating = {'score': mal_res['score']}
+                if isinstance(mal_res.get('scored_by'), int):
+                    info_rating['votes'] = mal_res['scored_by']
+            elif anilist_res and anilist_res.get('averageScore'):
+                info_rating = {'score': anilist_res.get('averageScore') / 10.0}
+                if anilist_res.get('stats') and anilist_res['stats'].get('scoreDistribution'):
+                    total_votes = sum([score['amount'] for score in anilist_res['stats']['scoreDistribution']])
+                    info_rating['votes'] = total_votes
+            if info_rating:
+                info['rating'] = info_rating
+
+        if not info.get('mpaa'):
+            rating = mal_res.get('rating') if mal_res else None
+            if rating:
+                info['mpaa'] = rating
+
+        if not info.get('premiered'):
+            if mal_res and mal_res.get('aired') and mal_res['aired'].get('from'):
+                start_date = mal_res['aired']['from']
+                info['premiered'] = start_date[:10]
+                if not info.get('year'):
+                    info['year'] = mal_res.get('year', int(start_date[:4]))
+            elif anilist_res and anilist_res.get('startDate'):
+                start_date = anilist_res.get('startDate')
+                year = start_date.get('year')
+                month = start_date.get('month')
+                day = start_date.get('day')
+                if None not in (year, month, day):
+                    info['premiered'] = '{}-{:02}-{:02}'.format(year, month, day)
+                if year and not info.get('year'):
+                    info['year'] = year
+
+        if not info.get('trailer'):
+            trailer = None
+            if mal_res and mal_res.get('trailer'):
+                trailer = f"plugin://plugin.video.youtube/play/?video_id={mal_res['trailer']['youtube_id']}"
+            elif anilist_res and anilist_res.get('trailer'):
+                try:
+                    if anilist_res['trailer']['site'] == 'youtube':
+                        trailer = f"plugin://plugin.video.youtube/play/?video_id={anilist_res['trailer']['id']}"
+                    else:
+                        trailer = f"plugin://plugin.video.dailymotion_com/?url={anilist_res['trailer']['id']}&mode=playVideo"
+                except (KeyError, TypeError):
+                    pass
+            if trailer:
+                info['trailer'] = trailer
+
+        if not cast and anilist_res and anilist_res.get('characters'):
             try:
                 cast = []
                 for i, x in enumerate(anilist_res['characters']['edges']):
@@ -1884,54 +1920,82 @@ class OtakuBrowser(BrowserBase):
             except (IndexError, KeyError, TypeError):
                 pass
 
-        # UniqueIDs
-        unique_ids = {'mal_id': str(mal_id)}
-        if anilist_id:
-            unique_ids['anilist_id'] = str(anilist_id)
-            unique_ids.update(database.get_mapping_ids(anilist_id, 'anilist_id'))
-        unique_ids.update(database.get_mapping_ids(mal_id, 'mal_id'))
+        if not info.get('UniqueIDs'):
+            unique_ids = {'mal_id': str(mal_id)}
+            if anilist_id:
+                unique_ids['anilist_id'] = str(anilist_id)
+                unique_ids.update(database.get_unique_ids(anilist_id, 'anilist_id'))
+            mappings_mal = database.get_mappings(mal_id, 'mal_id')
+            unique_ids.update(mappings_mal)
+            info['UniqueIDs'] = unique_ids
 
-        info = {
-            'UniqueIDs': unique_ids,
-            'title': title,
-            'plot': plot,
-            'mpaa': rating,
-            'duration': duration,
-            'genre': genre,
-            'studio': studio,
-            'status': status,
-            'mediatype': 'tvshow',
-            'country': country,
-        }
-        if info_rating:
-            info['rating'] = info_rating
-        if playcount:
-            info['playcount'] = playcount
-        if premiered:
-            info['premiered'] = premiered
-        if year:
-            info['year'] = year
+        # PERFORMANCE: No more pickle.loads() - all artwork is in pre-computed art_dict!
+
+        # PERFORMANCE: Use pre-computed title from info dict, but allow override for relations
+        # Title logic: for relations, use 'name' from mal_res, else use pre-computed title
+        title = info.get('title', '')
+
+        # Fallback: If no pre-computed title, build from mal_res/anilist_res
+        if not title:
+            if mal_res:
+                title = mal_res.get('name') or mal_res.get(self.title_lang) or mal_res.get('title')
+            if not title and anilist_res:
+                title = anilist_res['title'].get(self.title_lang) or anilist_res['title'].get('romaji')
+            if not title:
+                title = ''
+
+        # Override title if this is a relation entry (mal_res has 'name' or 'relation' field)
+        if mal_res and (mal_res.get('name') or mal_res.get('relation')):
+            title = mal_res.get('name') or mal_res.get(self.title_lang) or mal_res.get('title') or title
+
+        # Add relation info to title
+        if mal_res and mal_res.get('relation'):
+            title += ' [I]%s[/I]' % control.colorstr(mal_res['relation'], 'limegreen')
+        elif anilist_res and anilist_res.get('relationType'):
+            title += ' [I]%s[/I]' % control.colorstr(anilist_res['relationType'], 'limegreen')
+
+        # Update info dict with the final title
+        info['title'] = title
+
+        # PERFORMANCE: Only supplement with dynamic data that changes per-request
+        # Most metadata is already in the pre-computed info dict!
+
+        # Add playcount if show is completed (dynamic per-user data)
+        if completed and completed.get(str(mal_id)):
+            info['playcount'] = 1
+
+        # Add cast if available from pre-computed data
         if cast:
             info['cast'] = cast
-        if trailer:
-            info['trailer'] = trailer
 
-        # Dub
+        # Dub status (dynamic per-user data)
         dub = True if mal_dub and mal_dub.get(str(mal_id)) else False
 
-        # Images
-        image = None
-        poster = None
-        banner = None
-        fanart = None
+        # PERFORMANCE: Use pre-computed artwork from art_dict
+        # Supplement with MAL/AniList images for items without pre-computed art
+        image = art_dict.get('icon') or art_dict.get('poster')
+        poster = art_dict.get('poster')
+        banner = art_dict.get('banner')
+        fanart = art_dict.get('fanart')
 
+        # DEBUG: Log fanart status
+        if fanart:
+            control.log(f"MAL {mal_id}: Using Fanart.tv fanart: {fanart[:80]}...", level='info')
+        else:
+            control.log(f"MAL {mal_id}: No Fanart.tv fanart, will use fallback", level='info')
+
+        # Fallback to MAL/AniList images if pre-computed art is missing
         # MAL images
-        if mal_res and mal_res.get('images'):
+        if not image and mal_res and mal_res.get('images'):
             image = mal_res['images']['webp'].get('large_image_url')
-            poster = image
-            # MAL does not provide banner, fallback to AniList
-            banner = mal_res['images']['webp'].get('banner_image_url') if 'banner_image_url' in mal_res['images']['webp'] else None
-            fanart = kodi_meta['fanart'] if kodi_meta.get('fanart') else image
+        if not poster and mal_res and mal_res.get('images'):
+            poster = mal_res['images']['webp'].get('large_image_url')
+        if not banner and mal_res and mal_res.get('images') and 'banner_image_url' in mal_res['images']['webp']:
+            banner = mal_res['images']['webp'].get('banner_image_url')
+        if not fanart and mal_res and mal_res.get('images'):
+            # Fallback to MAL image if no fanart in pre-computed art
+            fanart = mal_res['images']['webp'].get('large_image_url')
+
         # AniList fallback for missing images
         if not image and anilist_res and anilist_res.get('coverImage'):
             image = anilist_res['coverImage'].get('extraLarge')
@@ -1941,6 +2005,16 @@ class OtakuBrowser(BrowserBase):
             banner = anilist_res.get('bannerImage')
         if not fanart and anilist_res and anilist_res.get('coverImage'):
             fanart = anilist_res['coverImage'].get('extraLarge')
+
+        # Final fallback - ensure we have at least basic artwork
+        # Only use fallback if value is truly None or empty, not if it's a valid URL
+        if not image:
+            image = poster or fanart
+        if not poster:
+            poster = image
+        # Don't override fanart if we have it from Fanart.tv - it's better quality than poster!
+        if not fanart:
+            fanart = image
 
         base = {
             "name": title,
@@ -1952,12 +2026,13 @@ class OtakuBrowser(BrowserBase):
             "info": info
         }
 
-        if kodi_meta.get('thumb'):
-            base['landscape'] = random.choice(kodi_meta['thumb'])
-        if kodi_meta.get('clearart'):
-            base['clearart'] = random.choice(kodi_meta['clearart'])
-        if kodi_meta.get('clearlogo'):
-            base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+        # PERFORMANCE: Get Fanart.tv extra artwork from pre-computed art_dict (no pickle!)
+        if art_dict.get('landscape') or art_dict.get('thumb'):
+            base['landscape'] = art_dict.get('landscape') or art_dict.get('thumb')
+        if art_dict.get('clearart'):
+            base['clearart'] = art_dict.get('clearart')
+        if art_dict.get('clearlogo'):
+            base['clearlogo'] = art_dict.get('clearlogo')
 
         # Movie/episode logic
         episodes = mal_res.get('episodes') or (anilist_res.get('episodes') if anilist_res else None)
@@ -2171,7 +2246,73 @@ class OtakuBrowser(BrowserBase):
         except Exception:
             pass
 
+        # Update legacy kodi_meta (pickle) for backward compatibility
         database.update_show(mal_id, pickle.dumps(kodi_meta))
+
+        # PERFORMANCE: Pre-compute and store metadata as JSON for Seren-style list building
+        # Build the info dict that would be passed to InfoTagVideo
+        anilist_id = anilist_res.get('id') if anilist_res else None
+        mappings_mal = database.get_mappings(mal_id, 'mal_id')
+        unique_ids = {'mal_id': str(mal_id)}
+        if anilist_id:
+            unique_ids['anilist_id'] = str(anilist_id)
+            unique_ids.update(database.get_unique_ids(anilist_id, 'anilist_id'))
+        unique_ids.update(mappings_mal)
+
+        info_dict = {
+            'UniqueIDs': unique_ids,
+            'title': title_userPreferred,
+            'plot': plot,
+            'mpaa': mpaa,
+            'duration': duration,
+            'genre': genre,
+            'studio': studio,
+            'status': status,
+            'mediatype': 'tvshow',
+        }
+        if country:
+            info_dict['country'] = country
+        if kodi_meta.get('rating'):
+            info_dict['rating'] = kodi_meta['rating']
+        if kodi_meta.get('premiered'):
+            info_dict['premiered'] = kodi_meta['premiered']
+        if kodi_meta.get('year'):
+            info_dict['year'] = kodi_meta['year']
+        if kodi_meta.get('trailer'):
+            info_dict['trailer'] = kodi_meta['trailer']
+
+        # Build cast list
+        cast_list = kodi_meta.get('cast')
+
+        # Build art dict - check shows_meta for Fanart.tv artwork first!
+        art_dict = {}
+        show_meta = database.get_show_meta(mal_id)
+        if show_meta and show_meta.get('art'):
+            import pickle as pickle_module
+            try:
+                # Get fanart/banner/clearlogo/clearart from shows_meta (populated by get_meta)
+                meta_art = pickle_module.loads(show_meta['art'])
+                if meta_art:
+                    # IMPORTANT: Convert list values to single URL strings (Kodi expects strings, not lists)
+                    for key, value in meta_art.items():
+                        if isinstance(value, list) and len(value) > 0:
+                            art_dict[key] = value[0]  # Use first URL from list
+                        elif isinstance(value, str):
+                            art_dict[key] = value
+            except Exception:
+                pass
+
+        # Add poster if not already in art_dict
+        if poster and not art_dict.get('poster'):
+            art_dict['poster'] = poster
+        if poster and not art_dict.get('icon'):
+            art_dict['icon'] = poster
+
+        # Determine anime_schedule_route
+        anime_schedule_route = f'animes/{mal_id}/'
+
+        # Store pre-computed metadata
+        database.update_show_precomputed(mal_id, pickle.dumps(kodi_meta), info_dict, cast_list, art_dict, anime_schedule_route)
 
     def update_genre_settings(self):
         mal_res = database.get(self.get_mal_base_res, 24, f'{self._BASE_URL}/genres/anime')

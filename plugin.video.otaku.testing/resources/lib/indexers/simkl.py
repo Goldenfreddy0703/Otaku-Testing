@@ -25,7 +25,7 @@ class SIMKLAPI:
         info = {
             'UniqueIDs': {
                 'mal_id': str(mal_id),
-                **database.get_mapping_ids(mal_id, 'mal_id')
+                **database.get_unique_ids(mal_id, 'mal_id')
             },
             'plot': res.get('description', 'No plot available'),
             'title': title,
@@ -169,7 +169,7 @@ class SIMKLAPI:
                 anime_id = r[0]['ids']['simkl']
                 return anime_id
 
-    def get_mapping_ids_from_simkl(self, anime_id, send_id):
+    def get_unique_ids_from_simkl(self, anime_id, send_id):
         # Query local database for all available IDs
         meta_ids = database.get_mappings(anime_id, send_id)
         if meta_ids:
@@ -186,5 +186,5 @@ class SIMKLAPI:
             if 'ids' in r:
                 return r['ids']
             else:
-                control.log(f"SIMKLAPI.get_mapping_ids: 'ids' not found in response for anime_id {anime_id}", 'warning')
+                control.log(f"SIMKLAPI.get_unique_ids: 'ids' not found in response for anime_id {anime_id}", 'warning')
         return {}

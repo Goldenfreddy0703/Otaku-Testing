@@ -115,6 +115,116 @@ def update_show(mal_id, kodi_meta, anime_schedule_route=''):
         cursor.connection.commit()
 
 
+def update_show_precomputed(mal_id, kodi_meta, info_dict, cast_list, art_dict, anime_schedule_route=''):
+    """
+    PERFORMANCE: Store pre-computed metadata for Seren-style list building.
+
+    This function stores ALL metadata needed for creating a ListItem in pre-computed form:
+    - info_dict: Complete info dict ready for InfoTagVideo (stored as JSON)
+    - cast_list: Complete cast array ready for setCast (stored as JSON)
+    - art_dict: Complete art dict ready for setArt (stored as JSON)
+    - kodi_meta: Legacy blob format (kept for backwards compatibility)
+
+    When building lists, we can now just SELECT info, cast, art and json.loads() them
+    instead of doing expensive merging/processing during list rendering.
+    """
+    import json
+    import datetime
+
+    # Serialize to JSON for storage
+    info_json = json.dumps(info_dict) if info_dict else None
+    cast_json = json.dumps(cast_list) if cast_list else None
+    art_json = json.dumps(art_dict) if art_dict else None
+    last_updated = datetime.datetime.now().isoformat()
+
+    with SQL(control.malSyncDB) as cursor:
+        cursor.execute('PRAGMA foreign_keys=OFF')
+        cursor.execute(
+            'REPLACE INTO shows (mal_id, kodi_meta, anime_schedule_route, info, cast, art, last_updated) '
+            'VALUES (?, ?, ?, ?, ?, ?, ?)',
+            (mal_id, kodi_meta, anime_schedule_route, info_json, cast_json, art_json, last_updated)
+        )
+        cursor.execute('PRAGMA foreign_keys=ON')
+        cursor.connection.commit()
+
+
+def get_show_list(mal_ids):
+    """
+    PERFORMANCE: Seren-style pre-computed metadata retrieval.
+    Single SELECT query to get all pre-computed info, cast, and art as JSON.
+
+    Args:
+        mal_ids: List of MAL IDs to retrieve
+
+    Returns:
+        Dict mapping mal_id to {info, cast, art, last_updated} with JSON already parsed
+    """
+    import json
+
+    # DEBUG: Log what we receive
+    control.log(f"get_show_list called with {len(mal_ids)} IDs: {mal_ids[:10]}", level='info')
+
+    # Seren-style validation: Filter out None, empty strings, invalid values
+    # MUST ensure we only have valid integer IDs
+    valid_ids = []
+    for mid in mal_ids:
+        if mid is not None and mid != '' and str(mid).strip():
+            try:
+                # Ensure it's a valid integer
+                int_val = int(mid)
+                valid_ids.append(int_val)  # Store the integer, not the original
+            except (ValueError, TypeError):
+                control.log(f"Skipping invalid MAL ID: {mid} (type: {type(mid)})", level='warning')
+
+    # DEBUG: Log what we validated
+    control.log(f"After validation: {len(valid_ids)} valid IDs: {valid_ids[:10]}", level='info')
+
+    if not valid_ids:
+        control.log("No valid IDs after filtering, returning empty dict", level='warning')
+        return {}
+
+    try:
+        with SQL(control.malSyncDB) as cursor:
+            # Build query with placeholders - convert list to tuple for SQL parameter binding
+            placeholders = ','.join('?' * len(valid_ids))
+            # IMPORTANT: 'cast' is a SQL reserved keyword, must escape with brackets
+            query = f"""
+                SELECT mal_id, info, [cast], art, last_updated
+                FROM shows
+                WHERE mal_id IN ({placeholders})
+            """
+            # DEBUG: Log the query and params
+            control.log(f"SQL Query: {query[:100]}...", level='info')
+            control.log(f"SQL Params (first 10): {tuple(valid_ids[:10])}", level='info')
+
+            # Execute with tuple conversion for proper parameter binding
+            cursor.execute(query, tuple(valid_ids))
+            rows = cursor.fetchall()
+
+            # Parse JSON and return as dict keyed by mal_id
+            result = {}
+            for row in rows:
+                mal_id = row['mal_id']
+                try:
+                    result[mal_id] = {
+                        'info': json.loads(row['info']) if row['info'] else None,
+                        'cast': json.loads(row['cast']) if row['cast'] else None,
+                        'art': json.loads(row['art']) if row['art'] else None,
+                        'last_updated': row['last_updated']
+                    }
+                except (json.JSONDecodeError, TypeError) as e:
+                    control.log(f"Error parsing JSON for MAL ID {mal_id}: {e}", level='error')
+                    continue
+
+            return result
+    except Exception as e:
+        control.log(f"Database error in get_show_list with {len(valid_ids)} IDs: {e}", level='error')
+        control.log(f"First few IDs: {valid_ids[:5] if valid_ids else 'empty'}", level='error')
+        import traceback
+        control.log(traceback.format_exc(), level='error')
+        return {}
+
+
 def update_show_meta(mal_id, meta_ids, art):
     meta_ids = pickle.dumps(meta_ids)
     art = pickle.dumps(art)
@@ -198,6 +308,25 @@ def get_show_meta(mal_id):
         return shows
 
 
+def get_existing_show_meta_ids(mal_ids):
+    """
+    Batch check which mal_ids already have metadata in the database.
+    Returns a set of mal_ids that exist in shows_meta table.
+
+    PERFORMANCE: Replaces 25 individual queries with 1 batch query.
+    """
+    if not mal_ids:
+        return set()
+
+    # Create placeholders for SQL IN clause
+    placeholders = ','.join(str(int(mid)) for mid in mal_ids)
+
+    with SQL(control.malSyncDB) as cursor:
+        cursor.execute(f'SELECT mal_id FROM shows_meta WHERE mal_id IN ({placeholders})')
+        results = cursor.fetchall()
+        return {row['mal_id'] for row in results}
+
+
 def remove_from_database(table, mal_id):
     with SQL(control.malSyncDB) as cursor:
         cursor.execute(f"DELETE FROM {table} WHERE mal_id=?", (mal_id,))
@@ -225,7 +354,7 @@ def get_mappings(anime_id, send_id):
         return mappings[0] if mappings else {}
 
 
-def get_mapping_ids(anime_id, send_id):
+def get_unique_ids(anime_id, send_id):
     with SQL(control.mappingDB) as cursor:
         cursor.execute(f'SELECT mal_id, mal_dub_id, anilist_id, kitsu_id, anidb_id, simkl_id, thetvdb_id, themoviedb_id, imdb_id, trakt_id FROM anime WHERE {send_id}=?', (anime_id,))
         mappings = cursor.fetchone()
@@ -244,6 +373,85 @@ def get_mapping_ids(anime_id, send_id):
             }
             return mappings_dict
         return {}
+
+
+def get_show_data_batch(mal_ids):
+    """
+    Fetch show data, metadata, and mappings for multiple mal_ids in batch queries.
+    Returns a dict mapping mal_id -> {show, meta, mappings}
+
+    Performance optimization inspired by Seren/TMDB Helper:
+    Instead of 3 queries per item, we do 3 queries total for the entire list.
+    For a 25-item list: 75 queries -> 3 queries = 25x reduction in database overhead.
+    """
+    if not mal_ids:
+        return {}
+
+    result = {}
+
+    # Convert to list and create SQL placeholders
+    mal_id_list = list(mal_ids)
+    placeholders = ','.join(str(int(mid)) for mid in mal_id_list)
+
+    # Batch Query 1: Get all shows at once
+    with SQL(control.malSyncDB) as cursor:
+        cursor.execute(f'SELECT * FROM shows WHERE mal_id IN ({placeholders})')
+        shows = cursor.fetchall()
+        for show in shows:
+            mal_id = show['mal_id']
+            if mal_id not in result:
+                result[mal_id] = {}
+            result[mal_id]['show'] = show
+
+    # Batch Query 2: Get all show metadata at once
+    with SQL(control.malSyncDB) as cursor:
+        cursor.execute(f'SELECT * FROM shows_meta WHERE mal_id IN ({placeholders})')
+        metas = cursor.fetchall()
+        for meta in metas:
+            mal_id = meta['mal_id']
+            if mal_id not in result:
+                result[mal_id] = {}
+            result[mal_id]['meta'] = meta
+
+    # Batch Query 3: Get all mappings at once
+    with SQL(control.mappingDB) as cursor:
+        cursor.execute(f'''
+            SELECT mal_id, mal_dub_id, anilist_id, kitsu_id, anidb_id, simkl_id,
+                   thetvdb_id, themoviedb_id, imdb_id, trakt_id
+            FROM anime WHERE mal_id IN ({placeholders})
+        ''')
+        mappings = cursor.fetchall()
+        for mapping in mappings:
+            mal_id = mapping['mal_id']
+            if mal_id not in result:
+                result[mal_id] = {}
+
+            mappings_dict = {
+                'mal_id': mapping.get('mal_id'),
+                'mal_dub_id': mapping.get('mal_dub_id'),
+                'anilist_id': mapping.get('anilist_id'),
+                'kitsu_id': mapping.get('kitsu_id'),
+                'anidb': mapping.get('anidb_id'),
+                'simkl': mapping.get('simkl_id'),
+                'tvdb': mapping.get('thetvdb_id'),
+                'tmdb': mapping.get('themoviedb_id'),
+                'imdb': mapping.get('imdb_id'),
+                'trakt': mapping.get('trakt_id')
+            }
+            result[mal_id]['mappings'] = mappings_dict
+
+    # Ensure all mal_ids have entries (even if data is missing)
+    for mal_id in mal_id_list:
+        if mal_id not in result:
+            result[mal_id] = {}
+        if 'show' not in result[mal_id]:
+            result[mal_id]['show'] = None
+        if 'meta' not in result[mal_id]:
+            result[mal_id]['meta'] = None
+        if 'mappings' not in result[mal_id]:
+            result[mal_id]['mappings'] = {}
+
+    return result
 
 
 def ensure_tables_and_indexes(cursor):

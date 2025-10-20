@@ -15,6 +15,9 @@ class SyncDatabase:
         self.build_episode_table()
         self.build_show_data_table()
 
+        # PERFORMANCE: Migrate to Seren-style pre-computed metadata
+        self.migrate_to_precomputed_metadata()
+
         # If you make changes to the required meta in any indexer that is cached in this database
         # You will need to update the below version number to match the new addon version
         # This will ensure that the metadata required for operations is available
@@ -110,13 +113,48 @@ class SyncDatabase:
     @staticmethod
     def build_show_table():
         with SQL(control.malSyncDB) as cursor:
-            cursor.execute('CREATE TABLE IF NOT EXISTS shows (mal_id INTEGER PRIMARY KEY, '
-                           'anilist_id INTEGER,'
-                           'simkl_id INTEGER,'
-                           'kitsu_id INTEGER,'
-                           'kodi_meta BLOB NOT NULL, '
-                           'anime_schedule_route TEXT NOT NULL, '
-                           'UNIQUE(mal_id))')
+            # Check if table exists and has old schema
+            cursor.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='shows'")
+            existing_schema = cursor.fetchone()
+
+            # fetchone() returns a dict due to dict_factory, access with 'sql' key
+            if existing_schema and 'info TEXT' not in existing_schema.get('sql', ''):
+                # Old schema exists - migrate to new schema
+                control.log('Migrating shows table to new Seren-style schema...', level='info')
+
+                # Add new columns
+                try:
+                    cursor.execute('ALTER TABLE shows ADD COLUMN info TEXT')
+                except:
+                    pass  # Column might already exist
+                try:
+                    cursor.execute('ALTER TABLE shows ADD COLUMN cast TEXT')
+                except:
+                    pass
+                try:
+                    cursor.execute('ALTER TABLE shows ADD COLUMN art TEXT')
+                except:
+                    pass
+                try:
+                    cursor.execute('ALTER TABLE shows ADD COLUMN last_updated TEXT')
+                except:
+                    pass
+
+                control.log('Shows table migration complete!', level='info')
+            elif not existing_schema:
+                # Table doesn't exist - create with new schema
+                cursor.execute('CREATE TABLE IF NOT EXISTS shows (mal_id INTEGER PRIMARY KEY, '
+                               'anilist_id INTEGER,'
+                               'simkl_id INTEGER,'
+                               'kitsu_id INTEGER,'
+                               'kodi_meta BLOB NOT NULL, '
+                               'anime_schedule_route TEXT NOT NULL, '
+                               'info TEXT, '
+                               'cast TEXT, '
+                               'art TEXT, '
+                               'last_updated TEXT, '
+                               'UNIQUE(mal_id))')
+
             cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS ix_shows ON "shows" (mal_id ASC )')
             cursor.connection.commit()
 
@@ -160,8 +198,57 @@ class SyncDatabase:
             cursor.execute('CREATE TABLE IF NOT EXISTS activities (sync_id INTEGER PRIMARY KEY, otaku_version TEXT NOT NULL)')
             cursor.connection.commit()
 
+    @staticmethod
+    def migrate_to_precomputed_metadata():
+        """
+        PERFORMANCE MIGRATION: Add new columns for Seren-style pre-computed metadata.
+        This enables smooth navigation in Arctic Fuse 2 by storing ready-to-use JSON data
+        instead of computing metadata during list rendering.
+
+        New columns in 'shows' table:
+        - info TEXT: Complete info dict for InfoTagVideo (pre-computed, stored as JSON)
+        - cast TEXT: Complete cast array (pre-computed, stored as JSON)
+        - art TEXT: Complete art dict (pre-computed, stored as JSON)
+        - last_updated TEXT: Timestamp for cache invalidation
+
+        Migration is safe - adds columns if they don't exist, preserves existing data.
+        """
+        with SQL(control.malSyncDB) as cursor:
+            # Check if new columns already exist
+            cursor.execute("PRAGMA table_info(shows)")
+            columns = {row['name'] for row in cursor.fetchall()}
+
+            # Add new pre-computed metadata columns if they don't exist
+            if 'info' not in columns:
+                control.log("Adding 'info' column to shows table for pre-computed metadata")
+                cursor.execute('ALTER TABLE shows ADD COLUMN info TEXT')
+
+            if 'cast' not in columns:
+                control.log("Adding 'cast' column to shows table for pre-computed metadata")
+                cursor.execute('ALTER TABLE shows ADD COLUMN cast TEXT')
+
+            if 'art' not in columns:
+                control.log("Adding 'art' column to shows table for pre-computed metadata")
+                cursor.execute('ALTER TABLE shows ADD COLUMN art TEXT')
+
+            if 'last_updated' not in columns:
+                control.log("Adding 'last_updated' column to shows table")
+                cursor.execute('ALTER TABLE shows ADD COLUMN last_updated TEXT')
+
+            # Also add last_updated to shows_meta for tracking fanart/tmdb/tvdb updates
+            cursor.execute("PRAGMA table_info(shows_meta)")
+            meta_columns = {row['name'] for row in cursor.fetchall()}
+
+            if 'last_updated' not in meta_columns:
+                control.log("Adding 'last_updated' column to shows_meta table")
+                cursor.execute('ALTER TABLE shows_meta ADD COLUMN last_updated TEXT')
+
+            cursor.connection.commit()
+            control.log("Pre-computed metadata migration complete")
+
     def re_build_database(self, silent=False):
         import service
+        import os
 
         if not silent:
             confirm = control.yesno_dialog(control.ADDON_NAME, control.lang(30032))
@@ -171,8 +258,13 @@ class SyncDatabase:
         service.update_mappings_db()
         service.update_dub_json()
 
-        with open(control.malSyncDB, 'w'):
-            pass
+        # Properly delete the SQLite database file instead of corrupting it with 'w' mode
+        try:
+            if os.path.exists(control.malSyncDB):
+                os.remove(control.malSyncDB)
+                control.log('Deleted existing malSync.db for rebuild', level='info')
+        except Exception as e:
+            control.log(f'Error deleting malSync.db: {e}', level='error')
 
         self.build_sync_activities()
         self.build_show_table()

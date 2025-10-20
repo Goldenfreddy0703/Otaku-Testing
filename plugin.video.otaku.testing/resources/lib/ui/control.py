@@ -84,7 +84,7 @@ def closeBusyDialog():
         execute('Dialog.Close(busydialognocancel)')
 
 
-def log(msg, level="debug"):
+def log(msg, level="info"):
     if level == 'info':
         level = xbmc.LOGINFO
     elif level == 'warning':
@@ -380,9 +380,12 @@ def set_videotags(li, info):
         vinfo.setUniqueIDs(uniqueids)
         if 'imdb' in uniqueids:
             vinfo.setIMDBNumber(uniqueids['imdb'])
-        for key, value in uniqueids.items():
-            if value is not None:
-                li.setProperty(key, str(value))
+        # PERFORMANCE FIX: Removed setProperty loop for UniqueIDs
+        # TMDB Helper and Seren don't set UniqueIDs as properties - only in InfoTag
+        # Arctic Fuse 2 may read these properties during navigation causing lag
+        # for key, value in uniqueids.items():
+        #     if value is not None:
+        #         li.setProperty(key, str(value))
 
     if resume := info.get('resume'):
         vinfo.setResumePoint(float(resume), 1)
@@ -392,9 +395,15 @@ def jsonrpc(json_data):
     return json.loads(xbmc.executeJSONRPC(json.dumps(json_data)))
 
 
+# Cache for fanart selections to avoid repeated settings lookups
+_fanart_cache = {'mal_ids': None, 'selections': None, 'needs_refresh': True}
+
+
 def xbmc_add_dir(name, url, art, info, draw_cm, bulk_add, isfolder, isplayable):
     u = addon_url(url)
     liz = xbmcgui.ListItem(name, offscreen=True)
+    # Disable content lookup for better performance (following Seren pattern)
+    liz.setContentLookup(False)
     if info:
         set_videotags(liz, info)
     if draw_cm:
@@ -406,15 +415,18 @@ def xbmc_add_dir(name, url, art, info, draw_cm, bulk_add, isfolder, isplayable):
         if isinstance(art['fanart'], list):
             if settingids.fanart_select:
                 if info.get('UniqueIDs', {}).get('mal_id'):
-                    # Get fanart selection using string lists
-                    mal_ids = getStringList('fanart.mal_ids')
-                    fanart_selections = getStringList('fanart.selections')
-                    mal_id = str(info["UniqueIDs"]["mal_id"])
+                    # Use cached fanart selections to avoid repeated settings lookups
+                    global _fanart_cache
+                    if _fanart_cache['needs_refresh']:
+                        _fanart_cache['mal_ids'] = getStringList('fanart.mal_ids')
+                        _fanart_cache['selections'] = getStringList('fanart.selections')
+                        _fanart_cache['needs_refresh'] = False
 
+                    mal_id = str(info["UniqueIDs"]["mal_id"])
                     fanart_select = ''
                     try:
-                        index = mal_ids.index(mal_id)
-                        fanart_select = fanart_selections[index] if index < len(fanart_selections) else ''
+                        index = _fanart_cache['mal_ids'].index(mal_id)
+                        fanart_select = _fanart_cache['selections'][index] if index < len(_fanart_cache['selections']) else ''
                     except (ValueError, IndexError):
                         pass
 
@@ -426,6 +438,14 @@ def xbmc_add_dir(name, url, art, info, draw_cm, bulk_add, isfolder, isplayable):
 
     if settingids.clearlogo_disable:
         art['clearlogo'] = OTAKU_ICONS_PATH
+
+    # Convert all artwork arrays to single strings for smooth skin navigation
+    # Arctic Fuse 2 and other advanced skins expect single URLs, not arrays
+    # Arrays cause performance issues as skins re-parse them on every focus change
+    for art_key in list(art.keys()):
+        if isinstance(art[art_key], list) and art[art_key]:
+            art[art_key] = random.choice(art[art_key])
+
     if isplayable:
         art['tvshow.poster'] = art.pop('poster')
         liz.setProperties({'Video': 'true', 'IsPlayable': 'true'})
@@ -439,6 +459,10 @@ def bulk_draw_items(video_data):
 
 
 def draw_items(video_data, content_type=''):
+    # Reset fanart cache for each new directory listing
+    global _fanart_cache
+    _fanart_cache['needs_refresh'] = True
+
     # Widget rate limiting - detect if this is a widget request
     is_widget = xbmc.getInfoLabel('Container.PluginName') != ADDON_ID
 
@@ -448,12 +472,8 @@ def draw_items(video_data, content_type=''):
         log(f"Widget detected - adding {widget_delay}ms delay")
         xbmc.sleep(widget_delay)
 
-    if len(video_data) > 99:
-        bulk_draw_items(video_data)
-    else:
-        for vid in video_data:
-            if vid:
-                xbmc_add_dir(vid['name'], vid['url'], vid['image'], vid['info'], vid['cm'], False, vid['isfolder'], vid['isplayable'])
+    # Always use bulk adds for better performance (following Seren/TMDB Helper pattern)
+    bulk_draw_items(video_data)
     if content_type:
         xbmcplugin.setContent(HANDLE, content_type)
     if content_type == 'episodes':
@@ -461,12 +481,7 @@ def draw_items(video_data, content_type=''):
     elif content_type == 'tvshows':
         xbmcplugin.addSortMethod(HANDLE, xbmcplugin.SORT_METHOD_NONE, "%L", "%R")
     xbmcplugin.endOfDirectory(HANDLE, True, False, True)
-    xbmc.sleep(100)
-    if content_type == 'episodes':
-        for _ in range(20):
-            if xbmc.getCondVisibility("Container.HasFiles"):
-                break
-            xbmc.sleep(100)
+    # No sleep delays - following Seren/TMDB Helper pattern for smooth navigation
     if getBool('interface.viewtype'):
         if getBool('interface.viewidswitch'):
             # Use integer view types
