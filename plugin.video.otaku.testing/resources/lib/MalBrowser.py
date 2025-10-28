@@ -1540,7 +1540,7 @@ class MalBrowser(BrowserBase):
     #     info = {
     #         'UniqueIDs': {
     #             'mal_id': str(mal_id),
-    #             **database.get_mapping_ids(mal_id, 'mal_id')
+    #             **database.get_unique_ids(mal_id, 'mal_id')
     #         },
     #         'title': title,
     #         'mediatype': 'tvshow'
@@ -1647,7 +1647,7 @@ class MalBrowser(BrowserBase):
         info = {
             'UniqueIDs': {
                 'mal_id': str(mal_id),
-                **database.get_mapping_ids(mal_id, 'mal_id')
+                **database.get_unique_ids(mal_id, 'mal_id')
             },
             'title': title,
             'plot': res.get('synopsis'),

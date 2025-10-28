@@ -6,7 +6,7 @@ import re
 import urllib.parse
 
 from bs4 import BeautifulSoup, SoupStrainer
-from resources.lib.ui import control, database
+from resources.lib.ui import control, database, utils
 from resources.lib.ui.BrowserBase import BrowserBase
 
 
@@ -118,7 +118,8 @@ class Sources(BrowserBase):
                     data=params, headers=headers
                 )
                 eres = json.loads(r).get('result')
-                scrapes = 0
+
+                # Process each language sequentially (to respect user preferences)
                 for lang in langs:
                     # Skip this language if we already found sources for it
                     if lang in sources_found_per_lang:
@@ -128,114 +129,145 @@ class Sources(BrowserBase):
                     elink = SoupStrainer('div', {'data-type': lang})
                     sdiv = BeautifulSoup(eres, "html.parser", parse_only=elink)
                     srcs = sdiv.find_all('li')
-                    control.log(f"AniWave: Found {len(srcs)} servers for lang '{lang}'")
+
+                    # Filter servers to only those in embeds
+                    valid_servers = []
                     for src in srcs:
                         edata_id = src.get('data-link-id')
                         edata_name = src.text
-                        control.log(f"AniWave: Checking server '{edata_name}' (ID: {edata_id})")
                         if any(x in self.clean_embed_title(edata_name) for x in self.embeds()):
-                            control.log(f"AniWave: Processing server '{edata_name}'")
-                            vrf = self.generate_vrf(edata_id)
-                            params = {'vrf': vrf}
-                            r = self._get_request(
-                                '{0}ajax/server/{1}'.format(self._BASE_URL, edata_id),
-                                data=params,
-                                headers=headers
-                            )
-                            scrapes += 1
-                            resp = json.loads(r).get('result')
-                            skip = {}
-                            if resp.get('skip_data'):
-                                skip_data = json.loads(self.decrypt_vrf(resp.get('skip_data')))
-                                intro = skip_data.get('intro')
-                                if intro:
-                                    skip.update({'intro': {'start': intro[0], 'end': intro[1]}})
-                                outro = skip_data.get('outro')
-                                if outro:
-                                    skip.update({'outro': {'start': outro[0], 'end': outro[1]}})
-                            slink = self.decrypt_vrf(resp.get('url'))
-                            if 'aniwave.' in slink:
-                                sresp = self.__extract_aniwave(slink)
-                                if sresp:
-                                    if isinstance(sresp, dict):
-                                        subs = sresp.get('subs')
-                                        skip = sresp.get('skip') or skip
-                                        srclink = sresp.get('url')
-                                    else:
-                                        srclink = sresp
-                                        subs = {}
-                                    headers.update({'Origin': self._BASE_URL[:-1]})
-                                    res = self._get_request(srclink, headers=headers)
+                            valid_servers.append({'id': edata_id, 'name': edata_name, 'lang': lang})
 
-                                    # Check if request was successful
-                                    if not res:
-                                        control.log(f"AniWave: Failed to fetch m3u8 from {srclink}")
-                                        continue
+                    if not valid_servers:
+                        control.log(f"AniWave: No valid servers found for '{lang}'")
+                        continue
 
-                                    quals = re.findall(r'#EXT.+?RESOLUTION=\d+x(\d+).*\n(?!#)(.+)', res)
-                                    src_hdrs = {'User-Agent': 'iPad', 'Referer': urllib.parse.urljoin(srclink, '/')}
-                                    for qual, qlink in quals:
-                                        qual = int(qual)
-                                        if qual <= 577:
-                                            quality = 1
-                                        elif qual <= 721:
-                                            quality = 2
-                                        elif qual <= 1081:
-                                            quality = 3
-                                        else:
-                                            quality = 0
-                                        hlink = '{0}|{1}'.format(urllib.parse.urljoin(srclink, qlink), urllib.parse.urlencode(src_hdrs))
-                                        source = {
-                                            'release_title': '{0} - Ep {1}'.format(title, episode),
-                                            'hash': hlink,
-                                            'type': 'direct',
-                                            'quality': quality,
-                                            'debrid_provider': '',
-                                            'provider': 'aniwave',
-                                            'size': 'NA',
-                                            'seeders': 0,
-                                            'byte_size': 0,
-                                            'info': [edata_name + (' DUB' if lang == 'dub' else ' SUB')],
-                                            'lang': 3 if lang == 'dub' else 2,
-                                            'channel': 3,
-                                            'sub': 1
-                                        }
-                                        if subs:
-                                            source.update({'subs': subs})
-                                        if skip:
-                                            source.update({'skip': skip})
-                                        sources.append(source)
+                    control.log(f"AniWave: Processing {len(valid_servers)} servers for '{lang}' in parallel")
 
-                                    # Mark that we found sources for this language and break
-                                    sources_found_per_lang[lang] = True
-                                    break  # Exit server loop - we got sources
-                            else:
-                                source = {
-                                    'release_title': '{0} - Ep {1}'.format(title, episode),
-                                    'hash': slink,
-                                    'type': 'embed',
-                                    'quality': 0,
-                                    'debrid_provider': '',
-                                    'provider': 'aniwave',
-                                    'size': 'NA',
-                                    'seeders': 0,
-                                    'byte_size': 0,
-                                    'info': [edata_name + (' DUB' if lang == 'dub' else ' SUB')],
-                                    'lang': 3 if lang == 'dub' else 2,
-                                    'channel': 3,
-                                    'sub': 1
-                                }
-                                if skip:
-                                    source.update({'skip': skip})
-                                sources.append(source)
+                    # Process servers in parallel for this language
+                    def process_server(server_info):
+                        return self._extract_aniwave_source(server_info, title, episode, headers.copy())
 
-                                # Mark that we found sources for this language and break
-                                sources_found_per_lang[lang] = True
-                                break  # Exit server loop - we got sources
+                    # Process servers in parallel
+                    server_sources = utils.parallel_process(valid_servers, process_server, max_workers=3)
+
+                    # Add all sources from this language
+                    for server_source in server_sources:
+                        if server_source:
+                            sources.extend(server_source)
+                            # Mark that we found sources for this language
+                            sources_found_per_lang[lang] = True
+
+                    # If we found sources for this language, continue to next language
+                    if sources:
+                        control.log(f"AniWave: Found {len(sources)} sources for '{lang}'")
         except:
             import traceback
             traceback.print_exc()
             pass
+        return sources
+
+    def _extract_aniwave_source(self, server_info, title, episode, headers):
+        """Extract sources from a single AniWave server"""
+        sources = []
+        edata_id = server_info['id']
+        edata_name = server_info['name']
+        lang = server_info['lang']
+
+        try:
+            control.log(f"AniWave: Processing server '{edata_name}' (ID: {edata_id})")
+            vrf = self.generate_vrf(edata_id)
+            params = {'vrf': vrf}
+            r = self._get_request(
+                '{0}ajax/server/{1}'.format(self._BASE_URL, edata_id),
+                data=params,
+                headers=headers
+            )
+            resp = json.loads(r).get('result')
+            skip = {}
+            if resp.get('skip_data'):
+                skip_data = json.loads(self.decrypt_vrf(resp.get('skip_data')))
+                intro = skip_data.get('intro')
+                if intro:
+                    skip.update({'intro': {'start': intro[0], 'end': intro[1]}})
+                outro = skip_data.get('outro')
+                if outro:
+                    skip.update({'outro': {'start': outro[0], 'end': outro[1]}})
+            slink = self.decrypt_vrf(resp.get('url'))
+
+            if 'aniwave.' in slink:
+                sresp = self.__extract_aniwave(slink)
+                if sresp:
+                    if isinstance(sresp, dict):
+                        subs = sresp.get('subs')
+                        skip = sresp.get('skip') or skip
+                        srclink = sresp.get('url')
+                    else:
+                        srclink = sresp
+                        subs = {}
+                    headers.update({'Origin': self._BASE_URL[:-1]})
+                    res = self._get_request(srclink, headers=headers)
+
+                    # Check if request was successful
+                    if not res:
+                        control.log(f"AniWave: Failed to fetch m3u8 from {srclink}")
+                        return sources
+
+                    quals = re.findall(r'#EXT.+?RESOLUTION=\d+x(\d+).*\n(?!#)(.+)', res)
+                    src_hdrs = {'User-Agent': 'iPad', 'Referer': urllib.parse.urljoin(srclink, '/')}
+                    for qual, qlink in quals:
+                        qual = int(qual)
+                        if qual <= 577:
+                            quality = 1
+                        elif qual <= 721:
+                            quality = 2
+                        elif qual <= 1081:
+                            quality = 3
+                        else:
+                            quality = 0
+                        hlink = '{0}|{1}'.format(urllib.parse.urljoin(srclink, qlink), urllib.parse.urlencode(src_hdrs))
+                        source = {
+                            'release_title': '{0} - Ep {1}'.format(title, episode),
+                            'hash': hlink,
+                            'type': 'direct',
+                            'quality': quality,
+                            'debrid_provider': '',
+                            'provider': 'aniwave',
+                            'size': 'NA',
+                            'seeders': 0,
+                            'byte_size': 0,
+                            'info': [edata_name + (' DUB' if lang == 'dub' else ' SUB')],
+                            'lang': 3 if lang == 'dub' else 2,
+                            'channel': 3,
+                            'sub': 1
+                        }
+                        if subs:
+                            source.update({'subs': subs})
+                        if skip:
+                            source.update({'skip': skip})
+                        sources.append(source)
+            else:
+                source = {
+                    'release_title': '{0} - Ep {1}'.format(title, episode),
+                    'hash': slink,
+                    'type': 'embed',
+                    'quality': 0,
+                    'debrid_provider': '',
+                    'provider': 'aniwave',
+                    'size': 'NA',
+                    'seeders': 0,
+                    'byte_size': 0,
+                    'info': [edata_name + (' DUB' if lang == 'dub' else ' SUB')],
+                    'lang': 3 if lang == 'dub' else 2,
+                    'channel': 3,
+                    'sub': 1
+                }
+                if skip:
+                    source.update({'skip': skip})
+                sources.append(source)
+        except Exception as e:
+            control.log(f"AniWave: Failed to process server '{edata_name}': {str(e)}")
+
         return sources
 
     @staticmethod

@@ -53,7 +53,7 @@ class KitsuAPI:
         info = {
             'UniqueIDs': {
                 'mal_id': str(mal_id),
-                **database.get_mapping_ids(mal_id, 'mal_id')
+                **database.get_unique_ids(mal_id, 'mal_id')
             },
             'title': title,
             'season': season,
@@ -107,7 +107,9 @@ class KitsuAPI:
         #         return []
 
         mapfunc = partial(self.parse_episode_view, mal_id=mal_id, season=season, poster=poster, fanart=fanart, clearart=clearart, clearlogo=clearlogo, eps_watched=eps_watched, update_time=update_time, tvshowtitle=tvshowtitle, dub_data=dub_data, filler_data=filler_data)
-        all_results = sorted(list(map(mapfunc, result_ep)), key=lambda x: x['info']['episode'])
+        # Parallelize episode parsing for faster processing
+        all_results = utils.parallel_process(result_ep, mapfunc, max_workers=8)
+        all_results = sorted(all_results, key=lambda x: x['info']['episode'])
 
         if control.getBool('override.meta.api') and control.getBool('override.meta.notify'):
             control.notify("Kitsu", f'{tvshowtitle} Added to Database', icon=poster)
@@ -123,12 +125,14 @@ class KitsuAPI:
             result = self.get_episode_meta(kitsu_id)
             season = episodes[0]['season']
             mapfunc2 = partial(self.parse_episode_view, mal_id=mal_id, season=season, poster=poster, fanart=fanart, clearart=clearart, clearlogo=clearlogo, eps_watched=eps_watched, update_time=update_time, tvshowtitle=tvshowtitle, dub_data=dub_data, filler_data=filler_data, episodes=episodes)
-            all_results = list(map(mapfunc2, result))
+            # Parallelize episode parsing
+            all_results = utils.parallel_process(result, mapfunc2, max_workers=8)
             if control.getBool('override.meta.api') and control.getBool('override.meta.notify'):
                 control.notify("Kitsu", f'{tvshowtitle} Appended to Database', icon=poster)
         else:
             mapfunc1 = partial(indexers.parse_episodes, eps_watched=eps_watched, dub_data=dub_data)
-            all_results = list(map(mapfunc1, episodes))
+            # Parallelize episode parsing
+            all_results = utils.parallel_process(episodes, mapfunc1, max_workers=8)
         return all_results
 
     def get_episodes(self, mal_id, show_meta):

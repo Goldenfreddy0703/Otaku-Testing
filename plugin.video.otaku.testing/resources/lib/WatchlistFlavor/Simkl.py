@@ -270,9 +270,9 @@ class SimklWLF(WatchlistFlavorBase):
             'anilist_id': str(anilist_id),
             'mal_id': str(mal_id),
             'kitsu_id': str(kitsu_id),
-            **database.get_mapping_ids(anilist_id, 'anilist_id'),
-            **database.get_mapping_ids(mal_id, 'mal_id'),
-            **database.get_mapping_ids(kitsu_id, 'kitsu_id')
+            **database.get_unique_ids(anilist_id, 'anilist_id'),
+            **database.get_unique_ids(mal_id, 'mal_id'),
+            **database.get_unique_ids(kitsu_id, 'kitsu_id')
         }
 
         # Art/Images
@@ -388,9 +388,9 @@ class SimklWLF(WatchlistFlavorBase):
                 'anilist_id': str(anilist_id),
                 'mal_id': str(mal_id),
                 'kitsu_id': str(kitsu_id),
-                **database.get_mapping_ids(anilist_id, 'anilist_id'),
-                **database.get_mapping_ids(mal_id, 'mal_id'),
-                **database.get_mapping_ids(kitsu_id, 'kitsu_id')
+                **database.get_unique_ids(anilist_id, 'anilist_id'),
+                **database.get_unique_ids(mal_id, 'mal_id'),
+                **database.get_unique_ids(kitsu_id, 'kitsu_id')
             },
             'episode': next_up,
             'title': title,

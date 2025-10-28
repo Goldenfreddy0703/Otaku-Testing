@@ -1602,23 +1602,47 @@ class OtakuBrowser(BrowserBase):
         }
         '''
 
-        all_media = []
-        page = 1
-        while True:
-            variables = {
-                "page": page,
-                "malIds": mal_ids,
-                "type": media_type
-            }
-            result = client.post(_ANILIST_BASE_URL, json_data={'query': query, 'variables': variables})
-            results = result.json()
-            page_data = results.get('data', {}).get('Page', {})
-            media = page_data.get('media', [])
-            all_media.extend(media)
-            has_next = page_data.get('pageInfo', {}).get('hasNextPage', False)
-            if not has_next:
-                break
-            page += 1
+        # Fetch first page to check if pagination needed
+        variables = {"page": 1, "malIds": mal_ids, "type": media_type}
+        result = client.post(_ANILIST_BASE_URL, json_data={'query': query, 'variables': variables})
+        results = result.json()
+        page_data = results.get('data', {}).get('Page', {})
+        all_media = page_data.get('media', [])
+        has_next = page_data.get('pageInfo', {}).get('hasNextPage', False)
+
+        # If only one page, return immediately
+        if not has_next:
+            return all_media
+
+        # If multiple pages, fetch remaining pages in parallel
+        # AniList has no strict rate limit, so we can be more aggressive
+        def fetch_page(page_num):
+            try:
+                vars = {"page": page_num, "malIds": mal_ids, "type": media_type}
+                resp = client.post(_ANILIST_BASE_URL, json_data={'query': query, 'variables': vars})
+                if resp:
+                    resp_json = resp.json()
+                    return resp_json.get('data', {}).get('Page', {}).get('media', [])
+                return []
+            except Exception as e:
+                control.log(f"AniList: Failed to fetch page {page_num}: {str(e)}")
+                return []
+
+        # Estimate max pages (AniList returns ~50 per page for mal_ids query)
+        # Conservative estimate: fetch up to 5 pages in parallel (250 anime)
+        max_pages = min(5, len(mal_ids) // 50 + 2)  # +2 for safety margin
+
+        page_numbers = list(range(2, max_pages + 1))
+        all_page_results = utils.parallel_process(page_numbers, fetch_page, max_workers=5)
+
+        # Combine all results
+        for page_media in all_page_results:
+            if page_media:  # Only extend if we got data
+                all_media.extend(page_media)
+            else:
+                break  # Stop if we hit an empty page
+
+        control.log(f"AniList: Fetched {len(all_media)} media items total")
         return all_media
 
     def get_airing_calendar_res(self, day, page=1):
@@ -1643,7 +1667,7 @@ class OtakuBrowser(BrowserBase):
     #     info = {
     #         'UniqueIDs': {
     #             'mal_id': str(mal_id),
-    #             **database.get_mapping_ids(mal_id, 'mal_id')
+    #             **database.get_unique_ids(mal_id, 'mal_id')
     #         },
     #         'title': title,
     #         'mediatype': 'tvshow'
@@ -1864,8 +1888,8 @@ class OtakuBrowser(BrowserBase):
         unique_ids = {'mal_id': str(mal_id)}
         if anilist_id:
             unique_ids['anilist_id'] = str(anilist_id)
-            unique_ids.update(database.get_mapping_ids(anilist_id, 'anilist_id'))
-        unique_ids.update(database.get_mapping_ids(mal_id, 'mal_id'))
+            unique_ids.update(database.get_unique_ids(anilist_id, 'anilist_id'))
+        unique_ids.update(database.get_unique_ids(mal_id, 'mal_id'))
 
         info = {
             'UniqueIDs': unique_ids,

@@ -302,8 +302,8 @@ class KitsuWLF(WatchlistFlavorBase):
         info_unique_ids = {
             'kitsu_id': str(kitsu_id),
             'mal_id': str(mal_id),
-            **database.get_mapping_ids(kitsu_id, 'kitsu_id'),
-            **database.get_mapping_ids(mal_id, 'mal_id')
+            **database.get_unique_ids(kitsu_id, 'kitsu_id'),
+            **database.get_unique_ids(mal_id, 'mal_id')
         }
 
         # Art/Images
@@ -408,8 +408,8 @@ class KitsuWLF(WatchlistFlavorBase):
             'UniqueIDs': {
                 'kitsu_id': str(kitsu_id),
                 'mal_id': str(mal_id),
-                **database.get_mapping_ids(kitsu_id, 'kitsu_id'),
-                **database.get_mapping_ids(mal_id, 'mal_id')
+                **database.get_unique_ids(kitsu_id, 'kitsu_id'),
+                **database.get_unique_ids(mal_id, 'mal_id')
             },
             'episode': next_up,
             'title': title,

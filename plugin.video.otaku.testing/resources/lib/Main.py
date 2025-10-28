@@ -42,7 +42,7 @@ def add_last_watched(items):
         info = {
             'UniqueIDs': {
                 'mal_id': mal_id,
-                **database.get_mapping_ids(mal_id, 'mal_id')
+                **database.get_unique_ids(mal_id, 'mal_id')
             },
             'title': kodi_meta.get('title_userPreferred', ''),
             'plot': kodi_meta.get('plot', ''),
@@ -137,7 +137,7 @@ def save_to_watch_history(mal_id):
         history_entry = {
             'UniqueIDs': {
                 'mal_id': mal_id,
-                **database.get_mapping_ids(mal_id, 'mal_id')
+                **database.get_unique_ids(mal_id, 'mal_id')
             },
             'title': kodi_meta.get('title_userPreferred', ''),
             'plot': kodi_meta.get('plot', ''),

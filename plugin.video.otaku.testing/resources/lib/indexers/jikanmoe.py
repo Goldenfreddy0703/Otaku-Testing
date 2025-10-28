@@ -18,28 +18,51 @@ class JikanAPI:
             return response.json()['data']
 
     def get_episode_meta(self, mal_id):
-        res_data = []
         url = f'{self.baseUrl}/anime/{mal_id}/episodes'
         response = client.get(url)
-        if response:
-            res = response.json()
-            if not res['pagination']['has_next_page']:
-                res_data = res['data']
-            else:
-                res_data = res['data']
-                for i in range(2, res['pagination']['last_visible_page'] + 1):
-                    params = {
-                        'page': i
-                    }
-                    response = client.get(url, params=params)
-                    if response:
-                        r = response.json()
-                        if not r['pagination']['has_next_page']:
-                            res_data += r['data']
-                            break
-                        res_data += r['data']
-                        if i % 3 == 0:
-                            time.sleep(2)
+        if not response:
+            return []
+
+        res = response.json()
+        res_data = res['data']
+
+        # If only one page, return immediately
+        if not res['pagination']['has_next_page']:
+            return res_data
+
+        # Fetch all pages in batches to respect Jikan's 3 req/sec rate limit
+        last_page = res['pagination']['last_visible_page']
+        control.log(f"Jikan: Fetching {last_page} pages of episodes (3 req/sec limit)")
+
+        def fetch_page(page_num):
+            try:
+                params = {'page': page_num}
+                page_response = client.get(url, params=params)
+                if page_response:
+                    return page_response.json()['data']
+                return []
+            except Exception as e:
+                control.log(f"Jikan: Failed to fetch page {page_num}: {str(e)}")
+                return []
+
+        # Split remaining pages into batches of 3 to respect rate limit
+        page_numbers = list(range(2, last_page + 1))
+        batches = [page_numbers[i:i+3] for i in range(0, len(page_numbers), 3)]
+
+        all_page_results = []
+        for i, batch in enumerate(batches):
+            if i > 0:
+                time.sleep(1.1)  # Wait 1.1 seconds between batches (safe margin)
+
+            # Fetch 3 pages in parallel (respects 3 req/sec limit)
+            batch_results = utils.parallel_process(batch, fetch_page, max_workers=3)
+            all_page_results.extend(batch_results)
+
+        # Combine all results
+        for page_data in all_page_results:
+            res_data.extend(page_data)
+
+        control.log(f"Jikan: Fetched {len(res_data)} episodes total")
         return res_data
 
     @staticmethod
@@ -54,7 +77,7 @@ class JikanAPI:
         info = {
             'UniqueIDs': {
                 'mal_id': str(mal_id),
-                **database.get_mapping_ids(mal_id, 'mal_id')
+                **database.get_unique_ids(mal_id, 'mal_id')
             },
             'title': title,
             'season': season,
@@ -108,7 +131,9 @@ class JikanAPI:
         #         return []
 
         mapfunc = partial(self.parse_episode_view, mal_id=mal_id, season=season, poster=poster, fanart=fanart, clearart=clearart, clearlogo=clearlogo, eps_watched=eps_watched, update_time=update_time, tvshowtitle=tvshowtitle, dub_data=dub_data, filler_data=filler_data)
-        all_results = sorted(list(map(mapfunc, result_ep)), key=lambda x: x['info']['episode'])
+        # Parallelize episode parsing for faster processing
+        all_results = utils.parallel_process(result_ep, mapfunc, max_workers=8)
+        all_results = sorted(all_results, key=lambda x: x['info']['episode'])
 
         if control.getBool('override.meta.api') and control.getBool('override.meta.notify'):
             control.notify("Jikanmoe", f'{tvshowtitle} Added to Database', icon=poster)
@@ -120,12 +145,14 @@ class JikanAPI:
             result = self.get_episode_meta(mal_id)
             season = episodes[0]['season']
             mapfunc2 = partial(self.parse_episode_view, mal_id=mal_id, season=season, poster=poster, fanart=fanart, clearart=clearart, clearlogo=clearlogo, eps_watched=eps_watched, update_time=update_time, tvshowtitle=tvshowtitle, dub_data=dub_data, filler_data=filler_data, episodes=episodes)
-            all_results = list(map(mapfunc2, result))
+            # Parallelize episode parsing
+            all_results = utils.parallel_process(result, mapfunc2, max_workers=8)
             if control.getBool('override.meta.api') and control.getBool('override.meta.notify'):
                 control.notify("Jikanmoe", f'{tvshowtitle} Appended to Database', icon=poster)
         else:
             mapfunc1 = partial(indexers.parse_episodes, eps_watched=eps_watched, dub_data=dub_data)
-            all_results = list(map(mapfunc1, episodes))
+            # Parallelize episode parsing
+            all_results = utils.parallel_process(episodes, mapfunc1, max_workers=8)
         return all_results
 
     def get_episodes(self, mal_id, show_meta):
