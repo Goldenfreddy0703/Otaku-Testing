@@ -6,7 +6,7 @@ import urllib.parse
 from functools import partial
 
 from bs4 import BeautifulSoup
-from resources.lib.ui import control, database
+from resources.lib.ui import control, database, utils
 from resources.lib.ui.BrowserBase import BrowserBase
 
 
@@ -57,11 +57,12 @@ class Sources(BrowserBase):
                     slugs = [items[0].get('href')]
                     control.log(f"AnimixPlay: No exact match, using first result")
 
-            control.log(f"AnimixPlay: Processing {len(slugs)} slugs")
+            control.log(f"AnimixPlay: Processing {len(slugs)} slugs in parallel")
             if slugs:
                 slugs = list(slugs.keys()) if isinstance(slugs, dict) else slugs
                 mapfunc = partial(self._process_animixplay, title=title, episode=episode)
-                all_results = list(map(mapfunc, slugs))
+                # Process slugs in parallel for faster scraping
+                all_results = utils.parallel_process(slugs, mapfunc, max_workers=2)
                 all_results = list(itertools.chain(*all_results))
 
         control.log(f"AnimixPlay: Returning {len(all_results)} sources")

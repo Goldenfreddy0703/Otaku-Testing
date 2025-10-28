@@ -32,22 +32,58 @@ class OtakuAPI:
     def get_kitsu_episode_meta(self, mal_id):
         kitsu_id = self.get_kitsu_id(mal_id)
         url = f'{self.kitsuBaseUrl}/anime/{kitsu_id}/episodes'
-        res_data = []
-        page = 1
-        while True:
-            params = {
-                'page[limit]': 20,
-                'page[offset]': (page - 1) * 20
-            }
-            response = client.get(url, params=params)
-            if response:
-                res = response.json()
-                res_data.extend(res['data'])
-                if 'next' not in res['links']:
-                    break
-                page += 1
-                if page % 3 == 0:
-                    time.sleep(2)
+
+        # Fetch first page to determine total pages
+        params = {'page[limit]': 20, 'page[offset]': 0}
+        response = client.get(url, params=params)
+        if not response:
+            return []
+
+        res = response.json()
+        res_data = res['data']
+
+        # If only one page, return immediately
+        if 'next' not in res['links']:
+            return res_data
+
+        # Calculate total pages needed
+        try:
+            total_count = res.get('meta', {}).get('count', len(res_data) * 2)
+            total_pages = (total_count // 20) + (1 if total_count % 20 else 0)
+        except:
+            # Fallback: fetch until no 'next' link
+            total_pages = 10  # Conservative estimate
+
+        control.log(f"Kitsu: Fetching ~{total_pages} pages of episodes in parallel")
+
+        def fetch_page(page_num):
+            try:
+                time.sleep((page_num % 3) * 0.7)  # Stagger requests to respect rate limit
+                params = {
+                    'page[limit]': 20,
+                    'page[offset]': page_num * 20
+                }
+                page_response = client.get(url, params=params)
+                if page_response:
+                    page_res = page_response.json()
+                    return page_res['data'] if page_res.get('data') else []
+                return []
+            except Exception as e:
+                control.log(f"Kitsu: Failed to fetch page {page_num}: {str(e)}")
+                return []
+
+        # Fetch remaining pages in parallel
+        page_numbers = list(range(1, total_pages))
+        all_page_results = utils.parallel_process(page_numbers, fetch_page, max_workers=3)
+
+        # Combine all results
+        for page_data in all_page_results:
+            if page_data:  # Only extend if we got data
+                res_data.extend(page_data)
+            else:
+                break  # Stop if we hit an empty page
+
+        control.log(f"Kitsu: Fetched {len(res_data)} episodes total")
         return res_data
 
     def get_anizip_episode_meta(self, mal_id):
@@ -155,25 +191,49 @@ class OtakuAPI:
     def get_episode_meta(self, mal_id):
         url = f'{self.baseUrl}/anime/{mal_id}/episodes'
         response = client.get(url)
-        if response:
-            res = response.json()
-            if not res['pagination']['has_next_page']:
-                res_data = res['data']
-            else:
-                res_data = res['data']
-                for i in range(2, res['pagination']['last_visible_page'] + 1):
-                    params = {
-                        'page': i
-                    }
-                    response = client.get(url, params=params)
-                    if response:
-                        r = response.json()
-                        if not r['pagination']['has_next_page']:
-                            res_data += r['data']
-                            break
-                        res_data += r['data']
-                        if i % 3 == 0:
-                            time.sleep(2)
+        if not response:
+            return []
+
+        res = response.json()
+        res_data = res['data']
+
+        # If only one page, return immediately
+        if not res['pagination']['has_next_page']:
+            return res_data
+
+        # Fetch all pages in batches to respect Jikan's 3 req/sec rate limit
+        last_page = res['pagination']['last_visible_page']
+        control.log(f"Jikan: Fetching {last_page} pages of episodes (3 req/sec limit)")
+
+        def fetch_page(page_num):
+            try:
+                params = {'page': page_num}
+                page_response = client.get(url, params=params)
+                if page_response:
+                    return page_response.json()['data']
+                return []
+            except Exception as e:
+                control.log(f"Jikan: Failed to fetch page {page_num}: {str(e)}")
+                return []
+
+        # Split remaining pages into batches of 3 to respect rate limit
+        page_numbers = list(range(2, last_page + 1))
+        batches = [page_numbers[i:i+3] for i in range(0, len(page_numbers), 3)]
+
+        all_page_results = []
+        for i, batch in enumerate(batches):
+            if i > 0:
+                time.sleep(1.1)  # Wait 1.1 seconds between batches (safe margin)
+
+            # Fetch 3 pages in parallel (respects 3 req/sec limit)
+            batch_results = utils.parallel_process(batch, fetch_page, max_workers=3)
+            all_page_results.extend(batch_results)
+
+        # Combine all results
+        for page_data in all_page_results:
+            res_data.extend(page_data)
+
+        control.log(f"Jikan: Fetched {len(res_data)} episodes total")
         return res_data
 
     def parse_episode_view(self, res, mal_id, season, poster, fanart, clearart, clearlogo, eps_watched, update_time, tvshowtitle, dub_data, filler_data, episodes=None, meta_cache=None):
@@ -250,7 +310,7 @@ class OtakuAPI:
         info = {
             'UniqueIDs': {
                 'mal_id': str(mal_id),
-                **database.get_mapping_ids(mal_id, 'mal_id')
+                **database.get_unique_ids(mal_id, 'mal_id')
             },
             'title': title,
             'season': season,
@@ -332,42 +392,76 @@ class OtakuAPI:
         title_list = [name['title'] for name in result['titles']]
         season = utils.get_season(title_list, mal_id)
 
-        # Fetch all episode meta once per API
-        import threading
+        # Fetch all episode meta from all providers in parallel using ThreadPoolExecutor
+        import concurrent.futures
         meta_cache = {}
 
         def fetch_anidb():
-            meta_cache['anidb'] = self.get_anidb_episode_meta(mal_id)
+            try:
+                return ('anidb', self.get_anidb_episode_meta(mal_id))
+            except Exception as e:
+                control.log(f"AniDB episode meta fetch failed: {str(e)}")
+                return ('anidb', [])
 
         def fetch_simkl():
-            simkl_raw = self.get_simkl_episode_meta(mal_id)
-            meta_cache['simkl'] = [x for x in simkl_raw if x.get('type') == 'episode'] if isinstance(simkl_raw, list) else []
+            try:
+                simkl_raw = self.get_simkl_episode_meta(mal_id)
+                filtered = [x for x in simkl_raw if x.get('type') == 'episode'] if isinstance(simkl_raw, list) else []
+                return ('simkl', filtered)
+            except Exception as e:
+                control.log(f"SIMKL episode meta fetch failed: {str(e)}")
+                return ('simkl', [])
 
         def fetch_jikan():
-            meta_cache['jikan'] = self.get_episode_meta(mal_id)
+            try:
+                return ('jikan', self.get_episode_meta(mal_id))
+            except Exception as e:
+                control.log(f"Jikan episode meta fetch failed: {str(e)}")
+                return ('jikan', [])
 
         def fetch_anizip():
-            meta_cache['anizip'] = self.get_anizip_episode_meta(mal_id)
+            try:
+                return ('anizip', self.get_anizip_episode_meta(mal_id))
+            except Exception as e:
+                control.log(f"AniZip episode meta fetch failed: {str(e)}")
+                return ('anizip', [])
 
         def fetch_kitsu():
-            meta_cache['kitsu'] = self.get_kitsu_episode_meta(mal_id)
+            try:
+                return ('kitsu', self.get_kitsu_episode_meta(mal_id))
+            except Exception as e:
+                control.log(f"Kitsu episode meta fetch failed: {str(e)}")
+                return ('kitsu', [])
 
-        threads = [
-            threading.Thread(target=fetch_anidb),
-            threading.Thread(target=fetch_simkl),
-            threading.Thread(target=fetch_jikan),
-            threading.Thread(target=fetch_anizip),
-            threading.Thread(target=fetch_kitsu)
-        ]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
+        # Fetch from all providers concurrently
+        control.log(f"Fetching episode metadata from 5 providers in parallel for MAL ID: {mal_id}")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [
+                executor.submit(fetch_anidb),
+                executor.submit(fetch_simkl),
+                executor.submit(fetch_jikan),
+                executor.submit(fetch_anizip),
+                executor.submit(fetch_kitsu)
+            ]
+
+            # Wait for all to complete and populate meta_cache
+            for future in concurrent.futures.as_completed(futures):
+                provider, data = future.result()
+                meta_cache[provider] = data
+
+        control.log(f"Episode metadata fetched - AniDB: {len(meta_cache.get('anidb', []))}, SIMKL: {len(meta_cache.get('simkl', []))}, Jikan: {len(meta_cache.get('jikan', []))}, AniZip: {len(meta_cache.get('anizip', []))}, Kitsu: {len(meta_cache.get('kitsu', []))}")
 
         # Use AniDB as base, fallback to Simkl, then Jikan
-        base_ep_list = meta_cache['anidb'] if meta_cache['anidb'] else meta_cache['simkl'] if meta_cache['simkl'] else meta_cache['jikan']
+        base_ep_list = meta_cache.get('anidb') or meta_cache.get('simkl') or meta_cache.get('jikan', [])
+
+        if not base_ep_list:
+            control.log(f"No episode metadata found for MAL ID: {mal_id}")
+            return []
+
+        # Parse episodes in parallel for faster processing
         mapfunc = partial(self.parse_episode_view, mal_id=mal_id, season=season, poster=poster, fanart=fanart, clearart=clearart, clearlogo=clearlogo, eps_watched=eps_watched, update_time=update_time, tvshowtitle=tvshowtitle, dub_data=dub_data, filler_data=filler_data, meta_cache=meta_cache)
-        all_results = sorted(list(map(mapfunc, base_ep_list)), key=lambda x: x['info']['episode'])
+        all_results = utils.parallel_process(base_ep_list, mapfunc, max_workers=8)
+        all_results = sorted(all_results, key=lambda x: x['info']['episode'])
 
         if control.getBool('override.meta.api') and control.getBool('override.meta.notify'):
             control.notify("Otaku", f'{tvshowtitle} Added to Database', icon=poster)
@@ -379,10 +473,12 @@ class OtakuAPI:
             result = self.get_episode_meta(mal_id)
             season = episodes[0]['season']
             mapfunc2 = partial(self.parse_episode_view, mal_id=mal_id, season=season, poster=poster, fanart=fanart, clearart=clearart, clearlogo=clearlogo, eps_watched=eps_watched, update_time=update_time, tvshowtitle=tvshowtitle, dub_data=dub_data, filler_data=filler_data, episodes=episodes)
-            all_results = list(map(mapfunc2, result))
+            # Parallelize episode parsing
+            all_results = utils.parallel_process(result, mapfunc2, max_workers=8)
         else:
             mapfunc1 = partial(indexers.parse_episodes, eps_watched=eps_watched, dub_data=dub_data)
-            all_results = list(map(mapfunc1, episodes))
+            # Parallelize episode parsing
+            all_results = utils.parallel_process(episodes, mapfunc1, max_workers=8)
         return all_results
 
     def get_episodes(self, mal_id, show_meta):

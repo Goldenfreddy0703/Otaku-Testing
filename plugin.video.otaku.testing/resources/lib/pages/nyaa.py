@@ -4,7 +4,7 @@ import pickle
 from functools import partial
 from bs4 import BeautifulSoup, SoupStrainer
 from resources.lib.debrid import Debrid
-from resources.lib.ui import database, source_utils, control, client
+from resources.lib.ui import database, source_utils, control, client, utils
 from resources.lib.ui.BrowserBase import BrowserBase
 
 
@@ -54,83 +54,86 @@ class Sources(BrowserBase):
         return {'cached': self.cached, 'uncached': self.uncached}
 
     def get_episode_sources(self, show, mal_id, episode, part, status):
-        nyaa_sources = []
-
         season = database.get_episode(mal_id)['season']
         season_zfill = str(season).zfill(2)
         episode_zfill = episode.zfill(2)
-        query = f'{show} "- {episode_zfill}"'
-        query += f'|"S{season_zfill}E{episode_zfill}"'
 
-        control.log(f"Nyaa: Searching for episode {episode_zfill}")
-        params = {
-            'f': '0',
-            'c': '1_0',
-            'q': query.replace(' ', '+'),
-            's': 'downloads',
-            'o': 'desc'
-        }
-        nyaa_sources += self.process_nyaa_episodes(self._BASE_URL, params, mal_id, episode_zfill, season_zfill, part)
-        control.log(f"Nyaa: Found {len(nyaa_sources)} sources from primary search")
+        # Build all search queries
+        search_tasks = []
 
+        # Primary episode search
+        query1 = f'{show} "- {episode_zfill}"|"S{season_zfill}E{episode_zfill}"'
+        search_tasks.append({
+            'query': query1,
+            'params': {'f': '0', 'c': '1_0', 'q': query1.replace(' ', '+'), 's': 'downloads', 'o': 'desc'},
+            'name': 'primary'
+        })
+
+        # Batch/Complete series search (only for finished shows)
         if status in ["FINISHED", "Finished Airing"]:
-            query = '%s "Batch"|"Complete Series"' % show
+            query2 = '%s "Batch"|"Complete Series"' % show
             episodes = pickle.loads(database.get_show(mal_id)['kodi_meta'])['episodes']
             if episodes:
-                query += f'|"01-{episode_zfill}"|"01~{episode_zfill}"|"01 - {episode_zfill}"|"01 ~ {episode_zfill}"|"E{episode_zfill}"|"Episode {episode_zfill}"'
-
+                query2 += f'|"01-{episode_zfill}"|"01~{episode_zfill}"|"01 - {episode_zfill}"|"01 ~ {episode_zfill}"|"E{episode_zfill}"|"Episode {episode_zfill}"'
             if season_zfill:
-                query += f'|"S{season_zfill}"|"Season {season_zfill}"'
-
+                query2 += f'|"S{season_zfill}"|"Season {season_zfill}"'
             if episode_zfill and season_zfill:
-                query += f'|"{season_zfill}-{episode_zfill}"|"{season_zfill}~{episode_zfill}"|"{season_zfill} - {episode_zfill}"|"{season_zfill} ~ {episode_zfill}"'
-                query += f'|"S{season_zfill}E{episode_zfill}"'
+                query2 += f'|"{season_zfill}-{episode_zfill}"|"{season_zfill}~{episode_zfill}"|"{season_zfill} - {episode_zfill}"|"{season_zfill} ~ {episode_zfill}"'
+                query2 += f'|"S{season_zfill}E{episode_zfill}"'
+            query2 += f'|"- {episode_zfill}"'
 
-            query += f'|"- {episode_zfill}"'
-            control.log(f"Nyaa: Searching batch/complete series")
-            params = {
-                'f': '0',
-                'c': '1_0',
-                'q': query.replace(' ', '+'),
-                's': 'seeders',
-                'o': 'desc'
-            }
-            batch_sources = self.process_nyaa_episodes(self._BASE_URL, params, mal_id, episode_zfill, season_zfill, part)
-            nyaa_sources += batch_sources
-            control.log(f"Nyaa: Found {len(batch_sources)} batch sources, total: {len(nyaa_sources)}")
+            search_tasks.append({
+                'query': query2,
+                'params': {'f': '0', 'c': '1_0', 'q': query2.replace(' ', '+'), 's': 'seeders', 'o': 'desc'},
+                'name': 'batch'
+            })
 
-        control.log(f"Nyaa: Doing fallback search without sorting")
-        params = {
-            'f': '0',
-            'c': '1_0',
-            'q': query.replace(' ', '+')
-        }
-        fallback_sources = self.process_nyaa_episodes(self._BASE_URL, params, mal_id, episode_zfill, season_zfill, part)
-        nyaa_sources += fallback_sources
-        control.log(f"Nyaa: Found {len(fallback_sources)} fallback sources, total: {len(nyaa_sources)}")
+        # Fallback search without sorting
+        query3 = query1  # Reuse primary query
+        search_tasks.append({
+            'query': query3,
+            'params': {'f': '0', 'c': '1_0', 'q': query3.replace(' ', '+')},
+            'name': 'fallback'
+        })
 
-        show = show.lower()
-        if 'season' in show:
-            query1, query2 = show.rsplit('|', 2)
-            match_1 = re.match(r'.+?(?=season)', query1)
+        # Season search
+        query4 = show
+        show_lower = show.lower()
+        if 'season' in show_lower:
+            query1_part, query2_part = show.rsplit('|', 2)
+            match_1 = re.match(r'.+?(?=season)', query1_part)
             if match_1:
                 match_1 = match_1.group(0).strip() + ')'
-            match_2 = re.match(r'.+?(?=season)', query2)
+            match_2 = re.match(r'.+?(?=season)', query2_part)
             if match_2:
                 match_2 = match_2.group(0).strip() + ')'
-            query = f'{match_1}|{match_2}'
-        else:
-            season = None
+            query4 = f'{match_1}|{match_2}'
 
-        params = {
-            'f': '0',
-            'c': '1_0',
-            'q': query.replace(' ', '+')
-        }
+        search_tasks.append({
+            'query': query4,
+            'params': {'f': '0', 'c': '1_0', 'q': query4.replace(' ', '+')},
+            'name': 'additional'
+        })
 
-        additional_sources = self.process_nyaa_episodes(self._BASE_URL, params, mal_id, episode_zfill, season_zfill, part)
-        nyaa_sources += additional_sources
-        control.log(f"Nyaa: Found {len(additional_sources)} additional sources, total: {len(nyaa_sources)}")
+        # Execute all searches in parallel
+        control.log(f"Nyaa: Running {len(search_tasks)} searches in parallel for episode {episode_zfill}")
+
+        def run_search(task):
+            try:
+                sources = self.process_nyaa_episodes(self._BASE_URL, task['params'], mal_id, episode_zfill, season_zfill, part)
+                control.log(f"Nyaa: {task['name']} search returned {len(sources)} sources")
+                return sources
+            except Exception as e:
+                control.log(f"Nyaa: {task['name']} search failed: {str(e)}")
+                return []
+
+        all_search_results = utils.parallel_process(search_tasks, run_search, max_workers=4)
+
+        # Combine all results
+        nyaa_sources = []
+        for sources in all_search_results:
+            nyaa_sources.extend(sources)
+
         control.log(f"Nyaa: Episode search complete - returning {len(nyaa_sources)} total sources")
         return nyaa_sources
 
@@ -196,11 +199,12 @@ class Sources(BrowserBase):
             uncashed_list = [i for i in uncashed_list_ if i['seeders'] > 0]
             uncashed_list = sorted(uncashed_list, key=lambda k: k['seeders'], reverse=True)
 
+            # Parse sources in parallel for faster processing
             mapfunc = partial(self.parse_nyaa_view, episode=episode_zfill)
-            all_results = list(map(mapfunc, cache_list))
-            if control.settingids.showuncached:
+            all_results = utils.parallel_process(cache_list, mapfunc, max_workers=5) if cache_list else []
+            if control.settingids.showuncached and uncashed_list:
                 mapfunc2 = partial(self.parse_nyaa_view, episode=episode_zfill, cached=False)
-                all_results += list(map(mapfunc2, uncashed_list))
+                all_results += utils.parallel_process(uncashed_list, mapfunc2, max_workers=5)
             return all_results
 
     def process_nyaa_movie(self, url, params, mal_id):
@@ -238,11 +242,12 @@ class Sources(BrowserBase):
             uncashed_list = [i for i in uncashed_list_ if i['seeders'] > 0]
             uncashed_list = sorted(uncashed_list, key=lambda k: k['seeders'], reverse=True)
 
+            # Parse sources in parallel for faster processing
             mapfunc = partial(self.parse_nyaa_view, episode=1)
-            all_results = list(map(mapfunc, cache_list))
-            if control.settingids.showuncached:
+            all_results = utils.parallel_process(cache_list, mapfunc, max_workers=5) if cache_list else []
+            if control.settingids.showuncached and uncashed_list:
                 mapfunc2 = partial(self.parse_nyaa_view, episode=1, cached=False)
-                all_results += list(map(mapfunc2, uncashed_list))
+                all_results += utils.parallel_process(uncashed_list, mapfunc2, max_workers=5)
             return all_results
 
     @staticmethod

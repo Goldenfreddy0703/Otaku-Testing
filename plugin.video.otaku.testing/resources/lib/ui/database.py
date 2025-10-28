@@ -225,7 +225,7 @@ def get_mappings(anime_id, send_id):
         return mappings[0] if mappings else {}
 
 
-def get_mapping_ids(anime_id, send_id):
+def get_unique_ids(anime_id, send_id):
     with SQL(control.mappingDB) as cursor:
         cursor.execute(f'SELECT mal_id, mal_dub_id, anilist_id, kitsu_id, anidb_id, simkl_id, thetvdb_id, themoviedb_id, imdb_id, trakt_id FROM anime WHERE {send_id}=?', (anime_id,))
         mappings = cursor.fetchone()

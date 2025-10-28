@@ -1,3 +1,20 @@
+Changelog v5.2.59 (2025-10-28):
+- Major Performance Optimization — 4–6x faster across all components
+- Added TVDB API v4 as new artwork provider alongside Fanart.tv and TMDB
+- Implemented multi-provider artwork scraping with concurrent fetching and merging
+- Enhanced artwork coverage and language-aware logo selection across all providers
+- Optimized episode metadata fetching with ThreadPoolExecutor
+- Episode metadata loading reduced from ~12–16s to ~3–5s
+- Optimized episode parsing across all indexers with 8-worker parallel processing
+- Improved total loading time from ~40s to ~8–10s for 100 anime
+- Source detection and server extraction reduced from ~8–12s to ~2–3s
+- Added parallel processing utilities in utils.py for consistent multithreading
+- Replaced manual threading and list(map()) calls with ThreadPoolExecutor for better efficiency
+- Implemented rate limit compliance for Jikan API (3 req/sec)
+- Improved error handling with per-provider exception safety and detailed metadata logging
+- Renamed get_mapping_ids to get_unique_ids
+- Fix HiAnime to list HD-2 and HD-3 sources
+
 Changelog v5.2.58 (2025-10-16):
 - Fixed TorBox when deleting Torrents
 - Updated delete function in Client

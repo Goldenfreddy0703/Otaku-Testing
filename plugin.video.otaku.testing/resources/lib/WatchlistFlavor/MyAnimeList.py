@@ -307,8 +307,8 @@ class MyAnimeListWLF(WatchlistFlavorBase):
         unique_ids = {'mal_id': str(mal_id)}
         if anilist_res and anilist_res.get('id'):
             unique_ids['anilist_id'] = str(anilist_res['id'])
-            unique_ids.update(database.get_mapping_ids(anilist_res['id'], 'anilist_id'))
-        unique_ids.update(database.get_mapping_ids(mal_id, 'mal_id'))
+            unique_ids.update(database.get_unique_ids(anilist_res['id'], 'anilist_id'))
+        unique_ids.update(database.get_unique_ids(mal_id, 'mal_id'))
 
         # Art/Images
         show_meta = database.get_show_meta(mal_id)
@@ -422,7 +422,7 @@ class MyAnimeListWLF(WatchlistFlavorBase):
         info = {
             'UniqueIDs': {
                 'mal_id': str(mal_id),
-                **database.get_mapping_ids(mal_id, 'mal_id')
+                **database.get_unique_ids(mal_id, 'mal_id')
             },
             'episode': next_up,
             'title': title,

@@ -5,7 +5,7 @@ import base64
 from functools import partial
 from bs4 import BeautifulSoup
 from resources.lib.ui.BrowserBase import BrowserBase
-from resources.lib.ui import database, source_utils, client, control
+from resources.lib.ui import database, source_utils, client, control, utils
 from resources.lib.debrid import Debrid
 from resources.lib.indexers.simkl import SIMKLAPI
 from resources.lib.endpoints import anidb
@@ -73,27 +73,26 @@ class Sources(BrowserBase):
                 for anidb_ep in anidb_meta:
                     database.update_episode_column(mal_id, anidb_ep, 'anidb_ep_id', anidb_meta[anidb_ep]['anidb_id'])
 
-        animetosho_sources = []
-
         season = database.get_episode(mal_id)['season']
         season_zfill = str(season).zfill(2)
         episode_zfill = episode.zfill(2)
-        # Build a query incorporating the episode and season info.
-        query = f'{show} "- {episode_zfill}"'
-        query += f'|"S{season_zfill}E{episode_zfill}"'
 
-        params = {
+        # Build all search queries upfront
+        search_tasks = []
+
+        # Primary episode search
+        query = f'{show} "- {episode_zfill}"|"S{season_zfill}E{episode_zfill}"'
+        params1 = {
             'q': self._sphinx_clean(query),
             'qx': 1,
             's': 'downloads',
             'o': 'desc'
         }
         if self.anidb_id:
-            params['aids'] = self.anidb_id
+            params1['aids'] = self.anidb_id
+        search_tasks.append({'params': params1, 'name': 'primary'})
 
-        animetosho_sources += self.process_animetosho_episodes(f'{self._BASE_URL}/search', params, mal_id, episode_zfill, season_zfill, part)
-
-        # For finished series, include batch/complete series results.
+        # Batch/complete series search for finished shows
         if status in ["FINISHED", "Finished Airing"]:
             batch_terms = ["Batch", "Complete Series"]
             episodes_info = pickle.loads(database.get_show(mal_id)['kodi_meta'])['episodes']
@@ -101,36 +100,64 @@ class Sources(BrowserBase):
             if episodes_info:
                 episode_formats = [f'01-{episode_zfill}', f'01~{episode_zfill}', f'01 - {episode_zfill}', f'01 ~ {episode_zfill}']
             batch_query = f'{show} ("' + '"|"'.join(batch_terms + episode_formats) + '")'
-            params = {
+            params2 = {
                 'q': self._sphinx_clean(batch_query),
                 'qx': 1,
                 's': 'seeders',
                 'o': 'desc'
             }
             if self.anidb_id:
-                params['aids'] = self.anidb_id
-            animetosho_sources += self.process_animetosho_episodes(f'{self._BASE_URL}/search', params, mal_id, episode_zfill, season_zfill, part)
+                params2['aids'] = self.anidb_id
+            search_tasks.append({'params': params2, 'name': 'batch'})
 
-        # Additional query without explicit sorting.
-        params = {
+        # Fallback search without sorting
+        params3 = {
             'q': self._sphinx_clean(query),
             'qx': 1
         }
         if self.anidb_id:
-            params['aids'] = self.anidb_id
-        animetosho_sources += self.process_animetosho_episodes(f'{self._BASE_URL}/search', params, mal_id, episode_zfill, season_zfill, part)
+            params3['aids'] = self.anidb_id
+        search_tasks.append({'params': params3, 'name': 'fallback'})
 
-        # If the show includes a season number, try additional variations.
+        # Season variation search
         if 'season' in show.lower():
             show_variations = re.split(r'season\s*\d+', show.lower())
             cleaned_variations = [self._sphinx_clean(var.strip() + ')') for var in show_variations if var.strip()]
-            params = {
+            params4 = {
                 'q': '|'.join(cleaned_variations),
                 'qx': 1
             }
             if self.anidb_id:
-                params['aids'] = self.anidb_id
-            animetosho_sources += self.process_animetosho_episodes(f'{self._BASE_URL}/search', params, mal_id, episode_zfill, season_zfill, part)
+                params4['aids'] = self.anidb_id
+            search_tasks.append({'params': params4, 'name': 'season_variation'})
+
+        # Execute all searches in parallel
+        control.log(f"AnimeTosho: Running {len(search_tasks)} searches in parallel for episode {episode_zfill}")
+
+        def run_search(task):
+            try:
+                sources = self.process_animetosho_episodes(
+                    f'{self._BASE_URL}/search',
+                    task['params'],
+                    mal_id,
+                    episode_zfill,
+                    season_zfill,
+                    part
+                )
+                control.log(f"AnimeTosho: {task['name']} search returned {len(sources)} sources")
+                return sources
+            except Exception as e:
+                control.log(f"AnimeTosho: {task['name']} search failed: {str(e)}")
+                return []
+
+        all_search_results = utils.parallel_process(search_tasks, run_search, max_workers=4)
+
+        # Combine all results
+        animetosho_sources = []
+        for sources in all_search_results:
+            animetosho_sources.extend(sources)
+
+        control.log(f"AnimeTosho: Episode search complete - returning {len(animetosho_sources)} total sources")
         return animetosho_sources
 
     def get_show_sources(self, show, mal_id, episode, part):
@@ -228,11 +255,12 @@ class Sources(BrowserBase):
             uncashed_list = [i for i in uncashed_list_ if i['seeders'] != 0]
             uncashed_list = sorted(uncashed_list, key=lambda k: k['seeders'], reverse=True)
 
+            # Parse sources in parallel for faster processing
             mapfunc = partial(self.parse_animetosho_view, episode=episode)
-            all_results = list(map(mapfunc, cache_list))
-            if control.settingids.showuncached:
+            all_results = utils.parallel_process(cache_list, mapfunc, max_workers=5) if cache_list else []
+            if control.settingids.showuncached and uncashed_list:
                 mapfunc2 = partial(self.parse_animetosho_view, episode=episode, cached=False)
-                all_results += list(map(mapfunc2, uncashed_list))
+                all_results += utils.parallel_process(uncashed_list, mapfunc2, max_workers=5)
             return all_results
         return []
 
@@ -275,11 +303,12 @@ class Sources(BrowserBase):
             cache_list = sorted(cache_list, key=lambda k: k['downloads'], reverse=True)
             uncashed_list = sorted([i for i in uncashed_list_ if i['seeders'] != 0], key=lambda k: k['seeders'], reverse=True)
 
+            # Parse sources in parallel for faster processing
             mapfunc = partial(self.parse_animetosho_view, episode="1")
-            all_results = list(map(mapfunc, cache_list))
-            if control.settingids.showuncached:
+            all_results = utils.parallel_process(cache_list, mapfunc, max_workers=5) if cache_list else []
+            if control.settingids.showuncached and uncashed_list:
                 mapfunc2 = partial(self.parse_animetosho_view, episode="1", cached=False)
-                all_results += list(map(mapfunc2, uncashed_list))
+                all_results += utils.parallel_process(uncashed_list, mapfunc2, max_workers=5)
             return all_results
         return []
 

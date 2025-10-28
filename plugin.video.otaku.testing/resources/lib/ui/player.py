@@ -187,7 +187,7 @@ class WatchlistPlayer(player):
         self.total_time = int(self.getTotalTime())
 
         # Continue with the rest of the method after playback is confirmed
-        unique_ids = database.get_mapping_ids(self.mal_id, 'mal_id')
+        unique_ids = database.get_unique_ids(self.mal_id, 'mal_id')
 
         # Trakt scrobbling support
         if control.getBool('trakt.enabled'):
