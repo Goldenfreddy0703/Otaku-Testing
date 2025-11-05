@@ -84,7 +84,7 @@ def closeBusyDialog():
         execute('Dialog.Close(busydialognocancel)')
 
 
-def log(msg, level="debug"):
+def log(msg, level="info"):
     if level == 'info':
         level = xbmc.LOGINFO
     elif level == 'warning':

@@ -151,7 +151,7 @@ def parallel_fetch(requests_list, max_workers=5, timeout=30):
     Args:
         requests_list: List of dicts with keys: 'func', 'args' (tuple), 'kwargs' (dict)
         max_workers: Max number of concurrent threads (default: 5)
-        timeout: Timeout for all requests (default: 30s)
+        timeout: Timeout for all requests combined (default: 30s, set to None for no timeout)
 
     Returns:
         List of results in same order as requests_list
@@ -174,12 +174,21 @@ def parallel_fetch(requests_list, max_workers=5, timeout=30):
             return None
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(execute_request, req) for req in requests_list]
-        try:
-            results = [future.result(timeout=timeout) for future in futures]
-        except concurrent.futures.TimeoutError:
-            control.log("Parallel fetch timeout exceeded")
-            results = [future.result() if future.done() else None for future in futures]
+        # Submit all tasks and maintain order with a dict mapping futures to original index
+        future_to_index = {executor.submit(execute_request, req): idx for idx, req in enumerate(requests_list)}
+        
+        # Create a results list to maintain order
+        results = [None] * len(requests_list)
+        
+        # Collect results as they complete (true parallel execution)
+        # No timeout on as_completed since individual requests might take a while
+        for future in concurrent.futures.as_completed(future_to_index):
+            idx = future_to_index[future]
+            try:
+                results[idx] = future.result()
+            except Exception as e:
+                control.log(f"Parallel request failed: {str(e)}")
+                results[idx] = None
 
     return results
 

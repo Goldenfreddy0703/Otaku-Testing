@@ -290,10 +290,18 @@ def WATCH_HISTORY(payload, params):
 @Route('airing_calendar')
 def AIRING_CALENDAR(payload: str, params: dict):
     page = int(params.get('page', 1))
-    calendar = BROWSER.get_airing_calendar(page)
-    if calendar:
+    
+    # Get enriched calendar data from AnimeSchedule
+    from resources.lib.AnimeSchedule import AnimeScheduleCalendar
+    scheduler = AnimeScheduleCalendar()
+    calendar_data = scheduler.get_calendar_data(types=['sub', 'dub', 'raw'])
+    
+    if calendar_data:
+        # Format data for Anichart display
+        formatted_calendar = scheduler.format_for_anichart(calendar_data)
+        
         from resources.lib.windows.anichart import Anichart
-        Anichart('anichart.xml', control.ADDON_PATH, calendar=calendar).doModal()
+        Anichart('anichart.xml', control.ADDON_PATH, calendar=formatted_calendar).doModal()
     control.exit_code()
 
 
