@@ -1,5 +1,5 @@
 <window type="dialog">
-    <defaultcontrol>2</defaultcontrol>
+    <defaultcontrol>1000</defaultcontrol>
     <coordinates>
         <left>0</left>
         <top>0</top>
@@ -30,7 +30,7 @@
 
 
 
-        <!--&lt;!&ndash; Additional Background Difuse &ndash;&gt;-->
+        <!--&lt;!&ndash; Additional Background Diffuse &ndash;&gt;-->
         <!--<control type="image">-->
             <!--<texture>white.png</texture>-->
             <!--<colordiffuse>8936353b</colordiffuse>-->
@@ -48,9 +48,9 @@
         <!-- Grouplist Texture -->
         <control type="image">
             <visible>true</visible>
-            <left>75</left>
+            <left>120</left>
             <top>100</top>
-            <width>1750</width>
+            <width>1600</width>
             <height>900</height>
             <border>5</border>
             <texture>white.png</texture>
@@ -71,7 +71,7 @@
         	<autoscroll>true</autoscroll>
         	<viewtype label="Sources">icon</viewtype>
         	<pagecontrol>60</pagecontrol>
-        	<itemlayout height="410" width="845">
+        	<itemlayout height="390" width="800">
         		<control type="image">
         			<left>10</left>
         			<top>10</top>
@@ -80,47 +80,100 @@
         			<texture>$INFO[ListItem.Property(poster)]</texture>
         		</control>
             <control type="image">
-                <left>10</left>
-                <top>280</top>
-                <width>260</width>
-                <height>100</height>
+                <left>5</left>
+                <top>340</top>
+                <width>270</width>
+                <height>50</height>
                 <texture>white.png</texture>
                 <colordiffuse>ff1a1a1a</colordiffuse>
             </control>
-            <control type="textbox">
-        			<left>10</left>
-        			<top>280</top>
-        			<width>260</width>
-        			<height>100</height>
-        			<font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-        			<align>left</align>
-              <autoscroll delay="3000" time="1500" repeat="5000"></autoscroll>
-        			<label>[B]$INFO[ListItem.Property(release_title)][/B]</label>
-        		</control>
-        		<control type="label">
-        			<left>300</left>
-        			<top>10</top>
-        			<width>400</width>
-        			<height>22</height>
-        			<font>font12</font>
-        			<textcolor>AAFFFFFF</textcolor>
-        			<align>left</align>
-        			<label>Ep $INFO[ListItem.Property(ep_title)] at</label>
-        		</control>
+
+            <!-- Release Title -->
             <control type="label">
               <left>300</left>
-              <top>42</top>
-              <width>400</width>
-              <height>22</height>
+              <top>0</top>
+              <width>450</width>
+              <height>30</height>
               <font>font14</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>left</align>
-              <label>[B]$INFO[ListItem.Property(ep_airingAt)][/B]</label>
+              <scroll>true</scroll>
+              <autoscroll delay="4000" time="1500" repeat="5000"></autoscroll>
+              <label>[B]$INFO[ListItem.Property(release_title)][/B]</label>
             </control>
+
+        		<!-- RAW Release -->
+        		<control type="label">
+        			<visible>Integer.IsGreater(ListItem.Property(raw_episode),0)</visible>
+        			<left>300</left>
+        			<top>40</top>
+        			<width>450</width>
+        			<height>18</height>
+        			<font>font10</font>
+        			<textcolor>AAFFFFFF</textcolor>
+        			<align>left</align>
+        			<label>[COLOR cyan]Ep $INFO[ListItem.Property(raw_episode)] Raw:[/COLOR] $INFO[ListItem.Property(raw_date_formatted)]</label>
+        		</control>
+        		<!-- <control type="label">
+        			<visible>Integer.IsGreater(ListItem.Property(raw_episode),0)</visible>
+        			<left>305</left>
+        			<top>46</top>
+        			<width>400</width>
+        			<height>18</height>
+        			<font>font9</font>
+        			<textcolor>88FFFFFF</textcolor>
+        			<align>left</align>
+        			<label>Countdown: $INFO[ListItem.Property(raw_countdown)]</label>
+        		</control> -->
+        		<!-- SUB Release -->
+        		<control type="label">
+        			<visible>Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
+        			<left>300</left>
+        			<top>70</top>
+        			<width>450</width>
+        			<height>18</height>
+        			<font>font10</font>
+        			<textcolor>AAFFFFFF</textcolor>
+        			<align>left</align>
+        			<label>[COLOR blue]Ep $INFO[ListItem.Property(sub_episode)] Sub:[/COLOR] $INFO[ListItem.Property(sub_date_formatted)]</label>
+        		</control>
+        		<!-- <control type="label">
+        			<visible>Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
+        			<left>305</left>
+        			<top>82</top>
+        			<width>400</width>
+        			<height>18</height>
+        			<font>font9</font>
+        			<textcolor>88FFFFFF</textcolor>
+        			<align>left</align>
+        			<label>Countdown: $INFO[ListItem.Property(sub_countdown)]</label>
+        		</control> -->
+        		<!-- DUB Release -->
+        		<control type="label">
+        			<visible>Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
+        			<left>300</left>
+        			<top>100</top>
+        			<width>450</width>
+        			<height>18</height>
+        			<font>font10</font>
+        			<textcolor>AAFFFFFF</textcolor>
+        			<align>left</align>
+        			<label>[COLOR green]Ep $INFO[ListItem.Property(dub_episode)] Dub:[/COLOR] $INFO[ListItem.Property(dub_date_formatted)]</label>
+        		</control>
+        		<!-- <control type="label">
+        			<visible>Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
+        			<left>305</left>
+        			<top>118</top>
+        			<width>400</width>
+        			<height>18</height>
+        			<font>font9</font>
+        			<textcolor>88FFFFFF</textcolor>
+        			<align>left</align>
+        			<label>Countdown: $INFO[ListItem.Property(dub_countdown)]</label>
+        		</control> -->
             <control type="textbox">
               <left>300</left>
-              <top>110</top>
+              <top>140</top>
               <width>450</width>
               <height min="20" max="200">auto</height>
               <font>font10</font>
@@ -130,16 +183,16 @@
             </control>
             <control type="image">
                 <left>300</left>
-                <top>330</top>
-                <width>400</width>
+                <top>350</top>
+                <width>480</width>
                 <height>30</height>
                 <texture>white.png</texture>
                 <colordiffuse>aa4da6ff</colordiffuse>
             </control>
             <control type="label">
               <left>305</left>
-              <top>330</top>
-              <width>395</width>
+              <top>350</top>
+              <width>475</width>
               <height>22</height>
               <font>font10</font>
               <textcolor>AAFFFFFF</textcolor>
@@ -147,8 +200,8 @@
               <label>[B]$INFO[ListItem.Property(genres)][/B]</label>
             </control>
             <control type="group">
-              <left>700</left>
-              <top>10</top>
+              <left>180</left>
+              <top>345</top>
               <control type="image">
                   <visible>Integer.IsGreaterOrEqual(ListItem.Property(averageScore),75)</visible>
                   <width>35</width>
@@ -170,12 +223,12 @@
             </control>
             <control type="label">
               <visible>Integer.IsGreater(ListItem.Property(averageScore),0)</visible>
-              <left>745</left>
-              <top>10</top>
+              <left>220</left>
+              <top>345</top>
               <width>50</width>
               <height>22</height>
               <font>font12</font>
-              <selectedcolor>gn</selectedcolor>
+              <textcolor>AAFFFFFF</textcolor>
               <align>left</align>
               <label>$INFO[ListItem.Property(averageScore)]%</label>
             </control>
@@ -196,7 +249,7 @@
               <width>50</width>
               <height>22</height>
               <font>font12</font>
-              <selectedcolor>gn</selectedcolor>
+              <textcolor>AAFFFFFF</textcolor>
               <align>left</align>
               <label>#$INFO[ListItem.Property(rank)]</label>
             </control>
@@ -266,7 +319,7 @@
             </control>
 
             <!-- Studios Section (ITEMLAYOUT) -->
-            <control type="label">
+            <!-- <control type="label">
               <visible>!IsEmpty(ListItem.Property(studios))</visible>
               <left>300</left>
               <top>365</top>
@@ -287,10 +340,10 @@
               <textcolor>AAFFFFFF</textcolor>
               <align>left</align>
               <label>$INFO[ListItem.Property(studios)]</label>
-            </control>
+            </control> -->
 
             <!-- Status Section (ITEMLAYOUT) -->
-            <control type="label">
+            <!-- <control type="label">
               <visible>!IsEmpty(ListItem.Property(status))</visible>
               <left>300</left>
               <top>410</top>
@@ -311,10 +364,10 @@
               <textcolor>AAFFFFFF</textcolor>
               <align>left</align>
               <label>$INFO[ListItem.Property(status)]</label>
-            </control>
+            </control> -->
 
             <!-- Streams Section (ITEMLAYOUT) -->
-            <control type="label">
+            <!-- <control type="label">
               <visible>!IsEmpty(ListItem.Property(streams))</visible>
               <left>300</left>
               <top>447</top>
@@ -335,7 +388,7 @@
               <textcolor>AAFFFFFF</textcolor>
               <align>left</align>
               <label>$INFO[ListItem.Property(streams)]</label>
-            </control>
+            </control> -->
 
         	</itemlayout>
         	<focusedlayout height="390" width="800">
@@ -354,48 +407,100 @@
         			<animation effect="zoom" end="5,5,270,380" time="100">focus</animation>
         		</control>
             <control type="image">
-                <left>10</left>
-                <top>280</top>
-                <width>260</width>
-                <height>100</height>
+                <left>5</left>
+                <top>340</top>
+                <width>270</width>
+                <height>50</height>
                 <texture>white.png</texture>
                 <colordiffuse>ff1a1a1a</colordiffuse>
-                <animation effect="zoom" end="5,280,270,110" time="100">focus</animation>
             </control>
-            <control type="textbox">
-              <left>10</left>
-              <top>280</top>
-              <width>260</width>
-              <height>100</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>left</align>
-              <autoscroll delay="4000" time="1500" repeat="5000"></autoscroll>
-              <label>[B]$INFO[ListItem.Property(release_title)][/B]</label>
-            </control>
-        		<control type="label">
-        			<left>300</left>
-        			<top>10</top>
-        			<width>400</width>
-        			<height>22</height>
-        			<font>font12</font>
-        			<textcolor>AAFFFFFF</textcolor>
-        			<align>left</align>
-        			<label>Ep $INFO[ListItem.Property(ep_title)] at</label>
-        		</control>
+
+            <!-- Release Title -->
             <control type="label">
               <left>300</left>
-              <top>42</top>
-              <width>400</width>
-              <height>22</height>
+              <top>0</top>
+              <width>450</width>
+              <height>30</height>
               <font>font14</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>left</align>
-              <label>[B]$INFO[ListItem.Property(ep_airingAt)][/B]</label>
+              <scroll>true</scroll>
+              <autoscroll delay="4000" time="1500" repeat="5000"></autoscroll>
+              <label>[B]$INFO[ListItem.Property(release_title)][/B]</label>
             </control>
+
+        		<!-- RAW Release -->
+        		<control type="label">
+        			<visible>Integer.IsGreater(ListItem.Property(raw_episode),0)</visible>
+        			<left>300</left>
+        			<top>40</top>
+        			<width>450</width>
+        			<height>18</height>
+        			<font>font10</font>
+        			<textcolor>AAFFFFFF</textcolor>
+        			<align>left</align>
+        			<label>[COLOR cyan]Ep $INFO[ListItem.Property(raw_episode)] Raw:[/COLOR] $INFO[ListItem.Property(raw_date_formatted)]</label>
+        		</control>
+        		<!-- <control type="label">
+        			<visible>Integer.IsGreater(ListItem.Property(raw_episode),0)</visible>
+        			<left>305</left>
+        			<top>46</top>
+        			<width>400</width>
+        			<height>18</height>
+        			<font>font9</font>
+        			<textcolor>88FFFFFF</textcolor>
+        			<align>left</align>
+        			<label>Countdown: $INFO[ListItem.Property(raw_countdown)]</label>
+        		</control> -->
+        		<!-- SUB Release -->
+        		<control type="label">
+        			<visible>Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
+        			<left>300</left>
+        			<top>70</top>
+        			<width>450</width>
+        			<height>18</height>
+        			<font>font10</font>
+        			<textcolor>AAFFFFFF</textcolor>
+        			<align>left</align>
+        			<label>[COLOR blue]Ep $INFO[ListItem.Property(sub_episode)] Sub:[/COLOR] $INFO[ListItem.Property(sub_date_formatted)]</label>
+        		</control>
+        		<!-- <control type="label">
+        			<visible>Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
+        			<left>305</left>
+        			<top>82</top>
+        			<width>400</width>
+        			<height>18</height>
+        			<font>font9</font>
+        			<textcolor>88FFFFFF</textcolor>
+        			<align>left</align>
+        			<label>Countdown: $INFO[ListItem.Property(sub_countdown)]</label>
+        		</control> -->
+        		<!-- DUB Release -->
+        		<control type="label">
+        			<visible>Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
+        			<left>300</left>
+        			<top>100</top>
+        			<width>450</width>
+        			<height>18</height>
+        			<font>font10</font>
+        			<textcolor>AAFFFFFF</textcolor>
+        			<align>left</align>
+        			<label>[COLOR green]Ep $INFO[ListItem.Property(dub_episode)] Dub:[/COLOR] $INFO[ListItem.Property(dub_date_formatted)]</label>
+        		</control>
+        		<!-- <control type="label">
+        			<visible>Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
+        			<left>305</left>
+        			<top>118</top>
+        			<width>400</width>
+        			<height>18</height>
+        			<font>font9</font>
+        			<textcolor>88FFFFFF</textcolor>
+        			<align>left</align>
+        			<label>Countdown: $INFO[ListItem.Property(dub_countdown)]</label>
+        		</control> -->
             <control type="textbox">
               <left>300</left>
-              <top>110</top>
+              <top>140</top>
               <width>450</width>
               <height min="20" max="200">auto</height>
               <font>font10</font>
@@ -406,16 +511,16 @@
             </control>
             <control type="image">
                 <left>300</left>
-                <top>330</top>
-                <width>400</width>
+                <top>350</top>
+                <width>480</width>
                 <height>30</height>
                 <texture>white.png</texture>
                 <colordiffuse>aa4da6ff</colordiffuse>
             </control>
             <control type="label">
               <left>305</left>
-              <top>330</top>
-              <width>395</width>
+              <top>350</top>
+              <width>475</width>
               <height>22</height>
               <font>font10</font>
               <textcolor>AAFFFFFF</textcolor>
@@ -423,8 +528,8 @@
               <label>[B]$INFO[ListItem.Property(genres)][/B]</label>
             </control>
             <control type="group">
-              <left>700</left>
-              <top>10</top>
+              <left>180</left>
+              <top>345</top>
               <control type="image">
                   <visible>Integer.IsGreaterOrEqual(ListItem.Property(averageScore),75)</visible>
                   <width>35</width>
@@ -446,8 +551,8 @@
             </control>
             <control type="label">
               <visible>Integer.IsGreater(ListItem.Property(averageScore),0)</visible>
-              <left>745</left>
-              <top>10</top>
+              <left>220</left>
+              <top>345</top>
               <width>50</width>
               <height>22</height>
               <font>font12</font>
@@ -542,7 +647,7 @@
             </control>
 
             <!-- Studios Section (FOCUSEDLAYOUT) -->
-            <control type="label">
+            <!-- <control type="label">
               <visible>!IsEmpty(ListItem.Property(studios))</visible>
               <left>300</left>
               <top>365</top>
@@ -564,10 +669,10 @@
               <align>left</align>
               <autoscroll delay="3000" time="1500" repeat="5000"></autoscroll>
               <label>$INFO[ListItem.Property(studios)]</label>
-            </control>
+            </control> -->
 
             <!-- Status Section (FOCUSEDLAYOUT) -->
-            <control type="label">
+            <!-- <control type="label">
               <visible>!IsEmpty(ListItem.Property(status))</visible>
               <left>300</left>
               <top>410</top>
@@ -588,10 +693,10 @@
               <textcolor>AAFFFFFF</textcolor>
               <align>left</align>
               <label>$INFO[ListItem.Property(status)]</label>
-            </control>
+            </control> -->
 
             <!-- Streams Section (FOCUSEDLAYOUT) -->
-            <control type="label">
+            <!-- <control type="label">
               <visible>!IsEmpty(ListItem.Property(streams))</visible>
               <left>300</left>
               <top>447</top>
@@ -613,7 +718,7 @@
               <align>left</align>
               <autoscroll delay="3000" time="1500" repeat="5000"></autoscroll>
               <label>$INFO[ListItem.Property(streams)]</label>
-            </control>
+            </control> -->
 
         	</focusedlayout>
         </control>
