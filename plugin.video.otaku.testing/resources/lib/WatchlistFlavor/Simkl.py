@@ -4,7 +4,7 @@ import random
 from resources.lib.ui import utils, database, client, control, get_meta
 from resources.lib.WatchlistFlavor.WatchlistFlavorBase import WatchlistFlavorBase
 from resources.lib.ui.divide_flavors import div_flavor
-from resources.lib.endpoints import simkl, anilist
+from resources.lib.endpoints import anilist
 
 
 class SimklWLF(WatchlistFlavorBase):

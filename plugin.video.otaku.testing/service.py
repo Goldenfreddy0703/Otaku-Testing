@@ -244,7 +244,7 @@ if __name__ == "__main__":
             sync_watchlist(True)
             control.setInt('update.time.7', int(time.time()))
         if time.time() > control.getInt('update.time.1') + 86_400:   # 1 day
-            update_calendars()
+            # update_calendars()
             sync_watchlist(True)
             control.setInt('update.time.1', int(time.time()))
     control.log('##################  MAINTENANCE COMPLETE ######################')

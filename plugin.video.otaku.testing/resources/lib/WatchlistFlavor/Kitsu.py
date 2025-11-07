@@ -5,7 +5,7 @@ import pickle
 from resources.lib.ui import client, control, database, utils, get_meta
 from resources.lib.WatchlistFlavor.WatchlistFlavorBase import WatchlistFlavorBase
 from resources.lib.indexers.simkl import SIMKLAPI
-from resources.lib.endpoints import simkl, anilist
+from resources.lib.endpoints import anilist
 from urllib import parse
 
 from resources.lib.ui.divide_flavors import div_flavor

@@ -1,8 +1,11 @@
 import datetime
 import json
 import os
+import re
+from html import unescape
 
 from resources.lib.ui import client, database, control, utils
+from resources.lib.endpoints import mdblist
 
 BASE_URL = "https://animeschedule.net/api/v3"
 WEBSITE_URL = "https://animeschedule.net"
@@ -478,6 +481,30 @@ class AnimeScheduleCalendar:
             return f"https://img.animeschedule.net/production/assets/public/img/{image_route}"
         return None
 
+    def _clean_html(self, text):
+        """
+        Clean HTML tags and decode HTML entities from text
+        
+        Args:
+            text (str): Text with HTML tags/entities
+            
+        Returns:
+            str: Cleaned plain text
+        """
+        if not text:
+            return ''
+        
+        # Remove HTML tags
+        text = re.sub(r'<[^>]+>', '', text)
+        
+        # Decode HTML entities (&#39; -> ', &amp; -> &, etc.)
+        text = unescape(text)
+        
+        # Clean up extra whitespace
+        text = re.sub(r'\s+', ' ', text).strip()
+        
+        return text
+
     def format_for_anichart(self, anime_list):
         """
         Transform enriched anime data into Anichart display format
@@ -492,6 +519,17 @@ class AnimeScheduleCalendar:
         
         # Get user's title language preference (0=romaji, 1=english)
         title_lang_pref = control.getInt("titlelanguage")
+        
+        # Collect all MAL IDs for batch ratings fetch
+        mal_ids = [anime.get('mal_id') for anime in anime_list if anime.get('mal_id')]
+        
+        # Fetch ratings for all anime in one batch request
+        ratings_map = {}
+        if mal_ids:
+            try:
+                ratings_map = mdblist.get_ratings_for_mal_ids(mal_ids)
+            except Exception:
+                pass
         
         formatted_items = []
         
@@ -548,6 +586,18 @@ class AnimeScheduleCalendar:
                 primary_ep = raw_ep or sub_ep or dub_ep
                 primary_date = raw_date or sub_date or dub_date
                 
+                # Get MDBList ratings for this anime
+                mal_id = anime.get('mal_id')
+                mdblist_ratings = ratings_map.get(mal_id, {}) if mal_id else {}
+                
+                rating_mal = mdblist_ratings.get('mal', 0.0)
+                rating_imdb = mdblist_ratings.get('imdb', 0.0)
+                rating_trakt = mdblist_ratings.get('trakt', 0.0)
+                rating_tmdb = mdblist_ratings.get('tmdb', 0.0)
+                # Convert score_average to percentage (0-10 scale to 0-100 scale)
+                rating_average_decimal = mdblist_ratings.get('score_average', 0.0)
+                rating_average = int(rating_average_decimal * 10) if rating_average_decimal > 0 else 0
+
                 # Build Anichart item
                 anichart_item = {
                     'id': anime.get('mal_id') or anime.get('route'),
@@ -557,7 +607,7 @@ class AnimeScheduleCalendar:
                     'english': anime.get('english', ''),
                     'native': anime.get('native', ''),
                     'poster': anime.get('image', ''),
-                    'plot': anime.get('description', ''),
+                    'plot': self._clean_html(anime.get('description', '')),
                     'genres': genres,
                     'studios': studios,
                     'total_episodes': anime.get('total_episodes', 0),
@@ -593,6 +643,12 @@ class AnimeScheduleCalendar:
                     # Streams
                     'streams': stream_info,
                     'websites': str(anime.get('websites', {})),
+                    # MDBList Ratings
+                    'rating_mal': rating_mal,
+                    'rating_imdb': rating_imdb,
+                    'rating_trakt': rating_trakt,
+                    'rating_tmdb': rating_tmdb,
+                    'rating_average': rating_average,
                 }
                 
                 formatted_items.append(anichart_item)

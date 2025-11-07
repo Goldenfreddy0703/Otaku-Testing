@@ -6,7 +6,7 @@ import pickle
 from resources.lib.ui import utils, client, control, get_meta, database
 from resources.lib.WatchlistFlavor.WatchlistFlavorBase import WatchlistFlavorBase
 from resources.lib.ui.divide_flavors import div_flavor
-from resources.lib.endpoints import simkl, anilist
+from resources.lib.endpoints import anilist
 
 
 class MyAnimeListWLF(WatchlistFlavorBase):

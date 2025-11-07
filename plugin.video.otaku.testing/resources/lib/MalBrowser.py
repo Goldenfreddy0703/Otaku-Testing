@@ -1,4 +1,3 @@
-import time
 import json
 import random
 import pickle
@@ -9,7 +8,6 @@ import datetime
 
 from bs4 import BeautifulSoup
 from functools import partial
-from resources.lib.endpoints.simkl import Simkl
 from resources.lib.ui import database, control, client, utils, get_meta
 from resources.lib.ui.BrowserBase import BrowserBase
 from resources.lib.ui.divide_flavors import div_flavor
