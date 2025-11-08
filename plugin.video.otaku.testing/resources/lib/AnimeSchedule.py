@@ -613,6 +613,20 @@ class AnimeScheduleCalendar:
                 mdblist_ratings = ratings_map.get(mal_id, {}) if mal_id else {}
                 
                 rating_mal = mdblist_ratings.get('mal', 0.0)
+                
+                # If MDBList has no MAL rating (0.0), fallback to database score
+                if rating_mal == 0.0 and mal_id:
+                    db_mapping = database.get_mappings(mal_id, 'mal_id')
+                    if db_mapping and db_mapping.get('score'):
+                        try:
+                            # Round to 1 decimal place (8.64 -> 8.6)
+                            rating_mal = round(float(db_mapping.get('score')), 1)
+                            # Cap 10.0 scores at 9.9
+                            if rating_mal == 10.0:
+                                rating_mal = 9.9
+                        except (ValueError, TypeError):
+                            rating_mal = 0.0
+                
                 rating_imdb = mdblist_ratings.get('imdb', 0.0)
                 rating_trakt = mdblist_ratings.get('trakt', 0.0)
                 rating_tmdb = mdblist_ratings.get('tmdb', 0.0)
