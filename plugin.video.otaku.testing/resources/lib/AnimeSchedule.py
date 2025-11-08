@@ -565,21 +565,27 @@ class AnimeScheduleCalendar:
                 raw_data = releases.get('raw', {})
                 raw_ep = raw_data.get('episode_number', 0)
                 raw_date = raw_data.get('episode_date', '')
+                raw_day = self._format_episode_day(raw_date)
                 raw_date_formatted = self._format_episode_date(raw_date)
+                raw_time = self._format_episode_time(raw_date)
                 raw_countdown = self._format_countdown(raw_date)
                 
                 # SUB release data
                 sub_data = releases.get('sub', {})
                 sub_ep = sub_data.get('episode_number', 0)
                 sub_date = sub_data.get('episode_date', '')
+                sub_day = self._format_episode_day(sub_date)
                 sub_date_formatted = self._format_episode_date(sub_date)
+                sub_time = self._format_episode_time(sub_date)
                 sub_countdown = self._format_countdown(sub_date)
                 
                 # DUB release data
                 dub_data = releases.get('dub', {})
                 dub_ep = dub_data.get('episode_number', 0)
                 dub_date = dub_data.get('episode_date', '')
+                dub_day = self._format_episode_day(dub_date)
                 dub_date_formatted = self._format_episode_date(dub_date)
+                dub_time = self._format_episode_time(dub_date)
                 dub_countdown = self._format_countdown(dub_date)
                 
                 # Determine primary release (first available: raw > sub > dub)
@@ -624,17 +630,23 @@ class AnimeScheduleCalendar:
                     # RAW release
                     'raw_episode': raw_ep,
                     'raw_date': raw_date,
+                    'raw_day': raw_day,
                     'raw_date_formatted': raw_date_formatted,
+                    'raw_time': raw_time,
                     'raw_countdown': raw_countdown,
                     # SUB release
                     'sub_episode': sub_ep,
                     'sub_date': sub_date,
+                    'sub_day': sub_day,
                     'sub_date_formatted': sub_date_formatted,
+                    'sub_time': sub_time,
                     'sub_countdown': sub_countdown,
                     # DUB release
                     'dub_episode': dub_ep,
                     'dub_date': dub_date,
+                    'dub_day': dub_day,
                     'dub_date_formatted': dub_date_formatted,
+                    'dub_time': dub_time,
                     'dub_countdown': dub_countdown,
                     # Primary/default values (for backward compatibility)
                     'episode_number': primary_ep,
@@ -658,28 +670,63 @@ class AnimeScheduleCalendar:
         
         return formatted_items
     
-    def _format_episode_date(self, episode_date):
+    def _format_episode_day(self, episode_date):
         """
-        Format episode date for display
+        Format episode day
         
         Args:
             episode_date (str): ISO format datetime string
             
         Returns:
-            str: Formatted date (e.g., "Thursday 06 Nov, 12:00 PM")
+            str: Formatted day (e.g., "Thursday")
         """
         if not episode_date or episode_date == '0001-01-01T00:00:00Z':
             return 'TBA'
         
         try:
-            # Parse ISO format date
             dt = datetime.datetime.fromisoformat(episode_date.replace('Z', '+00:00'))
-            # Format: Thursday 06 Nov, 12:00 PM
-            return dt.strftime('%A %d %b, %I:%M %p')
+            return dt.strftime('%A')
+        except:
+            return episode_date
+    
+    def _format_episode_date(self, episode_date):
+        """
+        Format episode date
+        
+        Args:
+            episode_date (str): ISO format datetime string
+            
+        Returns:
+            str: Formatted date (e.g., "06 Nov")
+        """
+        if not episode_date or episode_date == '0001-01-01T00:00:00Z':
+            return 'TBA'
+        
+        try:
+            dt = datetime.datetime.fromisoformat(episode_date.replace('Z', '+00:00'))
+            return dt.strftime('%d %b')
         except:
             return episode_date
 
-    
+    def _format_episode_time(self, episode_date):
+        """
+        Format episode time
+        
+        Args:
+            episode_date (str): ISO format datetime string
+            
+        Returns:
+            str: Formatted time (e.g., "12:00 PM")
+        """
+        if not episode_date or episode_date == '0001-01-01T00:00:00Z':
+            return 'TBA'
+        
+        try:
+            dt = datetime.datetime.fromisoformat(episode_date.replace('Z', '+00:00'))
+            return dt.strftime('%I:%M %p')
+        except:
+            return episode_date
+
     def _format_countdown(self, episode_date):
         """
         Calculate countdown to episode release

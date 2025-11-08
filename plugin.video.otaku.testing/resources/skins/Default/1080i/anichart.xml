@@ -114,75 +114,120 @@
               <label>[B]$INFO[ListItem.Property(release_title)][/B]</label>
             </control>
 
-        		<!-- RAW Release -->
-        		<control type="label">
-        			<visible>Integer.IsGreater(ListItem.Property(raw_episode),0)</visible>
-        			<left>300</left>
-        			<top>40</top>
-        			<width>450</width>
-        			<height>18</height>
-        			<font>font10</font>
-        			<textcolor>AAFFFFFF</textcolor>
-        			<align>left</align>
-        			<label>[COLOR cyan]Ep $INFO[ListItem.Property(raw_episode)] Raw:[/COLOR] $INFO[ListItem.Property(raw_date_formatted)]</label>
-        		</control>
-        		<!-- <control type="label">
-        			<visible>Integer.IsGreater(ListItem.Property(raw_episode),0)</visible>
-        			<left>305</left>
-        			<top>46</top>
-        			<width>400</width>
-        			<height>18</height>
-        			<font>font9</font>
-        			<textcolor>88FFFFFF</textcolor>
-        			<align>left</align>
-        			<label>Countdown: $INFO[ListItem.Property(raw_countdown)]</label>
-        		</control> -->
-        		<!-- SUB Release -->
-        		<control type="label">
-        			<visible>Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
-        			<left>300</left>
-        			<top>70</top>
-        			<width>450</width>
-        			<height>18</height>
-        			<font>font10</font>
-        			<textcolor>AAFFFFFF</textcolor>
-        			<align>left</align>
-        			<label>[COLOR blue]Ep $INFO[ListItem.Property(sub_episode)] Sub:[/COLOR] $INFO[ListItem.Property(sub_date_formatted)]</label>
-        		</control>
-        		<!-- <control type="label">
-        			<visible>Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
-        			<left>305</left>
-        			<top>82</top>
-        			<width>400</width>
-        			<height>18</height>
-        			<font>font9</font>
-        			<textcolor>88FFFFFF</textcolor>
-        			<align>left</align>
-        			<label>Countdown: $INFO[ListItem.Property(sub_countdown)]</label>
-        		</control> -->
-        		<!-- DUB Release -->
-        		<control type="label">
-        			<visible>Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
-        			<left>300</left>
-        			<top>100</top>
-        			<width>450</width>
-        			<height>18</height>
-        			<font>font10</font>
-        			<textcolor>AAFFFFFF</textcolor>
-        			<align>left</align>
-        			<label>[COLOR green]Ep $INFO[ListItem.Property(dub_episode)] Dub:[/COLOR] $INFO[ListItem.Property(dub_date_formatted)]</label>
-        		</control>
-        		<!-- <control type="label">
-        			<visible>Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
-        			<left>305</left>
-        			<top>118</top>
-        			<width>400</width>
-        			<height>18</height>
-        			<font>font9</font>
-        			<textcolor>88FFFFFF</textcolor>
-        			<align>left</align>
-        			<label>Countdown: $INFO[ListItem.Property(dub_countdown)]</label>
-        		</control> -->
+            <!-- ===== Added: compact episodes row (Raw | Sub | Dub) ===== -->
+            <control type="group">
+                <visible>
+                    Integer.IsGreater(ListItem.Property(raw_episode),0) |
+                    Integer.IsGreater(ListItem.Property(sub_episode),0) |
+                    Integer.IsGreater(ListItem.Property(dub_episode),0)
+                </visible>
+                <left>300</left>
+                <top>40</top>
+                <width>450</width>
+                <height>70</height>
+
+                <!-- RAW -->
+                <control type="group">
+                    <visible>Integer.IsGreater(ListItem.Property(raw_episode),0)</visible>
+                    <left>0</left><top>0</top><width>150</width><height>70</height>
+                    <control type="label">
+                        <left>0</left><top>0</top><width>150</width><height>20</height>
+                        <font>font10</font>
+                        <textcolor>FF53b56f</textcolor>
+                        <align>left</align>
+                        <label>[B]Ep $INFO[ListItem.Property(raw_episode)] Raw[/B]</label>
+                    </control>
+                    <!-- time under title -->
+                    <control type="label">
+                        <visible>!String.IsEmpty(ListItem.Property(raw_time))</visible>
+                        <left>0</left><top>22</top><width>150</width><height>18</height>
+                        <font>font10</font>
+                        <textcolor>FFB7C0CC</textcolor>
+                        <align>left</align>
+                        <label>$INFO[ListItem.Property(raw_time)]</label>
+                    </control>
+                </control>
+
+                <!-- Separator RAW|SUB -->
+                <control type="image">
+                    <visible>Integer.IsGreater(ListItem.Property(raw_episode),0) + Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
+                    <left>150</left><top>0</top><width>2</width><height>42</height>
+                    <texture>white.png</texture>
+                    <colordiffuse>33FFFFFF</colordiffuse>
+                </control>
+
+                <!-- SUB -->
+                <control type="group">
+                    <visible>Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
+                    <left>152</left><top>0</top><width>150</width><height>70</height>
+                    <control type="label">
+                        <left>0</left><top>0</top><width>150</width><height>20</height>
+                        <font>font10</font>
+                        <textcolor>FF2fb2ff</textcolor>
+                        <align>left</align>
+                        <label>[B]Ep $INFO[ListItem.Property(sub_episode)] Sub[/B]</label>
+                    </control>
+                    <control type="label">
+                        <visible>!String.IsEmpty(ListItem.Property(sub_time))</visible>
+                        <left>0</left><top>22</top><width>150</width><height>18</height>
+                        <font>font10</font>
+                        <textcolor>FFB7C0CC</textcolor>
+                        <align>left</align>
+                        <label>$INFO[ListItem.Property(sub_time)]</label>
+                    </control>
+                </control>
+
+                <!-- Separator SUB|DUB -->
+                <control type="image">
+                    <visible>Integer.IsGreater(ListItem.Property(sub_episode),0) + Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
+                    <left>302</left><top>0</top><width>2</width><height>42</height>
+                    <texture>white.png</texture>
+                    <colordiffuse>33FFFFFF</colordiffuse>
+                </control>
+
+                <!-- DUB -->
+                <control type="group">
+                    <visible>Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
+                    <left>304</left><top>0</top><width>146</width><height>70</height>
+                    <control type="label">
+                        <left>0</left><top>0</top><width>146</width><height>20</height>
+                        <font>font10</font>
+                        <textcolor>FF9fd33a</textcolor>
+                        <align>left</align>
+                        <label>[B]Ep $INFO[ListItem.Property(dub_episode)] Dub[/B]</label>
+                    </control>
+                    <control type="label">
+                        <visible>!String.IsEmpty(ListItem.Property(dub_time))</visible>
+                        <left>0</left><top>22</top><width>146</width><height>18</height>
+                        <font>font10</font>
+                        <textcolor>FFB7C0CC</textcolor>
+                        <align>left</align>
+                        <label>$INFO[ListItem.Property(dub_time)]</label>
+                    </control>
+                </control>
+
+                <!-- Single day and date below all three columns -->
+                <control type="label">
+                    <visible>!String.IsEmpty(ListItem.Property(raw_day)) | !String.IsEmpty(ListItem.Property(sub_day)) | !String.IsEmpty(ListItem.Property(dub_day))</visible>
+                    <left>0</left><top>55</top><width>300</width><height>18</height>
+                    <font>font9</font>
+                    <textcolor>88B7C0CC</textcolor>
+                    <align>left</align>
+                    <label>$INFO[ListItem.Property(raw_day)] $INFO[ListItem.Property(raw_date_formatted)]</label>
+                </control>
+
+                <!-- Countdown beside date -->
+                <control type="label">
+                    <visible>!String.IsEmpty(ListItem.Property(raw_countdown))</visible>
+                    <left>350</left><top>55</top><width>150</width><height>18</height>
+                    <font>font9</font>
+                    <textcolor>FFFF9800</textcolor>
+                    <align>left</align>
+                    <label>$INFO[ListItem.Property(raw_countdown)]</label>
+                </control>
+            </control>
+            <!-- ===== /Added ===== -->
+
             <control type="textbox">
               <left>300</left>
               <top>140</top>
@@ -537,75 +582,120 @@
               <label>[B]$INFO[ListItem.Property(release_title)][/B]</label>
             </control>
 
-        		<!-- RAW Release -->
-        		<control type="label">
-        			<visible>Integer.IsGreater(ListItem.Property(raw_episode),0)</visible>
-        			<left>300</left>
-        			<top>40</top>
-        			<width>450</width>
-        			<height>18</height>
-        			<font>font10</font>
-        			<textcolor>AAFFFFFF</textcolor>
-        			<align>left</align>
-        			<label>[COLOR cyan]Ep $INFO[ListItem.Property(raw_episode)] Raw:[/COLOR] $INFO[ListItem.Property(raw_date_formatted)]</label>
-        		</control>
-        		<!-- <control type="label">
-        			<visible>Integer.IsGreater(ListItem.Property(raw_episode),0)</visible>
-        			<left>305</left>
-        			<top>46</top>
-        			<width>400</width>
-        			<height>18</height>
-        			<font>font9</font>
-        			<textcolor>88FFFFFF</textcolor>
-        			<align>left</align>
-        			<label>Countdown: $INFO[ListItem.Property(raw_countdown)]</label>
-        		</control> -->
-        		<!-- SUB Release -->
-        		<control type="label">
-        			<visible>Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
-        			<left>300</left>
-        			<top>70</top>
-        			<width>450</width>
-        			<height>18</height>
-        			<font>font10</font>
-        			<textcolor>AAFFFFFF</textcolor>
-        			<align>left</align>
-        			<label>[COLOR blue]Ep $INFO[ListItem.Property(sub_episode)] Sub:[/COLOR] $INFO[ListItem.Property(sub_date_formatted)]</label>
-        		</control>
-        		<!-- <control type="label">
-        			<visible>Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
-        			<left>305</left>
-        			<top>82</top>
-        			<width>400</width>
-        			<height>18</height>
-        			<font>font9</font>
-        			<textcolor>88FFFFFF</textcolor>
-        			<align>left</align>
-        			<label>Countdown: $INFO[ListItem.Property(sub_countdown)]</label>
-        		</control> -->
-        		<!-- DUB Release -->
-        		<control type="label">
-        			<visible>Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
-        			<left>300</left>
-        			<top>100</top>
-        			<width>450</width>
-        			<height>18</height>
-        			<font>font10</font>
-        			<textcolor>AAFFFFFF</textcolor>
-        			<align>left</align>
-        			<label>[COLOR green]Ep $INFO[ListItem.Property(dub_episode)] Dub:[/COLOR] $INFO[ListItem.Property(dub_date_formatted)]</label>
-        		</control>
-        		<!-- <control type="label">
-        			<visible>Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
-        			<left>305</left>
-        			<top>118</top>
-        			<width>400</width>
-        			<height>18</height>
-        			<font>font9</font>
-        			<textcolor>88FFFFFF</textcolor>
-        			<align>left</align>
-        			<label>Countdown: $INFO[ListItem.Property(dub_countdown)]</label>
-        		</control> -->
+            <!-- ===== Added: compact episodes row (Raw | Sub | Dub) ===== -->
+            <control type="group">
+                <visible>
+                    Integer.IsGreater(ListItem.Property(raw_episode),0) |
+                    Integer.IsGreater(ListItem.Property(sub_episode),0) |
+                    Integer.IsGreater(ListItem.Property(dub_episode),0)
+                </visible>
+                <left>300</left>
+                <top>40</top>
+                <width>450</width>
+                <height>70</height>
+
+                <!-- RAW -->
+                <control type="group">
+                    <visible>Integer.IsGreater(ListItem.Property(raw_episode),0)</visible>
+                    <left>0</left><top>0</top><width>150</width><height>70</height>
+                    <control type="label">
+                        <left>0</left><top>0</top><width>150</width><height>20</height>
+                        <font>font10</font>
+                        <textcolor>FF53b56f</textcolor>
+                        <align>left</align>
+                        <label>[B]Ep $INFO[ListItem.Property(raw_episode)] Raw[/B]</label>
+                    </control>
+                    <!-- time under title -->
+                    <control type="label">
+                        <visible>!String.IsEmpty(ListItem.Property(raw_time))</visible>
+                        <left>0</left><top>22</top><width>150</width><height>18</height>
+                        <font>font10</font>
+                        <textcolor>FFB7C0CC</textcolor>
+                        <align>left</align>
+                        <label>$INFO[ListItem.Property(raw_time)]</label>
+                    </control>
+                </control>
+
+                <!-- Separator RAW|SUB -->
+                <control type="image">
+                    <visible>Integer.IsGreater(ListItem.Property(raw_episode),0) + Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
+                    <left>150</left><top>0</top><width>2</width><height>42</height>
+                    <texture>white.png</texture>
+                    <colordiffuse>33FFFFFF</colordiffuse>
+                </control>
+
+                <!-- SUB -->
+                <control type="group">
+                    <visible>Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
+                    <left>152</left><top>0</top><width>150</width><height>70</height>
+                    <control type="label">
+                        <left>0</left><top>0</top><width>150</width><height>20</height>
+                        <font>font10</font>
+                        <textcolor>FF2fb2ff</textcolor>
+                        <align>left</align>
+                        <label>[B]Ep $INFO[ListItem.Property(sub_episode)] Sub[/B]</label>
+                    </control>
+                    <control type="label">
+                        <visible>!String.IsEmpty(ListItem.Property(sub_time))</visible>
+                        <left>0</left><top>22</top><width>150</width><height>18</height>
+                        <font>font10</font>
+                        <textcolor>FFB7C0CC</textcolor>
+                        <align>left</align>
+                        <label>$INFO[ListItem.Property(sub_time)]</label>
+                    </control>
+                </control>
+
+                <!-- Separator SUB|DUB -->
+                <control type="image">
+                    <visible>Integer.IsGreater(ListItem.Property(sub_episode),0) + Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
+                    <left>302</left><top>0</top><width>2</width><height>42</height>
+                    <texture>white.png</texture>
+                    <colordiffuse>33FFFFFF</colordiffuse>
+                </control>
+
+                <!-- DUB -->
+                <control type="group">
+                    <visible>Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
+                    <left>304</left><top>0</top><width>146</width><height>70</height>
+                    <control type="label">
+                        <left>0</left><top>0</top><width>146</width><height>20</height>
+                        <font>font10</font>
+                        <textcolor>FF9fd33a</textcolor>
+                        <align>left</align>
+                        <label>[B]Ep $INFO[ListItem.Property(dub_episode)] Dub[/B]</label>
+                    </control>
+                    <control type="label">
+                        <visible>!String.IsEmpty(ListItem.Property(dub_time))</visible>
+                        <left>0</left><top>22</top><width>146</width><height>18</height>
+                        <font>font10</font>
+                        <textcolor>FFB7C0CC</textcolor>
+                        <align>left</align>
+                        <label>$INFO[ListItem.Property(dub_time)]</label>
+                    </control>
+                </control>
+
+                <!-- Single day and date below all three columns -->
+                <control type="label">
+                    <visible>!String.IsEmpty(ListItem.Property(raw_day)) | !String.IsEmpty(ListItem.Property(sub_day)) | !String.IsEmpty(ListItem.Property(dub_day))</visible>
+                    <left>0</left><top>55</top><width>300</width><height>18</height>
+                    <font>font9</font>
+                    <textcolor>88B7C0CC</textcolor>
+                    <align>left</align>
+                    <label>$INFO[ListItem.Property(raw_day)] $INFO[ListItem.Property(raw_date_formatted)]</label>
+                </control>
+
+                <!-- Countdown beside date -->
+                <control type="label">
+                    <visible>!String.IsEmpty(ListItem.Property(raw_countdown))</visible>
+                    <left>350</left><top>55</top><width>150</width><height>18</height>
+                    <font>font9</font>
+                    <textcolor>FFFF9800</textcolor>
+                    <align>left</align>
+                    <label>$INFO[ListItem.Property(raw_countdown)]</label>
+                </control>
+            </control>
+            <!-- ===== /Added ===== -->
+
             <control type="textbox">
               <left>300</left>
               <top>140</top>
