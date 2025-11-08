@@ -21,6 +21,7 @@ class BaseWindow(xbmcgui.WindowXMLDialog):
         self.setProperty('texture.aversad', os.path.join(control.IMAGES_PATH, 'anichart-icon-frown.png'))
         self.setProperty('texture.popular', os.path.join(control.IMAGES_PATH, 'anichart-icon-popular.png'))
         self.setProperty('texture.mal', os.path.join(control.IMAGES_PATH, 'anichart-icon-mal.png'))
+        self.setProperty('texture.anilist', os.path.join(control.IMAGES_PATH, 'anichart-icon-anilist.png'))
         self.setProperty('texture.imdb', os.path.join(control.IMAGES_PATH, 'anichart-icon-imdb.png'))
         self.setProperty('texture.trakt', os.path.join(control.IMAGES_PATH, 'anichart-icon-trakt.png'))
         self.setProperty('texture.tmdb', os.path.join(control.IMAGES_PATH, 'anichart-icon-tmdb.png'))

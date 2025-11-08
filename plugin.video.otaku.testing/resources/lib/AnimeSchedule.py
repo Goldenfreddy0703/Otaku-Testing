@@ -5,7 +5,7 @@ import re
 from html import unescape
 
 from resources.lib.ui import client, database, control, utils
-from resources.lib.endpoints import mdblist
+from resources.lib.endpoints import mdblist, anilist
 
 BASE_URL = "https://animeschedule.net/api/v3"
 WEBSITE_URL = "https://animeschedule.net"
@@ -533,11 +533,17 @@ class AnimeScheduleCalendar:
         # Collect all MAL IDs for batch ratings fetch
         mal_ids = [anime.get('mal_id') for anime in anime_list if anime.get('mal_id')]
         
-        # Fetch ratings for all anime in one batch request
+        # Fetch ratings for all anime in one batch request (MDBList and AniList)
         ratings_map = {}
+        anilist_ratings_map = {}
         if mal_ids:
             try:
                 ratings_map = mdblist.get_ratings_for_mal_ids(mal_ids)
+            except Exception:
+                pass
+            
+            try:
+                anilist_ratings_map = anilist.get_anilist_ratings_for_mal_ids(mal_ids)
             except Exception:
                 pass
         
@@ -612,6 +618,12 @@ class AnimeScheduleCalendar:
                 rating_tmdb = mdblist_ratings.get('tmdb', 0.0)
                 # score_average is already 0-100 scale from MDBList API
                 rating_average = mdblist_ratings.get('score_average', 0)
+                
+                # Get AniList rating for this anime
+                anilist_ratings = anilist_ratings_map.get(mal_id, {}) if mal_id else {}
+                # anilist_score is 0-100 scale from AniList API, convert to 0-10 decimal
+                anilist_score_raw = anilist_ratings.get('anilist_score', 0)
+                rating_anilist = round(anilist_score_raw / 10.0, 1) if anilist_score_raw > 0 else 0.0
 
                 # Build Anichart item
                 anichart_item = {
@@ -670,6 +682,8 @@ class AnimeScheduleCalendar:
                     'rating_trakt': rating_trakt,
                     'rating_tmdb': rating_tmdb,
                     'rating_average': rating_average,
+                    # AniList Rating
+                    'rating_anilist': rating_anilist,
                 }
                 
                 formatted_items.append(anichart_item)

@@ -294,31 +294,32 @@
               <align>center</align>
               <label>[B]$INFO[ListItem.Property(genres)][/B]</label>
             </control>
+
             <control type="group">
-              <left>8</left>
+              <left>15</left>
               <top>10</top>
               <control type="image">
                   <visible>Integer.IsGreaterOrEqual(ListItem.Property(rating_average),75)</visible>
-                  <width>35</width>
-                  <height>35</height>
+                  <width>30</width>
+                  <height>30</height>
                   <texture>$INFO[Window().Property(texture.aver)]</texture>
               </control>
               <control type="image">
                   <visible>Integer.IsGreater(ListItem.Property(rating_average),60) + Integer.IsLess(ListItem.Property(rating_average),75)</visible>
-                  <width>35</width>
-                  <height>35</height>
+                  <width>30</width>
+                  <height>30</height>
                   <texture>$INFO[Window().Property(texture.averstr)]</texture>
               </control>
               <control type="image">
                   <visible>Integer.IsGreater(ListItem.Property(rating_average),0) + Integer.IsLessOrEqual(ListItem.Property(rating_average),60)</visible>
-                  <width>35</width>
-                  <height>35</height>
+                  <width>30</width>
+                  <height>30</height>
                   <texture>$INFO[Window().Property(texture.aversad)]</texture>
               </control>
               <control type="image">
                   <visible>Integer.IsEqual(ListItem.Property(rating_average),0) | IsEmpty(ListItem.Property(rating_average))</visible>
-                  <width>35</width>
-                  <height>35</height>
+                  <width>30</width>
+                  <height>30</height>
                   <texture>$INFO[Window().Property(texture.avernone)]</texture>
               </control>
             </control>
@@ -326,10 +327,10 @@
             <!-- rating_average: show actual percentage if > 0, otherwise "-" -->
             <control type="label">
               <visible>Integer.IsGreater(ListItem.Property(rating_average),0)</visible>
-              <left>3</left>
-              <top>48</top>
-              <width>45</width>
-              <height>22</height>
+              <left>5</left>
+              <top>36</top>
+              <width>55</width>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -337,10 +338,10 @@
             </control>
             <control type="label">
               <visible>Integer.IsEqual(ListItem.Property(rating_average),0) | IsEmpty(ListItem.Property(rating_average))</visible>
-              <left>8</left>
-              <top>48</top>
+              <left>12</left>
+              <top>36</top>
               <width>35</width>
-              <height>22</height>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -348,20 +349,20 @@
             </control>
 
             <control type="image">
-                <left>8</left>
-                <top>86</top>
-                <width>35</width>
-                <height>35</height>
+                <left>15</left>
+                <top>72</top>
+                <width>30</width>
+                <height>30</height>
                 <texture>$INFO[Window().Property(texture.mal)]</texture>
             </control>
 
             <!-- rating_mal: show actual rating if not "0.0", otherwise "-" -->
             <control type="label">
               <visible>!String.IsEqual(ListItem.Property(rating_mal),0.0) + !IsEmpty(ListItem.Property(rating_mal))</visible>
-              <left>8</left>
-              <top>124</top>
+              <left>12</left>
+              <top>98</top>
               <width>35</width>
-              <height>22</height>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -369,10 +370,10 @@
             </control>
             <control type="label">
               <visible>String.IsEqual(ListItem.Property(rating_mal),0.0) | IsEmpty(ListItem.Property(rating_mal))</visible>
-              <left>8</left>
-              <top>124</top>
+              <left>12</left>
+              <top>98</top>
               <width>35</width>
-              <height>22</height>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -380,20 +381,52 @@
             </control>
 
             <control type="image">
-                <left>8</left>
-                <top>162</top>
-                <width>35</width>
-                <height>35</height>
+                <left>15</left>
+                <top>134</top>
+                <width>30</width>
+                <height>30</height>
+                <texture>$INFO[Window().Property(texture.anilist)]</texture>
+            </control>
+
+            <!-- rating_anilist: show actual rating if not "0.0", otherwise "-" -->
+            <control type="label">
+              <visible>!String.IsEqual(ListItem.Property(rating_anilist),0.0) + !IsEmpty(ListItem.Property(rating_anilist))</visible>
+              <left>12</left>
+              <top>160</top>
+              <width>35</width>
+              <height>17</height>
+              <font>font12</font>
+              <textcolor>AAFFFFFF</textcolor>
+              <align>center</align>
+              <label>$INFO[ListItem.Property(rating_anilist)]</label>
+            </control>
+            <control type="label">
+              <visible>String.IsEqual(ListItem.Property(rating_anilist),0.0) | IsEmpty(ListItem.Property(rating_anilist))</visible>
+              <left>12</left>
+              <top>160</top>
+              <width>35</width>
+              <height>17</height>
+              <font>font12</font>
+              <textcolor>AAFFFFFF</textcolor>
+              <align>center</align>
+              <label>-</label>
+            </control>
+
+            <control type="image">
+                <left>15</left>
+                <top>196</top>
+                <width>30</width>
+                <height>30</height>
                 <texture>$INFO[Window().Property(texture.imdb)]</texture>
             </control>
 
             <!-- rating_imdb: show actual rating if not "0.0", otherwise "-" -->
             <control type="label">
               <visible>!String.IsEqual(ListItem.Property(rating_imdb),0.0) + !IsEmpty(ListItem.Property(rating_imdb))</visible>
-              <left>8</left>
-              <top>200</top>
+              <left>12</left>
+              <top>222</top>
               <width>35</width>
-              <height>22</height>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -401,10 +434,10 @@
             </control>
             <control type="label">
               <visible>String.IsEqual(ListItem.Property(rating_imdb),0.0) | IsEmpty(ListItem.Property(rating_imdb))</visible>
-              <left>8</left>
-              <top>200</top>
+              <left>12</left>
+              <top>222</top>
               <width>35</width>
-              <height>22</height>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -412,20 +445,20 @@
             </control>
 
             <control type="image">
-                <left>8</left>
-                <top>238</top>
-                <width>35</width>
-                <height>35</height>
+                <left>15</left>
+                <top>258</top>
+                <width>30</width>
+                <height>30</height>
                 <texture>$INFO[Window().Property(texture.trakt)]</texture>
             </control>
 
             <!-- rating_trakt: show actual rating if not "0.0", otherwise "-" -->
             <control type="label">
               <visible>!String.IsEqual(ListItem.Property(rating_trakt),0.0) + !IsEmpty(ListItem.Property(rating_trakt))</visible>
-              <left>8</left>
-              <top>276</top>
+              <left>12</left>
+              <top>284</top>
               <width>35</width>
-              <height>22</height>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -433,10 +466,10 @@
             </control>
             <control type="label">
               <visible>String.IsEqual(ListItem.Property(rating_trakt),0.0) | IsEmpty(ListItem.Property(rating_trakt))</visible>
-              <left>8</left>
-              <top>276</top>
+              <left>12</left>
+              <top>284</top>
               <width>35</width>
-              <height>22</height>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -444,20 +477,20 @@
             </control>
 
             <control type="image">
-                <left>8</left>
-                <top>314</top>
-                <width>35</width>
-                <height>35</height>
+                <left>15</left>
+                <top>320</top>
+                <width>30</width>
+                <height>30</height>
                 <texture>$INFO[Window().Property(texture.tmdb)]</texture>
             </control>
 
             <!-- rating_tmdb: show actual rating if not "0.0", otherwise "-" -->
             <control type="label">
               <visible>!String.IsEqual(ListItem.Property(rating_tmdb),0.0) + !IsEmpty(ListItem.Property(rating_tmdb))</visible>
-              <left>8</left>
-              <top>350</top>
+              <left>12</left>
+              <top>345</top>
               <width>35</width>
-              <height>22</height>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -465,10 +498,10 @@
             </control>
             <control type="label">
               <visible>String.IsEqual(ListItem.Property(rating_tmdb),0.0) | IsEmpty(ListItem.Property(rating_tmdb))</visible>
-              <left>8</left>
-              <top>350</top>
+              <left>12</left>
+              <top>345</top>
               <width>35</width>
-              <height>22</height>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -865,31 +898,32 @@
               <align>center</align>
               <label>[B]$INFO[ListItem.Property(genres)][/B]</label>
             </control>
+
             <control type="group">
-              <left>8</left>
+              <left>15</left>
               <top>10</top>
               <control type="image">
                   <visible>Integer.IsGreaterOrEqual(ListItem.Property(rating_average),75)</visible>
-                  <width>35</width>
-                  <height>35</height>
+                  <width>30</width>
+                  <height>30</height>
                   <texture>$INFO[Window().Property(texture.aver)]</texture>
               </control>
               <control type="image">
                   <visible>Integer.IsGreater(ListItem.Property(rating_average),60) + Integer.IsLess(ListItem.Property(rating_average),75)</visible>
-                  <width>35</width>
-                  <height>35</height>
+                  <width>30</width>
+                  <height>30</height>
                   <texture>$INFO[Window().Property(texture.averstr)]</texture>
               </control>
               <control type="image">
                   <visible>Integer.IsGreater(ListItem.Property(rating_average),0) + Integer.IsLessOrEqual(ListItem.Property(rating_average),60)</visible>
-                  <width>35</width>
-                  <height>35</height>
+                  <width>30</width>
+                  <height>30</height>
                   <texture>$INFO[Window().Property(texture.aversad)]</texture>
               </control>
               <control type="image">
                   <visible>Integer.IsEqual(ListItem.Property(rating_average),0) | IsEmpty(ListItem.Property(rating_average))</visible>
-                  <width>35</width>
-                  <height>35</height>
+                  <width>30</width>
+                  <height>30</height>
                   <texture>$INFO[Window().Property(texture.avernone)]</texture>
               </control>
             </control>
@@ -897,10 +931,10 @@
             <!-- rating_average: show actual percentage if > 0, otherwise "-" -->
             <control type="label">
               <visible>Integer.IsGreater(ListItem.Property(rating_average),0)</visible>
-              <left>3</left>
-              <top>48</top>
-              <width>45</width>
-              <height>22</height>
+              <left>5</left>
+              <top>36</top>
+              <width>55</width>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -908,10 +942,10 @@
             </control>
             <control type="label">
               <visible>Integer.IsEqual(ListItem.Property(rating_average),0) | IsEmpty(ListItem.Property(rating_average))</visible>
-              <left>8</left>
-              <top>48</top>
+              <left>12</left>
+              <top>36</top>
               <width>35</width>
-              <height>22</height>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -919,20 +953,20 @@
             </control>
 
             <control type="image">
-                <left>8</left>
-                <top>86</top>
-                <width>35</width>
-                <height>35</height>
+                <left>15</left>
+                <top>72</top>
+                <width>30</width>
+                <height>30</height>
                 <texture>$INFO[Window().Property(texture.mal)]</texture>
             </control>
 
             <!-- rating_mal: show actual rating if not "0.0", otherwise "-" -->
             <control type="label">
               <visible>!String.IsEqual(ListItem.Property(rating_mal),0.0) + !IsEmpty(ListItem.Property(rating_mal))</visible>
-              <left>8</left>
-              <top>124</top>
+              <left>12</left>
+              <top>98</top>
               <width>35</width>
-              <height>22</height>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -940,10 +974,10 @@
             </control>
             <control type="label">
               <visible>String.IsEqual(ListItem.Property(rating_mal),0.0) | IsEmpty(ListItem.Property(rating_mal))</visible>
-              <left>8</left>
-              <top>124</top>
+              <left>12</left>
+              <top>98</top>
               <width>35</width>
-              <height>22</height>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -951,20 +985,52 @@
             </control>
 
             <control type="image">
-                <left>8</left>
-                <top>162</top>
-                <width>35</width>
-                <height>35</height>
+                <left>15</left>
+                <top>134</top>
+                <width>30</width>
+                <height>30</height>
+                <texture>$INFO[Window().Property(texture.anilist)]</texture>
+            </control>
+
+            <!-- rating_anilist: show actual rating if not "0.0", otherwise "-" -->
+            <control type="label">
+              <visible>!String.IsEqual(ListItem.Property(rating_anilist),0.0) + !IsEmpty(ListItem.Property(rating_anilist))</visible>
+              <left>12</left>
+              <top>160</top>
+              <width>35</width>
+              <height>17</height>
+              <font>font12</font>
+              <textcolor>AAFFFFFF</textcolor>
+              <align>center</align>
+              <label>$INFO[ListItem.Property(rating_anilist)]</label>
+            </control>
+            <control type="label">
+              <visible>String.IsEqual(ListItem.Property(rating_anilist),0.0) | IsEmpty(ListItem.Property(rating_anilist))</visible>
+              <left>12</left>
+              <top>160</top>
+              <width>35</width>
+              <height>17</height>
+              <font>font12</font>
+              <textcolor>AAFFFFFF</textcolor>
+              <align>center</align>
+              <label>-</label>
+            </control>
+
+            <control type="image">
+                <left>15</left>
+                <top>196</top>
+                <width>30</width>
+                <height>30</height>
                 <texture>$INFO[Window().Property(texture.imdb)]</texture>
             </control>
 
             <!-- rating_imdb: show actual rating if not "0.0", otherwise "-" -->
             <control type="label">
               <visible>!String.IsEqual(ListItem.Property(rating_imdb),0.0) + !IsEmpty(ListItem.Property(rating_imdb))</visible>
-              <left>8</left>
-              <top>200</top>
+              <left>12</left>
+              <top>222</top>
               <width>35</width>
-              <height>22</height>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -972,10 +1038,10 @@
             </control>
             <control type="label">
               <visible>String.IsEqual(ListItem.Property(rating_imdb),0.0) | IsEmpty(ListItem.Property(rating_imdb))</visible>
-              <left>8</left>
-              <top>200</top>
+              <left>12</left>
+              <top>222</top>
               <width>35</width>
-              <height>22</height>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -983,20 +1049,20 @@
             </control>
 
             <control type="image">
-                <left>8</left>
-                <top>238</top>
-                <width>35</width>
-                <height>35</height>
+                <left>15</left>
+                <top>258</top>
+                <width>30</width>
+                <height>30</height>
                 <texture>$INFO[Window().Property(texture.trakt)]</texture>
             </control>
 
             <!-- rating_trakt: show actual rating if not "0.0", otherwise "-" -->
             <control type="label">
               <visible>!String.IsEqual(ListItem.Property(rating_trakt),0.0) + !IsEmpty(ListItem.Property(rating_trakt))</visible>
-              <left>8</left>
-              <top>276</top>
+              <left>12</left>
+              <top>284</top>
               <width>35</width>
-              <height>22</height>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -1004,10 +1070,10 @@
             </control>
             <control type="label">
               <visible>String.IsEqual(ListItem.Property(rating_trakt),0.0) | IsEmpty(ListItem.Property(rating_trakt))</visible>
-              <left>8</left>
-              <top>276</top>
+              <left>12</left>
+              <top>284</top>
               <width>35</width>
-              <height>22</height>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -1015,20 +1081,20 @@
             </control>
 
             <control type="image">
-                <left>8</left>
-                <top>314</top>
-                <width>35</width>
-                <height>35</height>
+                <left>15</left>
+                <top>320</top>
+                <width>30</width>
+                <height>30</height>
                 <texture>$INFO[Window().Property(texture.tmdb)]</texture>
             </control>
 
             <!-- rating_tmdb: show actual rating if not "0.0", otherwise "-" -->
             <control type="label">
               <visible>!String.IsEqual(ListItem.Property(rating_tmdb),0.0) + !IsEmpty(ListItem.Property(rating_tmdb))</visible>
-              <left>8</left>
-              <top>350</top>
+              <left>12</left>
+              <top>345</top>
               <width>35</width>
-              <height>22</height>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
@@ -1036,10 +1102,10 @@
             </control>
             <control type="label">
               <visible>String.IsEqual(ListItem.Property(rating_tmdb),0.0) | IsEmpty(ListItem.Property(rating_tmdb))</visible>
-              <left>8</left>
-              <top>350</top>
+              <left>12</left>
+              <top>345</top>
               <width>35</width>
-              <height>22</height>
+              <height>17</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>center</align>
