@@ -206,24 +206,62 @@
                     </control>
                 </control>
 
-                <!-- Single day and date below all three columns -->
+                <!-- Single day and date below all three columns with fallback: raw → sub → dub -->
+                <!-- RAW day/date (primary) -->
                 <control type="label">
-                    <visible>!String.IsEmpty(ListItem.Property(raw_day)) | !String.IsEmpty(ListItem.Property(sub_day)) | !String.IsEmpty(ListItem.Property(dub_day))</visible>
+                    <visible>!String.IsEmpty(ListItem.Property(raw_day)) + !String.IsEqual(ListItem.Property(raw_day),TBA)</visible>
                     <left>0</left><top>55</top><width>300</width><height>18</height>
                     <font>font9</font>
                     <textcolor>88B7C0CC</textcolor>
                     <align>left</align>
                     <label>$INFO[ListItem.Property(raw_day)] $INFO[ListItem.Property(raw_date_formatted)]</label>
                 </control>
-
-                <!-- Countdown beside date -->
+                <!-- SUB day/date (fallback if no raw) -->
                 <control type="label">
-                    <visible>!String.IsEmpty(ListItem.Property(raw_countdown))</visible>
+                    <visible>[String.IsEmpty(ListItem.Property(raw_day)) | String.IsEqual(ListItem.Property(raw_day),TBA)] + !String.IsEmpty(ListItem.Property(sub_day)) + !String.IsEqual(ListItem.Property(sub_day),TBA)</visible>
+                    <left>0</left><top>55</top><width>300</width><height>18</height>
+                    <font>font9</font>
+                    <textcolor>88B7C0CC</textcolor>
+                    <align>left</align>
+                    <label>$INFO[ListItem.Property(sub_day)] $INFO[ListItem.Property(sub_date_formatted)]</label>
+                </control>
+                <!-- DUB day/date (fallback if no raw or sub) -->
+                <control type="label">
+                    <visible>[String.IsEmpty(ListItem.Property(raw_day)) | String.IsEqual(ListItem.Property(raw_day),TBA)] + [String.IsEmpty(ListItem.Property(sub_day)) | String.IsEqual(ListItem.Property(sub_day),TBA)] + !String.IsEmpty(ListItem.Property(dub_day)) + !String.IsEqual(ListItem.Property(dub_day),TBA)</visible>
+                    <left>0</left><top>55</top><width>300</width><height>18</height>
+                    <font>font9</font>
+                    <textcolor>88B7C0CC</textcolor>
+                    <align>left</align>
+                    <label>$INFO[ListItem.Property(dub_day)] $INFO[ListItem.Property(dub_date_formatted)]</label>
+                </control>
+
+                <!-- Countdown beside date with fallback: raw → sub → dub -->
+                <!-- RAW countdown (primary) -->
+                <control type="label">
+                    <visible>!String.IsEmpty(ListItem.Property(raw_countdown)) + !String.IsEqual(ListItem.Property(raw_countdown),TBA)</visible>
                     <left>350</left><top>55</top><width>150</width><height>18</height>
                     <font>font9</font>
                     <textcolor>FFFF9800</textcolor>
                     <align>left</align>
                     <label>$INFO[ListItem.Property(raw_countdown)]</label>
+                </control>
+                <!-- SUB countdown (fallback if no raw) -->
+                <control type="label">
+                    <visible>[String.IsEmpty(ListItem.Property(raw_countdown)) | String.IsEqual(ListItem.Property(raw_countdown),TBA)] + !String.IsEmpty(ListItem.Property(sub_countdown)) + !String.IsEqual(ListItem.Property(sub_countdown),TBA)</visible>
+                    <left>350</left><top>55</top><width>150</width><height>18</height>
+                    <font>font9</font>
+                    <textcolor>FFFF9800</textcolor>
+                    <align>left</align>
+                    <label>$INFO[ListItem.Property(sub_countdown)]</label>
+                </control>
+                <!-- DUB countdown (fallback if no raw or sub) -->
+                <control type="label">
+                    <visible>[String.IsEmpty(ListItem.Property(raw_countdown)) | String.IsEqual(ListItem.Property(raw_countdown),TBA)] + [String.IsEmpty(ListItem.Property(sub_countdown)) | String.IsEqual(ListItem.Property(sub_countdown),TBA)] + !String.IsEmpty(ListItem.Property(dub_countdown)) + !String.IsEqual(ListItem.Property(dub_countdown),TBA)</visible>
+                    <left>350</left><top>55</top><width>150</width><height>18</height>
+                    <font>font9</font>
+                    <textcolor>FFFF9800</textcolor>
+                    <align>left</align>
+                    <label>$INFO[ListItem.Property(dub_countdown)]</label>
                 </control>
             </control>
             <!-- ===== /Added ===== -->
@@ -674,24 +712,62 @@
                     </control>
                 </control>
 
-                <!-- Single day and date below all three columns -->
+                <!-- Single day and date below all three columns with fallback: raw → sub → dub -->
+                <!-- RAW day/date (primary) -->
                 <control type="label">
-                    <visible>!String.IsEmpty(ListItem.Property(raw_day)) | !String.IsEmpty(ListItem.Property(sub_day)) | !String.IsEmpty(ListItem.Property(dub_day))</visible>
+                    <visible>!String.IsEmpty(ListItem.Property(raw_day)) + !String.IsEqual(ListItem.Property(raw_day),TBA)</visible>
                     <left>0</left><top>55</top><width>300</width><height>18</height>
                     <font>font9</font>
                     <textcolor>88B7C0CC</textcolor>
                     <align>left</align>
                     <label>$INFO[ListItem.Property(raw_day)] $INFO[ListItem.Property(raw_date_formatted)]</label>
                 </control>
-
-                <!-- Countdown beside date -->
+                <!-- SUB day/date (fallback if no raw) -->
                 <control type="label">
-                    <visible>!String.IsEmpty(ListItem.Property(raw_countdown))</visible>
+                    <visible>[String.IsEmpty(ListItem.Property(raw_day)) | String.IsEqual(ListItem.Property(raw_day),TBA)] + !String.IsEmpty(ListItem.Property(sub_day)) + !String.IsEqual(ListItem.Property(sub_day),TBA)</visible>
+                    <left>0</left><top>55</top><width>300</width><height>18</height>
+                    <font>font9</font>
+                    <textcolor>88B7C0CC</textcolor>
+                    <align>left</align>
+                    <label>$INFO[ListItem.Property(sub_day)] $INFO[ListItem.Property(sub_date_formatted)]</label>
+                </control>
+                <!-- DUB day/date (fallback if no raw or sub) -->
+                <control type="label">
+                    <visible>[String.IsEmpty(ListItem.Property(raw_day)) | String.IsEqual(ListItem.Property(raw_day),TBA)] + [String.IsEmpty(ListItem.Property(sub_day)) | String.IsEqual(ListItem.Property(sub_day),TBA)] + !String.IsEmpty(ListItem.Property(dub_day)) + !String.IsEqual(ListItem.Property(dub_day),TBA)</visible>
+                    <left>0</left><top>55</top><width>300</width><height>18</height>
+                    <font>font9</font>
+                    <textcolor>88B7C0CC</textcolor>
+                    <align>left</align>
+                    <label>$INFO[ListItem.Property(dub_day)] $INFO[ListItem.Property(dub_date_formatted)]</label>
+                </control>
+
+                <!-- Countdown beside date with fallback: raw → sub → dub -->
+                <!-- RAW countdown (primary) -->
+                <control type="label">
+                    <visible>!String.IsEmpty(ListItem.Property(raw_countdown)) + !String.IsEqual(ListItem.Property(raw_countdown),TBA)</visible>
                     <left>350</left><top>55</top><width>150</width><height>18</height>
                     <font>font9</font>
                     <textcolor>FFFF9800</textcolor>
                     <align>left</align>
                     <label>$INFO[ListItem.Property(raw_countdown)]</label>
+                </control>
+                <!-- SUB countdown (fallback if no raw) -->
+                <control type="label">
+                    <visible>[String.IsEmpty(ListItem.Property(raw_countdown)) | String.IsEqual(ListItem.Property(raw_countdown),TBA)] + !String.IsEmpty(ListItem.Property(sub_countdown)) + !String.IsEqual(ListItem.Property(sub_countdown),TBA)</visible>
+                    <left>350</left><top>55</top><width>150</width><height>18</height>
+                    <font>font9</font>
+                    <textcolor>FFFF9800</textcolor>
+                    <align>left</align>
+                    <label>$INFO[ListItem.Property(sub_countdown)]</label>
+                </control>
+                <!-- DUB countdown (fallback if no raw or sub) -->
+                <control type="label">
+                    <visible>[String.IsEmpty(ListItem.Property(raw_countdown)) | String.IsEqual(ListItem.Property(raw_countdown),TBA)] + [String.IsEmpty(ListItem.Property(sub_countdown)) | String.IsEqual(ListItem.Property(sub_countdown),TBA)] + !String.IsEmpty(ListItem.Property(dub_countdown)) + !String.IsEqual(ListItem.Property(dub_countdown),TBA)</visible>
+                    <left>350</left><top>55</top><width>150</width><height>18</height>
+                    <font>font9</font>
+                    <textcolor>FFFF9800</textcolor>
+                    <align>left</align>
+                    <label>$INFO[ListItem.Property(dub_countdown)]</label>
                 </control>
             </control>
             <!-- ===== /Added ===== -->

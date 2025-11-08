@@ -484,24 +484,34 @@ class AnimeScheduleCalendar:
     def _clean_html(self, text):
         """
         Clean HTML tags and decode HTML entities from text
+        Converts HTML formatting to Kodi formatting tags
         
         Args:
             text (str): Text with HTML tags/entities
             
         Returns:
-            str: Cleaned plain text
+            str: Cleaned text with Kodi formatting
         """
         if not text:
             return ''
         
-        # Remove HTML tags
-        text = re.sub(r'<[^>]+>', '', text)
-        
-        # Decode HTML entities (&#39; -> ', &amp; -> &, etc.)
+        # Decode HTML entities first (&#39; -> ', &amp; -> &, etc.)
         text = unescape(text)
         
-        # Clean up extra whitespace
-        text = re.sub(r'\s+', ' ', text).strip()
+        # Convert HTML formatting to Kodi formatting (following maintainer pattern)
+        text = text.replace('<i>', '[I]').replace('</i>', '[/I]')
+        text = text.replace('<b>', '[B]').replace('</b>', '[/B]')
+        text = text.replace('<br>', '[CR]').replace('<br/>', '[CR]').replace('<br />', '[CR]')
+        
+        # Remove remaining HTML tags
+        text = re.sub(r'<[^>]+>', '', text)
+        
+        # Add space after period if missing (e.g., "Monogatari.Sato" -> "Monogatari. Sato")
+        text = re.sub(r'\.([A-Z])', r'. \1', text)
+        
+        # Clean up extra whitespace but preserve [CR] line breaks
+        text = re.sub(r'[ \t]+', ' ', text)
+        text = text.replace('\n', '').strip()
         
         return text
 

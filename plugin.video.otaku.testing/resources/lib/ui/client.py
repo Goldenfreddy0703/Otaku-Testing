@@ -574,12 +574,17 @@ def request(
             r = re.search(b'^#EXT', result, re.IGNORECASE)
             if r:
                 encoding = 'utf8'
-
         if encoding is not None:
             result = result.decode(encoding, errors='ignore')
             text_content = True
         elif text_content and encoding is None:
-            result = result.decode('latin-1', errors='ignore')
+            # Try UTF-8 first (for modern APIs: JSON/XML from MAL, AniList, etc.)
+            # Fall back to latin-1 if UTF-8 fails (for legacy content)
+            # This fixes mojibake for Unicode chars like ×, –, …, accented letters, etc.
+            try:
+                result = result.decode('utf-8')
+            except UnicodeDecodeError:
+                result = result.decode('latin-1', errors='ignore')
         else:
             control.log('Unknown Page Encoding')
 
