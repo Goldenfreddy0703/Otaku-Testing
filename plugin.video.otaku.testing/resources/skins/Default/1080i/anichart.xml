@@ -32,8 +32,8 @@
 
         <!--&lt;!&ndash; Additional Background Diffuse &ndash;&gt;-->
         <!--<control type="image">-->
-            <!--<texture>white.png</texture>-->
-            <!--<colordiffuse>8936353b</colordiffuse>-->
+        <!--<texture>white.png</texture>-->
+        <!--<colordiffuse>8936353b</colordiffuse>-->
         <!--</control>-->
 
         <!-- Otaku Logo -->
@@ -59,543 +59,578 @@
 
         <!-- Sources List -->
         <control type="panel" id="1000">
-        	<left>120</left>
-        	<top>100</top>
-        	<width>1700</width>
-        	<height>900</height>
-        	<onleft>9000</onleft>
-        	<onright>60</onright>
-        	<onup>52</onup>
-        	<ondown>52</ondown>
-        	<scrolltime tween="sine" easing="out">200</scrolltime>
-        	<autoscroll>true</autoscroll>
-        	<viewtype label="Sources">icon</viewtype>
-        	<pagecontrol>60</pagecontrol>
-        	<itemlayout height="390" width="800">
-        		<control type="image">
-        			<left>10</left>
-        			<top>10</top>
-        			<width>260</width>
-              <height>370</height>
-        			<texture>$INFO[ListItem.Property(poster)]</texture>
-        		</control>
+            <left>120</left>
+            <top>100</top>
+            <width>1700</width>
+            <height>900</height>
+            <onleft>9000</onleft>
+            <onright>60</onright>
+            <onup>52</onup>
+            <ondown>52</ondown>
+            <scrolltime tween="sine" easing="out">200</scrolltime>
+            <autoscroll>true</autoscroll>
+            <viewtype label="Sources">icon</viewtype>
+            <pagecontrol>60</pagecontrol>
+            <itemlayout height="390" width="800">
+                <control type="image">
+                    <left>10</left>
+                    <top>10</top>
+                    <width>260</width>
+                    <height>370</height>
+                    <texture>$INFO[ListItem.Property(poster)]</texture>
+                </control>
 
+                <!-- Vertical Ratings Group -->
+                <control type="group">
+                    <left>10</left>
+                    <top>10</top>
+                    <width>50</width>
+                    <height>430</height>
 
-            <!-- <control type="image">
-                <left>5</left>
-                <top>340</top>
-                <width>270</width>
-                <height>50</height>
-                <texture>white.png</texture>
-                <colordiffuse>ff1a1a1a</colordiffuse>
-            </control> -->
+                    <!-- Background rectangle -->
+                    <control type="image">
+                        <left>0</left>
+                        <top>0</top>
+                        <width>50</width>
+                        <height>430</height>
+                        <texture>white.png</texture>
+                        <colordiffuse>CC000000</colordiffuse>
+                    </control>
 
-            <control type="image">
-                <left>5</left>
-                <top>5</top>
-                <width>50</width>
-                <height>380</height>
-                <texture>white.png</texture>
-                <colordiffuse>CC000000</colordiffuse>
-            </control>
+                    <!-- Rating Average (AniSchedule Score) -->
+                    <control type="group">
+                        <left>0</left>
+                        <top>5</top>
+                        <width>50</width>
+                        <height>60</height>
 
+                        <!-- Emoji icons -->
+                        <control type="image">
+                            <visible>Integer.IsGreaterOrEqual(ListItem.Property(rating_average),75)</visible>
+                            <left>5</left>
+                            <top>0</top>
+                            <width>40</width>
+                            <height>30</height>
+                            <texture>$INFO[Window().Property(texture.aver)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+                        <control type="image">
+                            <visible>Integer.IsGreater(ListItem.Property(rating_average),60) + Integer.IsLess(ListItem.Property(rating_average),75)</visible>
+                            <left>5</left>
+                            <top>0</top>
+                            <width>40</width>
+                            <height>30</height>
+                            <texture>$INFO[Window().Property(texture.averstr)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+                        <control type="image">
+                            <visible>Integer.IsGreater(ListItem.Property(rating_average),0) + Integer.IsLessOrEqual(ListItem.Property(rating_average),60)</visible>
+                            <left>5</left>
+                            <top>0</top>
+                            <width>40</width>
+                            <height>30</height>
+                            <texture>$INFO[Window().Property(texture.aversad)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+                        <control type="image">
+                            <visible>Integer.IsEqual(ListItem.Property(rating_average),0) | IsEmpty(ListItem.Property(rating_average))</visible>
+                            <left>5</left>
+                            <top>0</top>
+                            <width>40</width>
+                            <height>30</height>
+                            <texture>$INFO[Window().Property(texture.avernone)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
 
-            <!-- Release Title -->
-            <control type="label">
-              <left>300</left>
-              <top>0</top>
-              <width>450</width>
-              <height>30</height>
-              <font>font14</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>left</align>
-              <scroll>true</scroll>
-              <autoscroll delay="4000" time="1500" repeat="5000"></autoscroll>
-              <label>[B]$INFO[ListItem.Property(release_title)][/B]</label>
-            </control>
+                        <!-- Score label -->
+                        <control type="label">
+                            <left>0</left>
+                            <top>32</top>
+                            <width>50</width>
+                            <height>25</height>
+                            <font>font12</font>
+                            <textcolor>AAFFFFFF</textcolor>
+                            <align>center</align>
+                            <label>$INFO[ListItem.Property(rating_average)]</label>
+                        </control>
+                    </control>
 
-            <!-- ===== Added: compact episodes row (Raw | Sub | Dub) ===== -->
-            <control type="group">
-                <visible>
+                    <!-- MAL Rating -->
+                    <control type="group">
+                        <left>0</left>
+                        <top>70</top>
+                        <width>50</width>
+                        <height>60</height>
+
+                        <control type="image">
+                            <left>5</left>
+                            <top>0</top>
+                            <width>40</width>
+                            <height>30</height>
+                            <texture>$INFO[Window().Property(texture.mal)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+
+                        <control type="label">
+                            <left>0</left>
+                            <top>32</top>
+                            <width>50</width>
+                            <height>25</height>
+                            <font>font12</font>
+                            <textcolor>AAFFFFFF</textcolor>
+                            <align>center</align>
+                            <label>$INFO[ListItem.Property(rating_mal)]</label>
+                        </control>
+                    </control>
+
+                    <!-- Anilist Rating -->
+                    <control type="group">
+                        <left>0</left>
+                        <top>135</top>
+                        <width>50</width>
+                        <height>60</height>
+
+                        <control type="image">
+                            <left>5</left>
+                            <top>0</top>
+                            <width>40</width>
+                            <height>30</height>
+                            <texture>$INFO[Window().Property(texture.anilist)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+
+                        <control type="label">
+                            <left>0</left>
+                            <top>32</top>
+                            <width>50</width>
+                            <height>25</height>
+                            <font>font12</font>
+                            <textcolor>AAFFFFFF</textcolor>
+                            <align>center</align>
+                            <label>$INFO[ListItem.Property(rating_anilist)]</label>
+                        </control>
+                    </control>
+
+                    <!-- IMDb Rating -->
+                    <control type="group">
+                        <left>0</left>
+                        <top>200</top>
+                        <width>50</width>
+                        <height>60</height>
+
+                        <control type="image">
+                            <left>5</left>
+                            <top>0</top>
+                            <width>40</width>
+                            <height>30</height>
+                            <texture>$INFO[Window().Property(texture.imdb)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+
+                        <control type="label">
+                            <left>0</left>
+                            <top>32</top>
+                            <width>50</width>
+                            <height>25</height>
+                            <font>font12</font>
+                            <textcolor>AAFFFFFF</textcolor>
+                            <align>center</align>
+                            <label>$INFO[ListItem.Property(rating_imdb)]</label>
+                        </control>
+                    </control>
+
+                    <!-- Trakt Rating -->
+                    <control type="group">
+                        <left>0</left>
+                        <top>265</top>
+                        <width>50</width>
+                        <height>60</height>
+
+                        <control type="image">
+                            <left>5</left>
+                            <top>0</top>
+                            <width>40</width>
+                            <height>30</height>
+                            <texture>$INFO[Window().Property(texture.trakt)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+
+                        <control type="label">
+                            <left>0</left>
+                            <top>32</top>
+                            <width>50</width>
+                            <height>25</height>
+                            <font>font12</font>
+                            <textcolor>AAFFFFFF</textcolor>
+                            <align>center</align>
+                            <label>$INFO[ListItem.Property(rating_trakt)]</label>
+                        </control>
+                    </control>
+
+                    <!-- TMDb Rating -->
+                    <control type="group">
+                        <left>0</left>
+                        <top>330</top>
+                        <width>50</width>
+                        <height>60</height>
+
+                        <control type="image">
+                            <left>5</left>
+                            <top>0</top>
+                            <width>40</width>
+                            <height>30</height>
+                            <texture>$INFO[Window().Property(texture.tmdb)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+
+                        <control type="label">
+                            <left>0</left>
+                            <top>32</top>
+                            <width>50</width>
+                            <height>25</height>
+                            <font>font12</font>
+                            <textcolor>AAFFFFFF</textcolor>
+                            <align>center</align>
+                            <label>$INFO[ListItem.Property(rating_tmdb)]</label>
+                        </control>
+                    </control>
+
+                </control>
+
+                <!-- Release Title -->
+                <control type="label">
+                    <left>300</left>
+                    <top>0</top>
+                    <width>450</width>
+                    <height>35</height>
+                    <font>font16</font>
+                    <textcolor>AAFFFFFF</textcolor>
+                    <align>left</align>
+                    <scroll>true</scroll>
+                    <autoscroll delay="4000" time="1500" repeat="5000" />
+                    <label>[B]$INFO[ListItem.Property(release_title)][/B]</label>
+                </control>
+
+                <!-- ===== Added: compact episodes row (Raw | Sub | Dub) ===== -->
+                <control type="group">
+                    <visible>
                     Integer.IsGreater(ListItem.Property(raw_episode),0) |
                     Integer.IsGreater(ListItem.Property(sub_episode),0) |
                     Integer.IsGreater(ListItem.Property(dub_episode),0)
-                </visible>
-                <left>300</left>
-                <top>40</top>
-                <width>450</width>
-                <height>70</height>
+                    </visible>
+                    <left>300</left>
+                    <top>40</top>
+                    <width>450</width>
+                    <height>70</height>
 
-                <!-- RAW -->
-                <control type="group">
-                    <visible>Integer.IsGreater(ListItem.Property(raw_episode),0)</visible>
-                    <left>0</left><top>0</top><width>150</width><height>70</height>
-                    <control type="label">
-                        <left>0</left><top>0</top><width>150</width><height>20</height>
-                        <font>font10</font>
-                        <textcolor>FF53b56f</textcolor>
-                        <align>left</align>
-                        <label>[B]Ep $INFO[ListItem.Property(raw_episode)] Raw[/B]</label>
+                    <!-- RAW -->
+                    <control type="group">
+                        <visible>Integer.IsGreater(ListItem.Property(raw_episode),0)</visible>
+                        <left>0</left>
+                        <top>0</top>
+                        <width>150</width>
+                        <height>70</height>
+                        <control type="label">
+                            <left>0</left>
+                            <top>0</top>
+                            <width>150</width>
+                            <height>20</height>
+                            <font>font10</font>
+                            <textcolor>FF53b56f</textcolor>
+                            <align>left</align>
+                            <label>[B]Ep $INFO[ListItem.Property(raw_episode)] Raw[/B]</label>
+                        </control>
+                        <!-- time under title -->
+                        <control type="label">
+                            <visible>!String.IsEmpty(ListItem.Property(raw_time))</visible>
+                            <left>0</left>
+                            <top>22</top>
+                            <width>150</width>
+                            <height>18</height>
+                            <font>font10</font>
+                            <textcolor>FFB7C0CC</textcolor>
+                            <align>left</align>
+                            <label>$INFO[ListItem.Property(raw_time)]</label>
+                        </control>
                     </control>
-                    <!-- time under title -->
+
+                    <!-- Separator RAW|SUB -->
+                    <control type="image">
+                        <visible>Integer.IsGreater(ListItem.Property(raw_episode),0) + Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
+                        <left>150</left>
+                        <top>0</top>
+                        <width>2</width>
+                        <height>42</height>
+                        <texture>white.png</texture>
+                        <colordiffuse>33FFFFFF</colordiffuse>
+                    </control>
+
+                    <!-- SUB -->
+                    <control type="group">
+                        <visible>Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
+                        <left>152</left>
+                        <top>0</top>
+                        <width>150</width>
+                        <height>70</height>
+                        <control type="label">
+                            <left>0</left>
+                            <top>0</top>
+                            <width>150</width>
+                            <height>20</height>
+                            <font>font10</font>
+                            <textcolor>FF2fb2ff</textcolor>
+                            <align>left</align>
+                            <label>[B]Ep $INFO[ListItem.Property(sub_episode)] Sub[/B]</label>
+                        </control>
+                        <control type="label">
+                            <visible>!String.IsEmpty(ListItem.Property(sub_time))</visible>
+                            <left>0</left>
+                            <top>22</top>
+                            <width>150</width>
+                            <height>18</height>
+                            <font>font10</font>
+                            <textcolor>FFB7C0CC</textcolor>
+                            <align>left</align>
+                            <label>$INFO[ListItem.Property(sub_time)]</label>
+                        </control>
+                    </control>
+
+                    <!-- Separator SUB|DUB -->
+                    <control type="image">
+                        <visible>Integer.IsGreater(ListItem.Property(sub_episode),0) + Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
+                        <left>302</left>
+                        <top>0</top>
+                        <width>2</width>
+                        <height>42</height>
+                        <texture>white.png</texture>
+                        <colordiffuse>33FFFFFF</colordiffuse>
+                    </control>
+
+                    <!-- DUB -->
+                    <control type="group">
+                        <visible>Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
+                        <left>304</left>
+                        <top>0</top>
+                        <width>146</width>
+                        <height>70</height>
+                        <control type="label">
+                            <left>0</left>
+                            <top>0</top>
+                            <width>146</width>
+                            <height>20</height>
+                            <font>font10</font>
+                            <textcolor>FF9fd33a</textcolor>
+                            <align>left</align>
+                            <label>[B]Ep $INFO[ListItem.Property(dub_episode)] Dub[/B]</label>
+                        </control>
+                        <control type="label">
+                            <visible>!String.IsEmpty(ListItem.Property(dub_time))</visible>
+                            <left>0</left>
+                            <top>22</top>
+                            <width>146</width>
+                            <height>18</height>
+                            <font>font10</font>
+                            <textcolor>FFB7C0CC</textcolor>
+                            <align>left</align>
+                            <label>$INFO[ListItem.Property(dub_time)]</label>
+                        </control>
+                    </control>
+
+                    <!-- Single day and date below all three columns with fallback: raw → sub → dub -->
+                    <!-- RAW day/date (primary) -->
                     <control type="label">
-                        <visible>!String.IsEmpty(ListItem.Property(raw_time))</visible>
-                        <left>0</left><top>22</top><width>150</width><height>18</height>
-                        <font>font10</font>
-                        <textcolor>FFB7C0CC</textcolor>
+                        <visible>!String.IsEmpty(ListItem.Property(raw_day)) + !String.IsEqual(ListItem.Property(raw_day),TBA)</visible>
+                        <left>0</left>
+                        <top>55</top>
+                        <width>300</width>
+                        <height>18</height>
+                        <font>font9</font>
+                        <textcolor>88B7C0CC</textcolor>
                         <align>left</align>
-                        <label>$INFO[ListItem.Property(raw_time)]</label>
+                        <label>$INFO[ListItem.Property(raw_day)] $INFO[ListItem.Property(raw_date_formatted)]</label>
+                    </control>
+                    <!-- SUB day/date (fallback if no raw) -->
+                    <control type="label">
+                        <visible>[String.IsEmpty(ListItem.Property(raw_day)) | String.IsEqual(ListItem.Property(raw_day),TBA)] + !String.IsEmpty(ListItem.Property(sub_day)) + !String.IsEqual(ListItem.Property(sub_day),TBA)</visible>
+                        <left>0</left>
+                        <top>55</top>
+                        <width>300</width>
+                        <height>18</height>
+                        <font>font9</font>
+                        <textcolor>88B7C0CC</textcolor>
+                        <align>left</align>
+                        <label>$INFO[ListItem.Property(sub_day)] $INFO[ListItem.Property(sub_date_formatted)]</label>
+                    </control>
+                    <!-- DUB day/date (fallback if no raw or sub) -->
+                    <control type="label">
+                        <visible>[String.IsEmpty(ListItem.Property(raw_day)) | String.IsEqual(ListItem.Property(raw_day),TBA)] + [String.IsEmpty(ListItem.Property(sub_day)) | String.IsEqual(ListItem.Property(sub_day),TBA)] + !String.IsEmpty(ListItem.Property(dub_day)) + !String.IsEqual(ListItem.Property(dub_day),TBA)</visible>
+                        <left>0</left>
+                        <top>55</top>
+                        <width>300</width>
+                        <height>18</height>
+                        <font>font9</font>
+                        <textcolor>88B7C0CC</textcolor>
+                        <align>left</align>
+                        <label>$INFO[ListItem.Property(dub_day)] $INFO[ListItem.Property(dub_date_formatted)]</label>
+                    </control>
+
+                    <!-- Countdown beside date with fallback: raw → sub → dub -->
+                    <!-- RAW countdown (primary) -->
+                    <control type="label">
+                        <visible>!String.IsEmpty(ListItem.Property(raw_countdown)) + !String.IsEqual(ListItem.Property(raw_countdown),TBA)</visible>
+                        <left>350</left>
+                        <top>55</top>
+                        <width>150</width>
+                        <height>18</height>
+                        <font>font9</font>
+                        <textcolor>FFFF9800</textcolor>
+                        <align>left</align>
+                        <label>$INFO[ListItem.Property(raw_countdown)]</label>
+                    </control>
+                    <!-- SUB countdown (fallback if no raw) -->
+                    <control type="label">
+                        <visible>[String.IsEmpty(ListItem.Property(raw_countdown)) | String.IsEqual(ListItem.Property(raw_countdown),TBA)] + !String.IsEmpty(ListItem.Property(sub_countdown)) + !String.IsEqual(ListItem.Property(sub_countdown),TBA)</visible>
+                        <left>350</left>
+                        <top>55</top>
+                        <width>150</width>
+                        <height>18</height>
+                        <font>font9</font>
+                        <textcolor>FFFF9800</textcolor>
+                        <align>left</align>
+                        <label>$INFO[ListItem.Property(sub_countdown)]</label>
+                    </control>
+                    <!-- DUB countdown (fallback if no raw or sub) -->
+                    <control type="label">
+                        <visible>[String.IsEmpty(ListItem.Property(raw_countdown)) | String.IsEqual(ListItem.Property(raw_countdown),TBA)] + [String.IsEmpty(ListItem.Property(sub_countdown)) | String.IsEqual(ListItem.Property(sub_countdown),TBA)] + !String.IsEmpty(ListItem.Property(dub_countdown)) + !String.IsEqual(ListItem.Property(dub_countdown),TBA)</visible>
+                        <left>350</left>
+                        <top>55</top>
+                        <width>150</width>
+                        <height>18</height>
+                        <font>font9</font>
+                        <textcolor>FFFF9800</textcolor>
+                        <align>left</align>
+                        <label>$INFO[ListItem.Property(dub_countdown)]</label>
                     </control>
                 </control>
+                <!-- ===== /Added ===== -->
 
-                <!-- Separator RAW|SUB -->
+                <control type="textbox">
+                    <left>300</left>
+                    <top>140</top>
+                    <width>450</width>
+                    <height min="20" max="200">auto</height>
+                    <font>font10</font>
+                    <textcolor>AAFFFFFF</textcolor>
+                    <align>left</align>
+                    <label>$INFO[ListItem.Property(plot)]</label>
+                </control>
                 <control type="image">
-                    <visible>Integer.IsGreater(ListItem.Property(raw_episode),0) + Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
-                    <left>150</left><top>0</top><width>2</width><height>42</height>
+                    <left>300</left>
+                    <top>350</top>
+                    <width>480</width>
+                    <height>30</height>
                     <texture>white.png</texture>
-                    <colordiffuse>33FFFFFF</colordiffuse>
+                    <colordiffuse>aa4da6ff</colordiffuse>
+                </control>
+                <control type="label">
+                    <left>305</left>
+                    <top>350</top>
+                    <width>475</width>
+                    <height>22</height>
+                    <font>font10</font>
+                    <textcolor>AAFFFFFF</textcolor>
+                    <align>center</align>
+                    <label>[B]$INFO[ListItem.Property(genres)][/B]</label>
                 </control>
 
-                <!-- SUB -->
                 <control type="group">
-                    <visible>Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
-                    <left>152</left><top>0</top><width>150</width><height>70</height>
-                    <control type="label">
-                        <left>0</left><top>0</top><width>150</width><height>20</height>
-                        <font>font10</font>
-                        <textcolor>FF2fb2ff</textcolor>
-                        <align>left</align>
-                        <label>[B]Ep $INFO[ListItem.Property(sub_episode)] Sub[/B]</label>
-                    </control>
-                    <control type="label">
-                        <visible>!String.IsEmpty(ListItem.Property(sub_time))</visible>
-                        <left>0</left><top>22</top><width>150</width><height>18</height>
-                        <font>font10</font>
-                        <textcolor>FFB7C0CC</textcolor>
-                        <align>left</align>
-                        <label>$INFO[ListItem.Property(sub_time)]</label>
+                    <left>700</left>
+                    <top>60</top>
+                    <control type="image">
+                        <visible>Integer.IsGreater(ListItem.Property(rank),0)</visible>
+                        <width>35</width>
+                        <height>35</height>
+                        <texture>$INFO[Window().Property(texture.popular)]</texture>
                     </control>
                 </control>
-
-                <!-- Separator SUB|DUB -->
-                <control type="image">
-                    <visible>Integer.IsGreater(ListItem.Property(sub_episode),0) + Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
-                    <left>302</left><top>0</top><width>2</width><height>42</height>
-                    <texture>white.png</texture>
-                    <colordiffuse>33FFFFFF</colordiffuse>
+                <control type="label">
+                    <visible>Integer.IsGreater(ListItem.Property(rank),0)</visible>
+                    <left>745</left>
+                    <top>60</top>
+                    <width>50</width>
+                    <height>22</height>
+                    <font>font12</font>
+                    <textcolor>AAFFFFFF</textcolor>
+                    <align>left</align>
+                    <label>#$INFO[ListItem.Property(rank)]</label>
                 </control>
 
-                <!-- DUB -->
                 <control type="group">
-                    <visible>Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
-                    <left>304</left><top>0</top><width>146</width><height>70</height>
+                    <left>750</left>
+                    <top>10</top>
                     <control type="label">
-                        <left>0</left><top>0</top><width>146</width><height>20</height>
-                        <font>font10</font>
-                        <textcolor>FF9fd33a</textcolor>
-                        <align>left</align>
-                        <label>[B]Ep $INFO[ListItem.Property(dub_episode)] Dub[/B]</label>
+                        <visible>Integer.IsGreater(ListItem.Property(rating),0)</visible>
+                        <left>-110</left>
+                        <top>0</top>
+                        <width>100</width>
+                        <height>22</height>
+                        <font>font12</font>
+                        <textcolor>AAFFFFFF</textcolor>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(rating)]%</label>
                     </control>
+                    <control type="image">
+                        <visible>Integer.IsGreaterOrEqual(ListItem.Property(rating),75)</visible>
+                        <left>0</left>
+                        <top>0</top>
+                        <width>35</width>
+                        <height>35</height>
+                        <texture>$INFO[Window().Property(texture.aver)]</texture>
+                    </control>
+                    <control type="image">
+                        <visible>Integer.IsGreater(ListItem.Property(rating),60) + Integer.IsLess(ListItem.Property(rating),75)</visible>
+                        <left>0</left>
+                        <top>0</top>
+                        <width>35</width>
+                        <height>35</height>
+                        <texture>$INFO[Window().Property(texture.averstr)]</texture>
+                    </control>
+                    <control type="image">
+                        <visible>Integer.IsGreater(ListItem.Property(rating),0) + Integer.IsLessOrEqual(ListItem.Property(rating),60)</visible>
+                        <left>0</left>
+                        <top>0</top>
+                        <width>35</width>
+                        <height>35</height>
+                        <texture>$INFO[Window().Property(texture.aversad)]</texture>
+                    </control>
+                </control>
+
+                <control type="group">
+                    <left>750</left>
+                    <top>60</top>
                     <control type="label">
-                        <visible>!String.IsEmpty(ListItem.Property(dub_time))</visible>
-                        <left>0</left><top>22</top><width>146</width><height>18</height>
-                        <font>font10</font>
-                        <textcolor>FFB7C0CC</textcolor>
-                        <align>left</align>
-                        <label>$INFO[ListItem.Property(dub_time)]</label>
+                        <visible>Integer.IsGreater(ListItem.Property(simkl_rank),0)</visible>
+                        <left>-110</left>
+                        <top>0</top>
+                        <width>100</width>
+                        <height>22</height>
+                        <font>font12</font>
+                        <textcolor>AAFFFFFF</textcolor>
+                        <align>right</align>
+                        <label>#$INFO[ListItem.Property(simkl_rank)]</label>
+                    </control>
+                    <control type="image">
+                        <visible>Integer.IsGreater(ListItem.Property(simkl_rank),0)</visible>
+                        <left>0</left>
+                        <top>0</top>
+                        <width>35</width>
+                        <height>35</height>
+                        <texture>$INFO[Window().Property(texture.simkl_rank)]</texture>
                     </control>
                 </control>
 
-                <!-- Single day and date below all three columns with fallback: raw → sub → dub -->
-                <!-- RAW day/date (primary) -->
-                <control type="label">
-                    <visible>!String.IsEmpty(ListItem.Property(raw_day)) + !String.IsEqual(ListItem.Property(raw_day),TBA)</visible>
-                    <left>0</left><top>55</top><width>300</width><height>18</height>
-                    <font>font9</font>
-                    <textcolor>88B7C0CC</textcolor>
-                    <align>left</align>
-                    <label>$INFO[ListItem.Property(raw_day)] $INFO[ListItem.Property(raw_date_formatted)]</label>
-                </control>
-                <!-- SUB day/date (fallback if no raw) -->
-                <control type="label">
-                    <visible>[String.IsEmpty(ListItem.Property(raw_day)) | String.IsEqual(ListItem.Property(raw_day),TBA)] + !String.IsEmpty(ListItem.Property(sub_day)) + !String.IsEqual(ListItem.Property(sub_day),TBA)</visible>
-                    <left>0</left><top>55</top><width>300</width><height>18</height>
-                    <font>font9</font>
-                    <textcolor>88B7C0CC</textcolor>
-                    <align>left</align>
-                    <label>$INFO[ListItem.Property(sub_day)] $INFO[ListItem.Property(sub_date_formatted)]</label>
-                </control>
-                <!-- DUB day/date (fallback if no raw or sub) -->
-                <control type="label">
-                    <visible>[String.IsEmpty(ListItem.Property(raw_day)) | String.IsEqual(ListItem.Property(raw_day),TBA)] + [String.IsEmpty(ListItem.Property(sub_day)) | String.IsEqual(ListItem.Property(sub_day),TBA)] + !String.IsEmpty(ListItem.Property(dub_day)) + !String.IsEqual(ListItem.Property(dub_day),TBA)</visible>
-                    <left>0</left><top>55</top><width>300</width><height>18</height>
-                    <font>font9</font>
-                    <textcolor>88B7C0CC</textcolor>
-                    <align>left</align>
-                    <label>$INFO[ListItem.Property(dub_day)] $INFO[ListItem.Property(dub_date_formatted)]</label>
-                </control>
-
-                <!-- Countdown beside date with fallback: raw → sub → dub -->
-                <!-- RAW countdown (primary) -->
-                <control type="label">
-                    <visible>!String.IsEmpty(ListItem.Property(raw_countdown)) + !String.IsEqual(ListItem.Property(raw_countdown),TBA)</visible>
-                    <left>350</left><top>55</top><width>150</width><height>18</height>
-                    <font>font9</font>
-                    <textcolor>FFFF9800</textcolor>
-                    <align>left</align>
-                    <label>$INFO[ListItem.Property(raw_countdown)]</label>
-                </control>
-                <!-- SUB countdown (fallback if no raw) -->
-                <control type="label">
-                    <visible>[String.IsEmpty(ListItem.Property(raw_countdown)) | String.IsEqual(ListItem.Property(raw_countdown),TBA)] + !String.IsEmpty(ListItem.Property(sub_countdown)) + !String.IsEqual(ListItem.Property(sub_countdown),TBA)</visible>
-                    <left>350</left><top>55</top><width>150</width><height>18</height>
-                    <font>font9</font>
-                    <textcolor>FFFF9800</textcolor>
-                    <align>left</align>
-                    <label>$INFO[ListItem.Property(sub_countdown)]</label>
-                </control>
-                <!-- DUB countdown (fallback if no raw or sub) -->
-                <control type="label">
-                    <visible>[String.IsEmpty(ListItem.Property(raw_countdown)) | String.IsEqual(ListItem.Property(raw_countdown),TBA)] + [String.IsEmpty(ListItem.Property(sub_countdown)) | String.IsEqual(ListItem.Property(sub_countdown),TBA)] + !String.IsEmpty(ListItem.Property(dub_countdown)) + !String.IsEqual(ListItem.Property(dub_countdown),TBA)</visible>
-                    <left>350</left><top>55</top><width>150</width><height>18</height>
-                    <font>font9</font>
-                    <textcolor>FFFF9800</textcolor>
-                    <align>left</align>
-                    <label>$INFO[ListItem.Property(dub_countdown)]</label>
-                </control>
-            </control>
-            <!-- ===== /Added ===== -->
-
-            <control type="textbox">
-              <left>300</left>
-              <top>140</top>
-              <width>450</width>
-              <height min="20" max="200">auto</height>
-              <font>font10</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>left</align>
-              <label>$INFO[ListItem.Property(plot)]</label>
-            </control>
-            <control type="image">
-                <left>300</left>
-                <top>350</top>
-                <width>480</width>
-                <height>30</height>
-                <texture>white.png</texture>
-                <colordiffuse>aa4da6ff</colordiffuse>
-            </control>
-            <control type="label">
-              <left>305</left>
-              <top>350</top>
-              <width>475</width>
-              <height>22</height>
-              <font>font10</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>[B]$INFO[ListItem.Property(genres)][/B]</label>
-            </control>
-
-            <control type="group">
-              <left>15</left>
-              <top>10</top>
-              <control type="image">
-                  <visible>Integer.IsGreaterOrEqual(ListItem.Property(rating_average),75)</visible>
-                  <width>30</width>
-                  <height>30</height>
-                  <texture>$INFO[Window().Property(texture.aver)]</texture>
-              </control>
-              <control type="image">
-                  <visible>Integer.IsGreater(ListItem.Property(rating_average),60) + Integer.IsLess(ListItem.Property(rating_average),75)</visible>
-                  <width>30</width>
-                  <height>30</height>
-                  <texture>$INFO[Window().Property(texture.averstr)]</texture>
-              </control>
-              <control type="image">
-                  <visible>Integer.IsGreater(ListItem.Property(rating_average),0) + Integer.IsLessOrEqual(ListItem.Property(rating_average),60)</visible>
-                  <width>30</width>
-                  <height>30</height>
-                  <texture>$INFO[Window().Property(texture.aversad)]</texture>
-              </control>
-              <control type="image">
-                  <visible>Integer.IsEqual(ListItem.Property(rating_average),0) | IsEmpty(ListItem.Property(rating_average))</visible>
-                  <width>30</width>
-                  <height>30</height>
-                  <texture>$INFO[Window().Property(texture.avernone)]</texture>
-              </control>
-            </control>
-
-            <!-- rating_average: show actual percentage if > 0, otherwise "-" -->
-            <control type="label">
-              <visible>Integer.IsGreater(ListItem.Property(rating_average),0)</visible>
-              <left>5</left>
-              <top>36</top>
-              <width>55</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>$INFO[ListItem.Property(rating_average)]%</label>
-            </control>
-            <control type="label">
-              <visible>Integer.IsEqual(ListItem.Property(rating_average),0) | IsEmpty(ListItem.Property(rating_average))</visible>
-              <left>12</left>
-              <top>36</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>-</label>
-            </control>
-
-            <control type="image">
-                <left>15</left>
-                <top>72</top>
-                <width>30</width>
-                <height>30</height>
-                <texture>$INFO[Window().Property(texture.mal)]</texture>
-            </control>
-
-            <!-- rating_mal: show actual rating if not "0.0", otherwise "-" -->
-            <control type="label">
-              <visible>!String.IsEqual(ListItem.Property(rating_mal),0.0) + !IsEmpty(ListItem.Property(rating_mal))</visible>
-              <left>12</left>
-              <top>98</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>$INFO[ListItem.Property(rating_mal)]</label>
-            </control>
-            <control type="label">
-              <visible>String.IsEqual(ListItem.Property(rating_mal),0.0) | IsEmpty(ListItem.Property(rating_mal))</visible>
-              <left>12</left>
-              <top>98</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>-</label>
-            </control>
-
-            <control type="image">
-                <left>15</left>
-                <top>134</top>
-                <width>30</width>
-                <height>30</height>
-                <texture>$INFO[Window().Property(texture.anilist)]</texture>
-            </control>
-
-            <!-- rating_anilist: show actual rating if not "0.0", otherwise "-" -->
-            <control type="label">
-              <visible>!String.IsEqual(ListItem.Property(rating_anilist),0.0) + !IsEmpty(ListItem.Property(rating_anilist))</visible>
-              <left>12</left>
-              <top>160</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>$INFO[ListItem.Property(rating_anilist)]</label>
-            </control>
-            <control type="label">
-              <visible>String.IsEqual(ListItem.Property(rating_anilist),0.0) | IsEmpty(ListItem.Property(rating_anilist))</visible>
-              <left>12</left>
-              <top>160</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>-</label>
-            </control>
-
-            <control type="image">
-                <left>15</left>
-                <top>196</top>
-                <width>30</width>
-                <height>30</height>
-                <texture>$INFO[Window().Property(texture.imdb)]</texture>
-            </control>
-
-            <!-- rating_imdb: show actual rating if not "0.0", otherwise "-" -->
-            <control type="label">
-              <visible>!String.IsEqual(ListItem.Property(rating_imdb),0.0) + !IsEmpty(ListItem.Property(rating_imdb))</visible>
-              <left>12</left>
-              <top>222</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>$INFO[ListItem.Property(rating_imdb)]</label>
-            </control>
-            <control type="label">
-              <visible>String.IsEqual(ListItem.Property(rating_imdb),0.0) | IsEmpty(ListItem.Property(rating_imdb))</visible>
-              <left>12</left>
-              <top>222</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>-</label>
-            </control>
-
-            <control type="image">
-                <left>15</left>
-                <top>258</top>
-                <width>30</width>
-                <height>30</height>
-                <texture>$INFO[Window().Property(texture.trakt)]</texture>
-            </control>
-
-            <!-- rating_trakt: show actual rating if not "0.0", otherwise "-" -->
-            <control type="label">
-              <visible>!String.IsEqual(ListItem.Property(rating_trakt),0.0) + !IsEmpty(ListItem.Property(rating_trakt))</visible>
-              <left>12</left>
-              <top>284</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>$INFO[ListItem.Property(rating_trakt)]</label>
-            </control>
-            <control type="label">
-              <visible>String.IsEqual(ListItem.Property(rating_trakt),0.0) | IsEmpty(ListItem.Property(rating_trakt))</visible>
-              <left>12</left>
-              <top>284</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>-</label>
-            </control>
-
-            <control type="image">
-                <left>15</left>
-                <top>320</top>
-                <width>30</width>
-                <height>30</height>
-                <texture>$INFO[Window().Property(texture.tmdb)]</texture>
-            </control>
-
-            <!-- rating_tmdb: show actual rating if not "0.0", otherwise "-" -->
-            <control type="label">
-              <visible>!String.IsEqual(ListItem.Property(rating_tmdb),0.0) + !IsEmpty(ListItem.Property(rating_tmdb))</visible>
-              <left>12</left>
-              <top>345</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>$INFO[ListItem.Property(rating_tmdb)]</label>
-            </control>
-            <control type="label">
-              <visible>String.IsEqual(ListItem.Property(rating_tmdb),0.0) | IsEmpty(ListItem.Property(rating_tmdb))</visible>
-              <left>12</left>
-              <top>345</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>-</label>
-            </control>
-
-            <control type="group">
-              <left>700</left>
-              <top>60</top>
-              <control type="image">
-                  <visible>Integer.IsGreater(ListItem.Property(rank),0)</visible>
-                  <width>35</width>
-                  <height>35</height>
-                  <texture>$INFO[Window().Property(texture.popular)]</texture>
-              </control>
-            </control>
-            <control type="label">
-              <visible>Integer.IsGreater(ListItem.Property(rank),0)</visible>
-              <left>745</left>
-              <top>60</top>
-              <width>50</width>
-              <height>22</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>left</align>
-              <label>#$INFO[ListItem.Property(rank)]</label>
-            </control>
-
-            <control type="group">
-              <left>750</left>
-              <top>10</top>
-              <control type="label">
-                <visible>Integer.IsGreater(ListItem.Property(rating),0)</visible>
-                <left>-110</left>
-                <top>0</top>
-                <width>100</width>
-                <height>22</height>
-                <font>font12</font>
-                <textcolor>AAFFFFFF</textcolor>
-                <align>right</align>
-                <label>$INFO[ListItem.Property(rating)]%</label>
-              </control>
-              <control type="image">
-                <visible>Integer.IsGreaterOrEqual(ListItem.Property(rating),75)</visible>
-                <left>0</left>
-                <top>0</top>
-                <width>35</width>
-                <height>35</height>
-                <texture>$INFO[Window().Property(texture.aver)]</texture>
-              </control>
-              <control type="image">
-                <visible>Integer.IsGreater(ListItem.Property(rating),60) + Integer.IsLess(ListItem.Property(rating),75)</visible>
-                <left>0</left>
-                <top>0</top>
-                <width>35</width>
-                <height>35</height>
-                <texture>$INFO[Window().Property(texture.averstr)]</texture>
-              </control>
-              <control type="image">
-                <visible>Integer.IsGreater(ListItem.Property(rating),0) + Integer.IsLessOrEqual(ListItem.Property(rating),60)</visible>
-                <left>0</left>
-                <top>0</top>
-                <width>35</width>
-                <height>35</height>
-                <texture>$INFO[Window().Property(texture.aversad)]</texture>
-              </control>
-            </control>
-
-            <control type="group">
-              <left>750</left>
-              <top>60</top>
-              <control type="label">
-                <visible>Integer.IsGreater(ListItem.Property(simkl_rank),0)</visible>
-                <left>-110</left>
-                <top>0</top>
-                <width>100</width>
-                <height>22</height>
-                <font>font12</font>
-                <textcolor>AAFFFFFF</textcolor>
-                <align>right</align>
-                <label>#$INFO[ListItem.Property(simkl_rank)]</label>
-              </control>
-              <control type="image">
-                <visible>Integer.IsGreater(ListItem.Property(simkl_rank),0)</visible>
-                <left>0</left>
-                <top>0</top>
-                <width>35</width>
-                <height>35</height>
-                <texture>$INFO[Window().Property(texture.simkl_rank)]</texture>
-              </control>
-            </control>
-
-            <!-- Studios Section (ITEMLAYOUT) -->
-            <!-- <control type="label">
+                <!-- Studios Section (ITEMLAYOUT) -->
+                <!-- <control type="label">
               <visible>!IsEmpty(ListItem.Property(studios))</visible>
               <left>300</left>
               <top>365</top>
@@ -618,8 +653,8 @@
               <label>$INFO[ListItem.Property(studios)]</label>
             </control> -->
 
-            <!-- Status Section (ITEMLAYOUT) -->
-            <!-- <control type="label">
+                <!-- Status Section (ITEMLAYOUT) -->
+                <!-- <control type="label">
               <visible>!IsEmpty(ListItem.Property(status))</visible>
               <left>300</left>
               <top>410</top>
@@ -642,8 +677,8 @@
               <label>$INFO[ListItem.Property(status)]</label>
             </control> -->
 
-            <!-- Streams Section (ITEMLAYOUT) -->
-            <!-- <control type="label">
+                <!-- Streams Section (ITEMLAYOUT) -->
+                <!-- <control type="label">
               <visible>!IsEmpty(ListItem.Property(streams))</visible>
               <left>300</left>
               <top>447</top>
@@ -666,613 +701,574 @@
               <label>$INFO[ListItem.Property(streams)]</label>
             </control> -->
 
-        	</itemlayout>
-        	<focusedlayout height="390" width="800">
-            <control type="image">
-                <width>100%</width>
-                <height>100%</height>
-                <texture>white.png</texture>
-                <colordiffuse>AA000000</colordiffuse>
-            </control>
-        		<control type="image">
-        			<left>10</left>
-        			<top>10</top>
-        			<width>260</width>
-        			<height>370</height>
-        			<texture>$INFO[ListItem.Property(poster)]</texture>
-        			<animation effect="zoom" end="5,5,270,380" time="100">focus</animation>
-        		</control>
+            </itemlayout>
+            <focusedlayout height="390" width="800">
+                <control type="image">
+                    <width>100%</width>
+                    <height>100%</height>
+                    <texture>white.png</texture>
+                    <colordiffuse>AA000000</colordiffuse>
+                </control>
+                <control type="image">
+                    <left>10</left>
+                    <top>10</top>
+                    <width>260</width>
+                    <height>370</height>
+                    <texture>$INFO[ListItem.Property(poster)]</texture>
+                    <animation effect="zoom" end="5,5,270,380" time="100">focus</animation>
+                </control>
 
+                <!-- Vertical Ratings Group -->
+                <control type="group">
+                    <left>5</left>
+                    <top>5</top>
+                    <width>50</width>
+                    <height>390</height>
 
-            <!-- <control type="image">
-                <left>5</left>
-                <top>340</top>
-                <width>270</width>
-                <height>50</height>
-                <texture>white.png</texture>
-                <colordiffuse>ff1a1a1a</colordiffuse>
-            </control> -->
+                    <!-- Background rectangle -->
+                    <control type="image">
+                        <left>0</left>
+                        <top>0</top>
+                        <width>50</width>
+                        <height>390</height>
+                        <texture>white.png</texture>
+                        <colordiffuse>CC000000</colordiffuse>
+                        <animation effect="slide" end="0,0,50,390" time="100">focus</animation>
+                    </control>
 
-            <control type="image">
-                <left>5</left>
-                <top>5</top>
-                <width>50</width>
-                <height>380</height>
-                <texture>white.png</texture>
-                <colordiffuse>CC000000</colordiffuse>
-            </control>
+                    <!-- Rating Average (AniSchedule Score) -->
+                    <control type="group">
+                        <left>0</left>
+                        <top>5</top>
+                        <width>50</width>
+                        <height>60</height>
 
+                        <!-- Emoji icons -->
+                        <control type="image">
+                            <visible>Integer.IsGreaterOrEqual(ListItem.Property(rating_average),75)</visible>
+                            <left>5</left>
+                            <top>0</top>
+                            <width>40</width>
+                            <height>30</height>
+                            <texture>$INFO[Window().Property(texture.aver)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+                        <control type="image">
+                            <visible>Integer.IsGreater(ListItem.Property(rating_average),60) + Integer.IsLess(ListItem.Property(rating_average),75)</visible>
+                            <left>5</left>
+                            <top>0</top>
+                            <width>40</width>
+                            <height>30</height>
+                            <texture>$INFO[Window().Property(texture.averstr)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+                        <control type="image">
+                            <visible>Integer.IsGreater(ListItem.Property(rating_average),0) + Integer.IsLessOrEqual(ListItem.Property(rating_average),60)</visible>
+                            <left>5</left>
+                            <top>0</top>
+                            <width>40</width>
+                            <height>30</height>
+                            <texture>$INFO[Window().Property(texture.aversad)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+                        <control type="image">
+                            <visible>Integer.IsEqual(ListItem.Property(rating_average),0) | IsEmpty(ListItem.Property(rating_average))</visible>
+                            <left>5</left>
+                            <top>0</top>
+                            <width>40</width>
+                            <height>30</height>
+                            <texture>$INFO[Window().Property(texture.avernone)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
 
-            <!-- Release Title -->
-            <control type="label">
-              <left>300</left>
-              <top>0</top>
-              <width>450</width>
-              <height>30</height>
-              <font>font14</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>left</align>
-              <scroll>true</scroll>
-              <autoscroll delay="4000" time="1500" repeat="5000"></autoscroll>
-              <label>[B]$INFO[ListItem.Property(release_title)][/B]</label>
-            </control>
+                        <!-- Score label -->
+                        <control type="label">
+                            <left>0</left>
+                            <top>32</top>
+                            <width>50</width>
+                            <height>25</height>
+                            <font>font12</font>
+                            <textcolor>AAFFFFFF</textcolor>
+                            <align>center</align>
+                            <label>$INFO[ListItem.Property(rating_average)]</label>
+                        </control>
+                    </control>
 
-            <!-- ===== Added: compact episodes row (Raw | Sub | Dub) ===== -->
-            <control type="group">
-                <visible>
+                    <!-- MAL Rating -->
+                    <control type="group">
+                        <left>0</left>
+                        <top>70</top>
+                        <width>50</width>
+                        <height>60</height>
+
+                        <control type="image">
+                            <left>5</left>
+                            <top>0</top>
+                            <width>40</width>
+                            <height>30</height>
+                            <texture>$INFO[Window().Property(texture.mal)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+
+                        <control type="label">
+                            <left>0</left>
+                            <top>32</top>
+                            <width>50</width>
+                            <height>25</height>
+                            <font>font12</font>
+                            <textcolor>AAFFFFFF</textcolor>
+                            <align>center</align>
+                            <label>$INFO[ListItem.Property(rating_mal)]</label>
+                        </control>
+                    </control>
+
+                    <!-- Anilist Rating -->
+                    <control type="group">
+                        <left>0</left>
+                        <top>135</top>
+                        <width>50</width>
+                        <height>60</height>
+
+                        <control type="image">
+                            <left>5</left>
+                            <top>0</top>
+                            <width>40</width>
+                            <height>30</height>
+                            <texture>$INFO[Window().Property(texture.anilist)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+
+                        <control type="label">
+                            <left>0</left>
+                            <top>32</top>
+                            <width>50</width>
+                            <height>25</height>
+                            <font>font12</font>
+                            <textcolor>AAFFFFFF</textcolor>
+                            <align>center</align>
+                            <label>$INFO[ListItem.Property(rating_anilist)]</label>
+                        </control>
+                    </control>
+
+                    <!-- IMDb Rating -->
+                    <control type="group">
+                        <left>0</left>
+                        <top>200</top>
+                        <width>50</width>
+                        <height>60</height>
+
+                        <control type="image">
+                            <left>5</left>
+                            <top>0</top>
+                            <width>40</width>
+                            <height>30</height>
+                            <texture>$INFO[Window().Property(texture.imdb)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+
+                        <control type="label">
+                            <left>0</left>
+                            <top>32</top>
+                            <width>50</width>
+                            <height>25</height>
+                            <font>font12</font>
+                            <textcolor>AAFFFFFF</textcolor>
+                            <align>center</align>
+                            <label>$INFO[ListItem.Property(rating_imdb)]</label>
+                        </control>
+                    </control>
+
+                    <!-- Trakt Rating -->
+                    <control type="group">
+                        <left>0</left>
+                        <top>265</top>
+                        <width>50</width>
+                        <height>60</height>
+
+                        <control type="image">
+                            <left>5</left>
+                            <top>0</top>
+                            <width>40</width>
+                            <height>30</height>
+                            <texture>$INFO[Window().Property(texture.trakt)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+
+                        <control type="label">
+                            <left>0</left>
+                            <top>32</top>
+                            <width>50</width>
+                            <height>25</height>
+                            <font>font12</font>
+                            <textcolor>AAFFFFFF</textcolor>
+                            <align>center</align>
+                            <label>$INFO[ListItem.Property(rating_trakt)]</label>
+                        </control>
+                    </control>
+
+                    <!-- TMDb Rating -->
+                    <control type="group">
+                        <left>0</left>
+                        <top>330</top>
+                        <width>50</width>
+                        <height>60</height>
+
+                        <control type="image">
+                            <left>5</left>
+                            <top>0</top>
+                            <width>40</width>
+                            <height>30</height>
+                            <texture>$INFO[Window().Property(texture.tmdb)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+
+                        <control type="label">
+                            <left>0</left>
+                            <top>32</top>
+                            <width>50</width>
+                            <height>25</height>
+                            <font>font12</font>
+                            <textcolor>AAFFFFFF</textcolor>
+                            <align>center</align>
+                            <label>$INFO[ListItem.Property(rating_tmdb)]</label>
+                        </control>
+                    </control>
+
+                </control>
+
+                <!-- Release Title -->
+                <control type="label">
+                    <left>300</left>
+                    <top>0</top>
+                    <width>450</width>
+                    <height>35</height>
+                    <font>font16</font>
+                    <textcolor>AAFFFFFF</textcolor>
+                    <align>left</align>
+                    <scroll>true</scroll>
+                    <autoscroll delay="4000" time="1500" repeat="5000" />
+                    <label>[B]$INFO[ListItem.Property(release_title)][/B]</label>
+                </control>
+
+                <!-- ===== Added: compact episodes row (Raw | Sub | Dub) ===== -->
+                <control type="group">
+                    <visible>
                     Integer.IsGreater(ListItem.Property(raw_episode),0) |
                     Integer.IsGreater(ListItem.Property(sub_episode),0) |
                     Integer.IsGreater(ListItem.Property(dub_episode),0)
-                </visible>
-                <left>300</left>
-                <top>40</top>
-                <width>450</width>
-                <height>70</height>
+                    </visible>
+                    <left>300</left>
+                    <top>40</top>
+                    <width>450</width>
+                    <height>70</height>
 
-                <!-- RAW -->
-                <control type="group">
-                    <visible>Integer.IsGreater(ListItem.Property(raw_episode),0)</visible>
-                    <left>0</left><top>0</top><width>150</width><height>70</height>
-                    <control type="label">
-                        <left>0</left><top>0</top><width>150</width><height>20</height>
-                        <font>font10</font>
-                        <textcolor>FF53b56f</textcolor>
-                        <align>left</align>
-                        <label>[B]Ep $INFO[ListItem.Property(raw_episode)] Raw[/B]</label>
+                    <!-- RAW -->
+                    <control type="group">
+                        <visible>Integer.IsGreater(ListItem.Property(raw_episode),0)</visible>
+                        <left>0</left>
+                        <top>0</top>
+                        <width>150</width>
+                        <height>70</height>
+                        <control type="label">
+                            <left>0</left>
+                            <top>0</top>
+                            <width>150</width>
+                            <height>20</height>
+                            <font>font10</font>
+                            <textcolor>FF53b56f</textcolor>
+                            <align>left</align>
+                            <label>[B]Ep $INFO[ListItem.Property(raw_episode)] Raw[/B]</label>
+                        </control>
+                        <!-- time under title -->
+                        <control type="label">
+                            <visible>!String.IsEmpty(ListItem.Property(raw_time))</visible>
+                            <left>0</left>
+                            <top>22</top>
+                            <width>150</width>
+                            <height>18</height>
+                            <font>font10</font>
+                            <textcolor>FFB7C0CC</textcolor>
+                            <align>left</align>
+                            <label>$INFO[ListItem.Property(raw_time)]</label>
+                        </control>
                     </control>
-                    <!-- time under title -->
+
+                    <!-- Separator RAW|SUB -->
+                    <control type="image">
+                        <visible>Integer.IsGreater(ListItem.Property(raw_episode),0) + Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
+                        <left>150</left>
+                        <top>0</top>
+                        <width>2</width>
+                        <height>42</height>
+                        <texture>white.png</texture>
+                        <colordiffuse>33FFFFFF</colordiffuse>
+                    </control>
+
+                    <!-- SUB -->
+                    <control type="group">
+                        <visible>Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
+                        <left>152</left>
+                        <top>0</top>
+                        <width>150</width>
+                        <height>70</height>
+                        <control type="label">
+                            <left>0</left>
+                            <top>0</top>
+                            <width>150</width>
+                            <height>20</height>
+                            <font>font10</font>
+                            <textcolor>FF2fb2ff</textcolor>
+                            <align>left</align>
+                            <label>[B]Ep $INFO[ListItem.Property(sub_episode)] Sub[/B]</label>
+                        </control>
+                        <control type="label">
+                            <visible>!String.IsEmpty(ListItem.Property(sub_time))</visible>
+                            <left>0</left>
+                            <top>22</top>
+                            <width>150</width>
+                            <height>18</height>
+                            <font>font10</font>
+                            <textcolor>FFB7C0CC</textcolor>
+                            <align>left</align>
+                            <label>$INFO[ListItem.Property(sub_time)]</label>
+                        </control>
+                    </control>
+
+                    <!-- Separator SUB|DUB -->
+                    <control type="image">
+                        <visible>Integer.IsGreater(ListItem.Property(sub_episode),0) + Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
+                        <left>302</left>
+                        <top>0</top>
+                        <width>2</width>
+                        <height>42</height>
+                        <texture>white.png</texture>
+                        <colordiffuse>33FFFFFF</colordiffuse>
+                    </control>
+
+                    <!-- DUB -->
+                    <control type="group">
+                        <visible>Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
+                        <left>304</left>
+                        <top>0</top>
+                        <width>146</width>
+                        <height>70</height>
+                        <control type="label">
+                            <left>0</left>
+                            <top>0</top>
+                            <width>146</width>
+                            <height>20</height>
+                            <font>font10</font>
+                            <textcolor>FF9fd33a</textcolor>
+                            <align>left</align>
+                            <label>[B]Ep $INFO[ListItem.Property(dub_episode)] Dub[/B]</label>
+                        </control>
+                        <control type="label">
+                            <visible>!String.IsEmpty(ListItem.Property(dub_time))</visible>
+                            <left>0</left>
+                            <top>22</top>
+                            <width>146</width>
+                            <height>18</height>
+                            <font>font10</font>
+                            <textcolor>FFB7C0CC</textcolor>
+                            <align>left</align>
+                            <label>$INFO[ListItem.Property(dub_time)]</label>
+                        </control>
+                    </control>
+
+                    <!-- Single day and date below all three columns with fallback: raw → sub → dub -->
+                    <!-- RAW day/date (primary) -->
                     <control type="label">
-                        <visible>!String.IsEmpty(ListItem.Property(raw_time))</visible>
-                        <left>0</left><top>22</top><width>150</width><height>18</height>
-                        <font>font10</font>
-                        <textcolor>FFB7C0CC</textcolor>
+                        <visible>!String.IsEmpty(ListItem.Property(raw_day)) + !String.IsEqual(ListItem.Property(raw_day),TBA)</visible>
+                        <left>0</left>
+                        <top>55</top>
+                        <width>300</width>
+                        <height>18</height>
+                        <font>font9</font>
+                        <textcolor>88B7C0CC</textcolor>
                         <align>left</align>
-                        <label>$INFO[ListItem.Property(raw_time)]</label>
+                        <label>$INFO[ListItem.Property(raw_day)] $INFO[ListItem.Property(raw_date_formatted)]</label>
+                    </control>
+                    <!-- SUB day/date (fallback if no raw) -->
+                    <control type="label">
+                        <visible>[String.IsEmpty(ListItem.Property(raw_day)) | String.IsEqual(ListItem.Property(raw_day),TBA)] + !String.IsEmpty(ListItem.Property(sub_day)) + !String.IsEqual(ListItem.Property(sub_day),TBA)</visible>
+                        <left>0</left>
+                        <top>55</top>
+                        <width>300</width>
+                        <height>18</height>
+                        <font>font9</font>
+                        <textcolor>88B7C0CC</textcolor>
+                        <align>left</align>
+                        <label>$INFO[ListItem.Property(sub_day)] $INFO[ListItem.Property(sub_date_formatted)]</label>
+                    </control>
+                    <!-- DUB day/date (fallback if no raw or sub) -->
+                    <control type="label">
+                        <visible>[String.IsEmpty(ListItem.Property(raw_day)) | String.IsEqual(ListItem.Property(raw_day),TBA)] + [String.IsEmpty(ListItem.Property(sub_day)) | String.IsEqual(ListItem.Property(sub_day),TBA)] + !String.IsEmpty(ListItem.Property(dub_day)) + !String.IsEqual(ListItem.Property(dub_day),TBA)</visible>
+                        <left>0</left>
+                        <top>55</top>
+                        <width>300</width>
+                        <height>18</height>
+                        <font>font9</font>
+                        <textcolor>88B7C0CC</textcolor>
+                        <align>left</align>
+                        <label>$INFO[ListItem.Property(dub_day)] $INFO[ListItem.Property(dub_date_formatted)]</label>
+                    </control>
+
+                    <!-- Countdown beside date with fallback: raw → sub → dub -->
+                    <!-- RAW countdown (primary) -->
+                    <control type="label">
+                        <visible>!String.IsEmpty(ListItem.Property(raw_countdown)) + !String.IsEqual(ListItem.Property(raw_countdown),TBA)</visible>
+                        <left>350</left>
+                        <top>55</top>
+                        <width>150</width>
+                        <height>18</height>
+                        <font>font9</font>
+                        <textcolor>FFFF9800</textcolor>
+                        <align>left</align>
+                        <label>$INFO[ListItem.Property(raw_countdown)]</label>
+                    </control>
+                    <!-- SUB countdown (fallback if no raw) -->
+                    <control type="label">
+                        <visible>[String.IsEmpty(ListItem.Property(raw_countdown)) | String.IsEqual(ListItem.Property(raw_countdown),TBA)] + !String.IsEmpty(ListItem.Property(sub_countdown)) + !String.IsEqual(ListItem.Property(sub_countdown),TBA)</visible>
+                        <left>350</left>
+                        <top>55</top>
+                        <width>150</width>
+                        <height>18</height>
+                        <font>font9</font>
+                        <textcolor>FFFF9800</textcolor>
+                        <align>left</align>
+                        <label>$INFO[ListItem.Property(sub_countdown)]</label>
+                    </control>
+                    <!-- DUB countdown (fallback if no raw or sub) -->
+                    <control type="label">
+                        <visible>[String.IsEmpty(ListItem.Property(raw_countdown)) | String.IsEqual(ListItem.Property(raw_countdown),TBA)] + [String.IsEmpty(ListItem.Property(sub_countdown)) | String.IsEqual(ListItem.Property(sub_countdown),TBA)] + !String.IsEmpty(ListItem.Property(dub_countdown)) + !String.IsEqual(ListItem.Property(dub_countdown),TBA)</visible>
+                        <left>350</left>
+                        <top>55</top>
+                        <width>150</width>
+                        <height>18</height>
+                        <font>font9</font>
+                        <textcolor>FFFF9800</textcolor>
+                        <align>left</align>
+                        <label>$INFO[ListItem.Property(dub_countdown)]</label>
                     </control>
                 </control>
+                <!-- ===== /Added ===== -->
 
-                <!-- Separator RAW|SUB -->
+                <control type="textbox">
+                    <left>300</left>
+                    <top>140</top>
+                    <width>450</width>
+                    <height min="20" max="200">auto</height>
+                    <font>font10</font>
+                    <textcolor>AAFFFFFF</textcolor>
+                    <align>left</align>
+                    <autoscroll delay="3000" time="1500" repeat="5000"></autoscroll>
+                    <label>$INFO[ListItem.Property(plot)]</label>
+                </control>
                 <control type="image">
-                    <visible>Integer.IsGreater(ListItem.Property(raw_episode),0) + Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
-                    <left>150</left><top>0</top><width>2</width><height>42</height>
+                    <left>300</left>
+                    <top>350</top>
+                    <width>480</width>
+                    <height>30</height>
                     <texture>white.png</texture>
-                    <colordiffuse>33FFFFFF</colordiffuse>
+                    <colordiffuse>aa4da6ff</colordiffuse>
                 </control>
-
-                <!-- SUB -->
+                <control type="label">
+                    <left>305</left>
+                    <top>350</top>
+                    <width>475</width>
+                    <height>22</height>
+                    <font>font10</font>
+                    <textcolor>AAFFFFFF</textcolor>
+                    <align>center</align>
+                    <label>[B]$INFO[ListItem.Property(genres)][/B]</label>
+                </control>
                 <control type="group">
-                    <visible>Integer.IsGreater(ListItem.Property(sub_episode),0)</visible>
-                    <left>152</left><top>0</top><width>150</width><height>70</height>
-                    <control type="label">
-                        <left>0</left><top>0</top><width>150</width><height>20</height>
-                        <font>font10</font>
-                        <textcolor>FF2fb2ff</textcolor>
-                        <align>left</align>
-                        <label>[B]Ep $INFO[ListItem.Property(sub_episode)] Sub[/B]</label>
-                    </control>
-                    <control type="label">
-                        <visible>!String.IsEmpty(ListItem.Property(sub_time))</visible>
-                        <left>0</left><top>22</top><width>150</width><height>18</height>
-                        <font>font10</font>
-                        <textcolor>FFB7C0CC</textcolor>
-                        <align>left</align>
-                        <label>$INFO[ListItem.Property(sub_time)]</label>
+                    <left>700</left>
+                    <top>60</top>
+                    <control type="image">
+                        <visible>Integer.IsGreater(ListItem.Property(rank),0)</visible>
+                        <width>35</width>
+                        <height>35</height>
+                        <texture>$INFO[Window().Property(texture.popular)]</texture>
                     </control>
                 </control>
-
-                <!-- Separator SUB|DUB -->
-                <control type="image">
-                    <visible>Integer.IsGreater(ListItem.Property(sub_episode),0) + Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
-                    <left>302</left><top>0</top><width>2</width><height>42</height>
-                    <texture>white.png</texture>
-                    <colordiffuse>33FFFFFF</colordiffuse>
+                <control type="label">
+                    <visible>Integer.IsGreater(ListItem.Property(rank),0)</visible>
+                    <left>745</left>
+                    <top>60</top>
+                    <width>50</width>
+                    <height>22</height>
+                    <font>font12</font>
+                    <textcolor>AAFFFFFF</textcolor>
+                    <align>left</align>
+                    <label>#$INFO[ListItem.Property(rank)]</label>
                 </control>
 
-                <!-- DUB -->
                 <control type="group">
-                    <visible>Integer.IsGreater(ListItem.Property(dub_episode),0)</visible>
-                    <left>304</left><top>0</top><width>146</width><height>70</height>
+                    <left>750</left>
+                    <top>10</top>
                     <control type="label">
-                        <left>0</left><top>0</top><width>146</width><height>20</height>
-                        <font>font10</font>
-                        <textcolor>FF9fd33a</textcolor>
-                        <align>left</align>
-                        <label>[B]Ep $INFO[ListItem.Property(dub_episode)] Dub[/B]</label>
+                        <visible>Integer.IsGreater(ListItem.Property(rating),0)</visible>
+                        <left>-110</left>
+                        <top>0</top>
+                        <width>100</width>
+                        <height>22</height>
+                        <font>font12</font>
+                        <textcolor>AAFFFFFF</textcolor>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(rating)]%</label>
                     </control>
+                    <control type="image">
+                        <visible>Integer.IsGreaterOrEqual(ListItem.Property(rating),75)</visible>
+                        <left>0</left>
+                        <top>0</top>
+                        <width>35</width>
+                        <height>35</height>
+                        <texture>$INFO[Window().Property(texture.aver)]</texture>
+                    </control>
+                    <control type="image">
+                        <visible>Integer.IsGreater(ListItem.Property(rating),60) + Integer.IsLess(ListItem.Property(rating),75)</visible>
+                        <left>0</left>
+                        <top>0</top>
+                        <width>35</width>
+                        <height>35</height>
+                        <texture>$INFO[Window().Property(texture.averstr)]</texture>
+                    </control>
+                    <control type="image">
+                        <visible>Integer.IsGreater(ListItem.Property(rating),0) + Integer.IsLessOrEqual(ListItem.Property(rating),60)</visible>
+                        <left>0</left>
+                        <top>0</top>
+                        <width>35</width>
+                        <height>35</height>
+                        <texture>$INFO[Window().Property(texture.aversad)]</texture>
+                    </control>
+                </control>
+
+                <control type="group">
+                    <left>750</left>
+                    <top>60</top>
                     <control type="label">
-                        <visible>!String.IsEmpty(ListItem.Property(dub_time))</visible>
-                        <left>0</left><top>22</top><width>146</width><height>18</height>
-                        <font>font10</font>
-                        <textcolor>FFB7C0CC</textcolor>
-                        <align>left</align>
-                        <label>$INFO[ListItem.Property(dub_time)]</label>
+                        <visible>Integer.IsGreater(ListItem.Property(simkl_rank),0)</visible>
+                        <left>-110</left>
+                        <top>0</top>
+                        <width>100</width>
+                        <height>22</height>
+                        <font>font12</font>
+                        <textcolor>AAFFFFFF</textcolor>
+                        <align>right</align>
+                        <label>#$INFO[ListItem.Property(simkl_rank)]</label>
+                    </control>
+                    <control type="image">
+                        <visible>Integer.IsGreater(ListItem.Property(simkl_rank),0)</visible>
+                        <left>0</left>
+                        <top>0</top>
+                        <width>35</width>
+                        <height>35</height>
+                        <texture>$INFO[Window().Property(texture.simkl_rank)]</texture>
                     </control>
                 </control>
 
-                <!-- Single day and date below all three columns with fallback: raw → sub → dub -->
-                <!-- RAW day/date (primary) -->
-                <control type="label">
-                    <visible>!String.IsEmpty(ListItem.Property(raw_day)) + !String.IsEqual(ListItem.Property(raw_day),TBA)</visible>
-                    <left>0</left><top>55</top><width>300</width><height>18</height>
-                    <font>font9</font>
-                    <textcolor>88B7C0CC</textcolor>
-                    <align>left</align>
-                    <label>$INFO[ListItem.Property(raw_day)] $INFO[ListItem.Property(raw_date_formatted)]</label>
-                </control>
-                <!-- SUB day/date (fallback if no raw) -->
-                <control type="label">
-                    <visible>[String.IsEmpty(ListItem.Property(raw_day)) | String.IsEqual(ListItem.Property(raw_day),TBA)] + !String.IsEmpty(ListItem.Property(sub_day)) + !String.IsEqual(ListItem.Property(sub_day),TBA)</visible>
-                    <left>0</left><top>55</top><width>300</width><height>18</height>
-                    <font>font9</font>
-                    <textcolor>88B7C0CC</textcolor>
-                    <align>left</align>
-                    <label>$INFO[ListItem.Property(sub_day)] $INFO[ListItem.Property(sub_date_formatted)]</label>
-                </control>
-                <!-- DUB day/date (fallback if no raw or sub) -->
-                <control type="label">
-                    <visible>[String.IsEmpty(ListItem.Property(raw_day)) | String.IsEqual(ListItem.Property(raw_day),TBA)] + [String.IsEmpty(ListItem.Property(sub_day)) | String.IsEqual(ListItem.Property(sub_day),TBA)] + !String.IsEmpty(ListItem.Property(dub_day)) + !String.IsEqual(ListItem.Property(dub_day),TBA)</visible>
-                    <left>0</left><top>55</top><width>300</width><height>18</height>
-                    <font>font9</font>
-                    <textcolor>88B7C0CC</textcolor>
-                    <align>left</align>
-                    <label>$INFO[ListItem.Property(dub_day)] $INFO[ListItem.Property(dub_date_formatted)]</label>
-                </control>
-
-                <!-- Countdown beside date with fallback: raw → sub → dub -->
-                <!-- RAW countdown (primary) -->
-                <control type="label">
-                    <visible>!String.IsEmpty(ListItem.Property(raw_countdown)) + !String.IsEqual(ListItem.Property(raw_countdown),TBA)</visible>
-                    <left>350</left><top>55</top><width>150</width><height>18</height>
-                    <font>font9</font>
-                    <textcolor>FFFF9800</textcolor>
-                    <align>left</align>
-                    <label>$INFO[ListItem.Property(raw_countdown)]</label>
-                </control>
-                <!-- SUB countdown (fallback if no raw) -->
-                <control type="label">
-                    <visible>[String.IsEmpty(ListItem.Property(raw_countdown)) | String.IsEqual(ListItem.Property(raw_countdown),TBA)] + !String.IsEmpty(ListItem.Property(sub_countdown)) + !String.IsEqual(ListItem.Property(sub_countdown),TBA)</visible>
-                    <left>350</left><top>55</top><width>150</width><height>18</height>
-                    <font>font9</font>
-                    <textcolor>FFFF9800</textcolor>
-                    <align>left</align>
-                    <label>$INFO[ListItem.Property(sub_countdown)]</label>
-                </control>
-                <!-- DUB countdown (fallback if no raw or sub) -->
-                <control type="label">
-                    <visible>[String.IsEmpty(ListItem.Property(raw_countdown)) | String.IsEqual(ListItem.Property(raw_countdown),TBA)] + [String.IsEmpty(ListItem.Property(sub_countdown)) | String.IsEqual(ListItem.Property(sub_countdown),TBA)] + !String.IsEmpty(ListItem.Property(dub_countdown)) + !String.IsEqual(ListItem.Property(dub_countdown),TBA)</visible>
-                    <left>350</left><top>55</top><width>150</width><height>18</height>
-                    <font>font9</font>
-                    <textcolor>FFFF9800</textcolor>
-                    <align>left</align>
-                    <label>$INFO[ListItem.Property(dub_countdown)]</label>
-                </control>
-            </control>
-            <!-- ===== /Added ===== -->
-
-            <control type="textbox">
-              <left>300</left>
-              <top>140</top>
-              <width>450</width>
-              <height min="20" max="200">auto</height>
-              <font>font10</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>left</align>
-              <autoscroll delay="3000" time="1500" repeat="5000"></autoscroll>
-              <label>$INFO[ListItem.Property(plot)]</label>
-            </control>
-            <control type="image">
-                <left>300</left>
-                <top>350</top>
-                <width>480</width>
-                <height>30</height>
-                <texture>white.png</texture>
-                <colordiffuse>aa4da6ff</colordiffuse>
-            </control>
-            <control type="label">
-              <left>305</left>
-              <top>350</top>
-              <width>475</width>
-              <height>22</height>
-              <font>font10</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>[B]$INFO[ListItem.Property(genres)][/B]</label>
-            </control>
-
-            <control type="group">
-              <left>15</left>
-              <top>10</top>
-              <control type="image">
-                  <visible>Integer.IsGreaterOrEqual(ListItem.Property(rating_average),75)</visible>
-                  <width>30</width>
-                  <height>30</height>
-                  <texture>$INFO[Window().Property(texture.aver)]</texture>
-              </control>
-              <control type="image">
-                  <visible>Integer.IsGreater(ListItem.Property(rating_average),60) + Integer.IsLess(ListItem.Property(rating_average),75)</visible>
-                  <width>30</width>
-                  <height>30</height>
-                  <texture>$INFO[Window().Property(texture.averstr)]</texture>
-              </control>
-              <control type="image">
-                  <visible>Integer.IsGreater(ListItem.Property(rating_average),0) + Integer.IsLessOrEqual(ListItem.Property(rating_average),60)</visible>
-                  <width>30</width>
-                  <height>30</height>
-                  <texture>$INFO[Window().Property(texture.aversad)]</texture>
-              </control>
-              <control type="image">
-                  <visible>Integer.IsEqual(ListItem.Property(rating_average),0) | IsEmpty(ListItem.Property(rating_average))</visible>
-                  <width>30</width>
-                  <height>30</height>
-                  <texture>$INFO[Window().Property(texture.avernone)]</texture>
-              </control>
-            </control>
-
-            <!-- rating_average: show actual percentage if > 0, otherwise "-" -->
-            <control type="label">
-              <visible>Integer.IsGreater(ListItem.Property(rating_average),0)</visible>
-              <left>5</left>
-              <top>36</top>
-              <width>55</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>$INFO[ListItem.Property(rating_average)]%</label>
-            </control>
-            <control type="label">
-              <visible>Integer.IsEqual(ListItem.Property(rating_average),0) | IsEmpty(ListItem.Property(rating_average))</visible>
-              <left>12</left>
-              <top>36</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>-</label>
-            </control>
-
-            <control type="image">
-                <left>15</left>
-                <top>72</top>
-                <width>30</width>
-                <height>30</height>
-                <texture>$INFO[Window().Property(texture.mal)]</texture>
-            </control>
-
-            <!-- rating_mal: show actual rating if not "0.0", otherwise "-" -->
-            <control type="label">
-              <visible>!String.IsEqual(ListItem.Property(rating_mal),0.0) + !IsEmpty(ListItem.Property(rating_mal))</visible>
-              <left>12</left>
-              <top>98</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>$INFO[ListItem.Property(rating_mal)]</label>
-            </control>
-            <control type="label">
-              <visible>String.IsEqual(ListItem.Property(rating_mal),0.0) | IsEmpty(ListItem.Property(rating_mal))</visible>
-              <left>12</left>
-              <top>98</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>-</label>
-            </control>
-
-            <control type="image">
-                <left>15</left>
-                <top>134</top>
-                <width>30</width>
-                <height>30</height>
-                <texture>$INFO[Window().Property(texture.anilist)]</texture>
-            </control>
-
-            <!-- rating_anilist: show actual rating if not "0.0", otherwise "-" -->
-            <control type="label">
-              <visible>!String.IsEqual(ListItem.Property(rating_anilist),0.0) + !IsEmpty(ListItem.Property(rating_anilist))</visible>
-              <left>12</left>
-              <top>160</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>$INFO[ListItem.Property(rating_anilist)]</label>
-            </control>
-            <control type="label">
-              <visible>String.IsEqual(ListItem.Property(rating_anilist),0.0) | IsEmpty(ListItem.Property(rating_anilist))</visible>
-              <left>12</left>
-              <top>160</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>-</label>
-            </control>
-
-            <control type="image">
-                <left>15</left>
-                <top>196</top>
-                <width>30</width>
-                <height>30</height>
-                <texture>$INFO[Window().Property(texture.imdb)]</texture>
-            </control>
-
-            <!-- rating_imdb: show actual rating if not "0.0", otherwise "-" -->
-            <control type="label">
-              <visible>!String.IsEqual(ListItem.Property(rating_imdb),0.0) + !IsEmpty(ListItem.Property(rating_imdb))</visible>
-              <left>12</left>
-              <top>222</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>$INFO[ListItem.Property(rating_imdb)]</label>
-            </control>
-            <control type="label">
-              <visible>String.IsEqual(ListItem.Property(rating_imdb),0.0) | IsEmpty(ListItem.Property(rating_imdb))</visible>
-              <left>12</left>
-              <top>222</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>-</label>
-            </control>
-
-            <control type="image">
-                <left>15</left>
-                <top>258</top>
-                <width>30</width>
-                <height>30</height>
-                <texture>$INFO[Window().Property(texture.trakt)]</texture>
-            </control>
-
-            <!-- rating_trakt: show actual rating if not "0.0", otherwise "-" -->
-            <control type="label">
-              <visible>!String.IsEqual(ListItem.Property(rating_trakt),0.0) + !IsEmpty(ListItem.Property(rating_trakt))</visible>
-              <left>12</left>
-              <top>284</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>$INFO[ListItem.Property(rating_trakt)]</label>
-            </control>
-            <control type="label">
-              <visible>String.IsEqual(ListItem.Property(rating_trakt),0.0) | IsEmpty(ListItem.Property(rating_trakt))</visible>
-              <left>12</left>
-              <top>284</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>-</label>
-            </control>
-
-            <control type="image">
-                <left>15</left>
-                <top>320</top>
-                <width>30</width>
-                <height>30</height>
-                <texture>$INFO[Window().Property(texture.tmdb)]</texture>
-            </control>
-
-            <!-- rating_tmdb: show actual rating if not "0.0", otherwise "-" -->
-            <control type="label">
-              <visible>!String.IsEqual(ListItem.Property(rating_tmdb),0.0) + !IsEmpty(ListItem.Property(rating_tmdb))</visible>
-              <left>12</left>
-              <top>345</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>$INFO[ListItem.Property(rating_tmdb)]</label>
-            </control>
-            <control type="label">
-              <visible>String.IsEqual(ListItem.Property(rating_tmdb),0.0) | IsEmpty(ListItem.Property(rating_tmdb))</visible>
-              <left>12</left>
-              <top>345</top>
-              <width>35</width>
-              <height>17</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>center</align>
-              <label>-</label>
-            </control>
-
-            <control type="group">
-              <left>700</left>
-              <top>60</top>
-              <control type="image">
-                  <visible>Integer.IsGreater(ListItem.Property(rank),0)</visible>
-                  <width>35</width>
-                  <height>35</height>
-                  <texture>$INFO[Window().Property(texture.popular)]</texture>
-              </control>
-            </control>
-            <control type="label">
-              <visible>Integer.IsGreater(ListItem.Property(rank),0)</visible>
-              <left>745</left>
-              <top>60</top>
-              <width>50</width>
-              <height>22</height>
-              <font>font12</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>left</align>
-              <label>#$INFO[ListItem.Property(rank)]</label>
-            </control>
-
-            <control type="group">
-              <left>750</left>
-              <top>10</top>
-              <control type="label">
-                <visible>Integer.IsGreater(ListItem.Property(rating),0)</visible>
-                <left>-110</left>
-                <top>0</top>
-                <width>100</width>
-                <height>22</height>
-                <font>font12</font>
-                <textcolor>AAFFFFFF</textcolor>
-                <align>right</align>
-                <label>$INFO[ListItem.Property(rating)]%</label>
-              </control>
-              <control type="image">
-                <visible>Integer.IsGreaterOrEqual(ListItem.Property(rating),75)</visible>
-                <left>0</left>
-                <top>0</top>
-                <width>35</width>
-                <height>35</height>
-                <texture>$INFO[Window().Property(texture.aver)]</texture>
-              </control>
-              <control type="image">
-                <visible>Integer.IsGreater(ListItem.Property(rating),60) + Integer.IsLess(ListItem.Property(rating),75)</visible>
-                <left>0</left>
-                <top>0</top>
-                <width>35</width>
-                <height>35</height>
-                <texture>$INFO[Window().Property(texture.averstr)]</texture>
-              </control>
-              <control type="image">
-                <visible>Integer.IsGreater(ListItem.Property(rating),0) + Integer.IsLessOrEqual(ListItem.Property(rating),60)</visible>
-                <left>0</left>
-                <top>0</top>
-                <width>35</width>
-                <height>35</height>
-                <texture>$INFO[Window().Property(texture.aversad)]</texture>
-              </control>
-            </control>
-
-            <control type="group">
-              <left>750</left>
-              <top>60</top>
-              <control type="label">
-                <visible>Integer.IsGreater(ListItem.Property(simkl_rank),0)</visible>
-                <left>-110</left>
-                <top>0</top>
-                <width>100</width>
-                <height>22</height>
-                <font>font12</font>
-                <textcolor>AAFFFFFF</textcolor>
-                <align>right</align>
-                <label>#$INFO[ListItem.Property(simkl_rank)]</label>
-              </control>
-              <control type="image">
-                <visible>Integer.IsGreater(ListItem.Property(simkl_rank),0)</visible>
-                <left>0</left>
-                <top>0</top>
-                <width>35</width>
-                <height>35</height>
-                <texture>$INFO[Window().Property(texture.simkl_rank)]</texture>
-              </control>
-            </control>
-
-            <!-- Studios Section (FOCUSEDLAYOUT) -->
-            <!-- <control type="label">
-              <visible>!IsEmpty(ListItem.Property(studios))</visible>
-              <left>300</left>
-              <top>365</top>
-              <width>200</width>
-              <height>20</height>
-              <font>font9</font>
-              <textcolor>AA4da6ff</textcolor>
-              <align>left</align>
-              <label>[B]Studios:[/B]</label>
-            </control>
-            <control type="textbox">
-              <visible>!IsEmpty(ListItem.Property(studios))</visible>
-              <left>300</left>
-              <top>385</top>
-              <width>400</width>
-              <height>25</height>
-              <font>font9</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>left</align>
-              <autoscroll delay="3000" time="1500" repeat="5000"></autoscroll>
-              <label>$INFO[ListItem.Property(studios)]</label>
-            </control> -->
-
-            <!-- Status Section (FOCUSEDLAYOUT) -->
-            <!-- <control type="label">
-              <visible>!IsEmpty(ListItem.Property(status))</visible>
-              <left>300</left>
-              <top>410</top>
-              <width>200</width>
-              <height>20</height>
-              <font>font9</font>
-              <textcolor>AA4da6ff</textcolor>
-              <align>left</align>
-              <label>[B]Status:[/B]</label>
-            </control>
-            <control type="label">
-              <visible>!IsEmpty(ListItem.Property(status))</visible>
-              <left>300</left>
-              <top>427</top>
-              <width>200</width>
-              <height>20</height>
-              <font>font9</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>left</align>
-              <label>$INFO[ListItem.Property(status)]</label>
-            </control> -->
-
-            <!-- Streams Section (FOCUSEDLAYOUT) -->
-            <!-- <control type="label">
-              <visible>!IsEmpty(ListItem.Property(streams))</visible>
-              <left>300</left>
-              <top>447</top>
-              <width>200</width>
-              <height>20</height>
-              <font>font9</font>
-              <textcolor>AA4da6ff</textcolor>
-              <align>left</align>
-              <label>[B]Streams:[/B]</label>
-            </control>
-            <control type="textbox">
-              <visible>!IsEmpty(ListItem.Property(streams))</visible>
-              <left>300</left>
-              <top>464</top>
-              <width>400</width>
-              <height>35</height>
-              <font>font9</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>left</align>
-              <autoscroll delay="3000" time="1500" repeat="5000"></autoscroll>
-              <label>$INFO[ListItem.Property(streams)]</label>
-            </control> -->
-
-        	</focusedlayout>
+            </focusedlayout>
         </control>
 
         <!--LAYOUT GRID-->

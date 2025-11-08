@@ -639,6 +639,14 @@ class AnimeScheduleCalendar:
                 anilist_score_raw = anilist_ratings.get('anilist_score', 0)
                 rating_anilist = round(anilist_score_raw / 10.0, 1) if anilist_score_raw > 0 else 0.0
 
+                # Convert 0 or 0.0 ratings to "-" for display
+                rating_mal = "-" if rating_mal in (0, 0.0) else str(rating_mal)
+                rating_imdb = "-" if rating_imdb in (0, 0.0) else str(rating_imdb)
+                rating_trakt = "-" if rating_trakt in (0, 0.0) else str(rating_trakt)
+                rating_tmdb = "-" if rating_tmdb in (0, 0.0) else str(rating_tmdb)
+                rating_average = "-" if rating_average in (0, 0.0) else f"{rating_average}%"
+                rating_anilist = "-" if rating_anilist in (0, 0.0) else str(rating_anilist)
+
                 # Build Anichart item
                 anichart_item = {
                     'id': anime.get('mal_id') or anime.get('route'),
