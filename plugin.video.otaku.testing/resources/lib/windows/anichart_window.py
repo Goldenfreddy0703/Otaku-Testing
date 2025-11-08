@@ -16,6 +16,7 @@ class BaseWindow(xbmcgui.WindowXMLDialog):
 
         self.setProperty('texture.white', os.path.join(control.IMAGES_PATH, 'white.png'))
         self.setProperty('texture.aver', os.path.join(control.IMAGES_PATH, 'anichart-icon-smile.png'))
+        self.setProperty('texture.avernone', os.path.join(control.IMAGES_PATH, 'anichart-icon-none.png'))
         self.setProperty('texture.averstr', os.path.join(control.IMAGES_PATH, 'anichart-icon-null.png'))
         self.setProperty('texture.aversad', os.path.join(control.IMAGES_PATH, 'anichart-icon-frown.png'))
         self.setProperty('texture.popular', os.path.join(control.IMAGES_PATH, 'anichart-icon-popular.png'))

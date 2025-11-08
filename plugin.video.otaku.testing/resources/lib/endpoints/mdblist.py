@@ -107,7 +107,7 @@ class MDBListAPI:
                                 continue
                             
                             source = rating.get('source', '').lower()
-                            # Use 'value' field which is already 0-10 scale
+                            # Use 'value' field from ratings
                             score = rating.get('value')
                             
                             # Skip null/None values
@@ -120,18 +120,20 @@ class MDBListAPI:
                             except (ValueError, TypeError):
                                 score = 0.0
                             
-                            # Round to 1 decimal place for display
-                            score = round(score, 1) if score > 0 else 0.0
-                            
                             # Map source to rating type
+                            # Note: IMDb and MAL use 0-10 scale, Trakt and TMDb use 0-100 scale
                             if 'myanimelist' in source or 'mal' in source:
-                                rating_dict['mal'] = score
+                                # MAL: 0-10 scale
+                                rating_dict['mal'] = round(score, 1) if score > 0 else 0.0
                             elif 'imdb' in source:
-                                rating_dict['imdb'] = score
+                                # IMDb: 0-10 scale
+                                rating_dict['imdb'] = round(score, 1) if score > 0 else 0.0
                             elif 'trakt' in source:
-                                rating_dict['trakt'] = score
+                                # Trakt: 0-100 scale, convert to 0-10
+                                rating_dict['trakt'] = round(score / 10.0, 1) if score > 0 else 0.0
                             elif 'tmdb' in source or 'themoviedb' in source:
-                                rating_dict['tmdb'] = score
+                                # TMDb: 0-100 scale, convert to 0-10
+                                rating_dict['tmdb'] = round(score / 10.0, 1) if score > 0 else 0.0
                     
                     # Get average score (already 0-100 scale from API)
                     avg_score = item.get('score_average', 0)

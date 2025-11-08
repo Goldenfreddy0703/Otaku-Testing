@@ -54,7 +54,7 @@
             <height>900</height>
             <border>5</border>
             <texture>white.png</texture>
-            <colordiffuse>AA2e2d32</colordiffuse>
+            <colordiffuse>88000000</colordiffuse>
         </control>
 
         <!-- Sources List -->
@@ -79,14 +79,26 @@
               <height>370</height>
         			<texture>$INFO[ListItem.Property(poster)]</texture>
         		</control>
-            <control type="image">
+
+
+            <!-- <control type="image">
                 <left>5</left>
                 <top>340</top>
                 <width>270</width>
                 <height>50</height>
                 <texture>white.png</texture>
                 <colordiffuse>ff1a1a1a</colordiffuse>
+            </control> -->
+
+            <control type="image">
+                <left>5</left>
+                <top>5</top>
+                <width>50</width>
+                <height>380</height>
+                <texture>white.png</texture>
+                <colordiffuse>CC000000</colordiffuse>
             </control>
+
 
             <!-- Release Title -->
             <control type="label">
@@ -200,38 +212,122 @@
               <label>[B]$INFO[ListItem.Property(genres)][/B]</label>
             </control>
             <control type="group">
-              <left>180</left>
-              <top>345</top>
+              <left>10</left>
+              <top>10</top>
               <control type="image">
-                  <visible>Integer.IsGreaterOrEqual(ListItem.Property(averageScore),75)</visible>
+                  <visible>Integer.IsGreaterOrEqual(ListItem.Property(rating_average),75)</visible>
                   <width>35</width>
                   <height>35</height>
                   <texture>$INFO[Window().Property(texture.aver)]</texture>
               </control>
               <control type="image">
-                  <visible>Integer.IsGreater(ListItem.Property(averageScore),60) + Integer.IsLess(ListItem.Property(averageScore),75)</visible>
+                  <visible>Integer.IsGreater(ListItem.Property(rating_average),60) + Integer.IsLess(ListItem.Property(rating_average),75)</visible>
                   <width>35</width>
                   <height>35</height>
                   <texture>$INFO[Window().Property(texture.averstr)]</texture>
               </control>
               <control type="image">
-                  <visible>Integer.IsGreater(ListItem.Property(averageScore),0) + Integer.IsLessOrEqual(ListItem.Property(averageScore),60)</visible>
+                  <visible>Integer.IsGreater(ListItem.Property(rating_average),0) + Integer.IsLessOrEqual(ListItem.Property(rating_average),60)</visible>
                   <width>35</width>
                   <height>35</height>
                   <texture>$INFO[Window().Property(texture.aversad)]</texture>
               </control>
+              <control type="image">
+                  <visible>Integer.IsEqual(ListItem.Property(rating_average),0) | IsEmpty(ListItem.Property(rating_average))</visible>
+                  <width>35</width>
+                  <height>35</height>
+                  <texture>$INFO[Window().Property(texture.avernone)]</texture>
+              </control>
             </control>
+
             <control type="label">
-              <visible>Integer.IsGreater(ListItem.Property(averageScore),0)</visible>
-              <left>220</left>
-              <top>345</top>
+              <!-- <visible>Integer.IsGreater(ListItem.Property(rating_average),0)</visible> -->
+              <left>5</left>
+              <top>48</top>
+              <width>100</width>
+              <height>22</height>
+              <font>font12</font>
+              <textcolor>AAFFFFFF</textcolor>
+              <align>left</align>
+              <label>$INFO[ListItem.Property(rating_average)]%</label>
+            </control>
+
+            <control type="image">
+                <left>10</left>
+                <top>86</top>
+                <width>35</width>
+                <height>35</height>
+                <texture>$INFO[Window().Property(texture.mal)]</texture>
+            </control>
+
+            <control type="label">
+              <left>10</left>
+              <top>124</top>
               <width>50</width>
               <height>22</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>left</align>
-              <label>$INFO[ListItem.Property(averageScore)]%</label>
+              <label>$INFO[ListItem.Property(rating_mal)]</label>
             </control>
+
+            <control type="image">
+                <left>10</left>
+                <top>162</top>
+                <width>35</width>
+                <height>35</height>
+                <texture>$INFO[Window().Property(texture.imdb)]</texture>
+            </control>
+
+            <control type="label">
+              <left>10</left>
+              <top>200</top>
+              <width>50</width>
+              <height>22</height>
+              <font>font12</font>
+              <textcolor>AAFFFFFF</textcolor>
+              <align>left</align>
+              <label>$INFO[ListItem.Property(rating_imdb)]</label>
+            </control>
+
+            <control type="image">
+                <left>10</left>
+                <top>238</top>
+                <width>35</width>
+                <height>35</height>
+                <texture>$INFO[Window().Property(texture.trakt)]</texture>
+            </control>
+
+            <control type="label">
+              <left>10</left>
+              <top>276</top>
+              <width>50</width>
+              <height>22</height>
+              <font>font12</font>
+              <textcolor>AAFFFFFF</textcolor>
+              <align>left</align>
+              <label>$INFO[ListItem.Property(rating_trakt)]</label>
+            </control>
+
+            <control type="image">
+                <left>10</left>
+                <top>314</top>
+                <width>35</width>
+                <height>35</height>
+                <texture>$INFO[Window().Property(texture.tmdb)]</texture>
+            </control>
+
+            <control type="label">
+              <left>10</left>
+              <top>350</top>
+              <width>50</width>
+              <height>22</height>
+              <font>font12</font>
+              <textcolor>AAFFFFFF</textcolor>
+              <align>left</align>
+              <label>$INFO[ListItem.Property(rating_tmdb)]</label>
+            </control>
+
             <control type="group">
               <left>700</left>
               <top>60</top>
@@ -396,7 +492,7 @@
                 <width>100%</width>
                 <height>100%</height>
                 <texture>white.png</texture>
-                <colordiffuse>25d3d3d3</colordiffuse>
+                <colordiffuse>AA000000</colordiffuse>
             </control>
         		<control type="image">
         			<left>10</left>
@@ -406,14 +502,26 @@
         			<texture>$INFO[ListItem.Property(poster)]</texture>
         			<animation effect="zoom" end="5,5,270,380" time="100">focus</animation>
         		</control>
-            <control type="image">
+
+
+            <!-- <control type="image">
                 <left>5</left>
                 <top>340</top>
                 <width>270</width>
                 <height>50</height>
                 <texture>white.png</texture>
                 <colordiffuse>ff1a1a1a</colordiffuse>
+            </control> -->
+
+            <control type="image">
+                <left>5</left>
+                <top>5</top>
+                <width>50</width>
+                <height>380</height>
+                <texture>white.png</texture>
+                <colordiffuse>CC000000</colordiffuse>
             </control>
+
 
             <!-- Release Title -->
             <control type="label">
@@ -528,38 +636,121 @@
               <label>[B]$INFO[ListItem.Property(genres)][/B]</label>
             </control>
             <control type="group">
-              <left>180</left>
-              <top>345</top>
+              <left>10</left>
+              <top>10</top>
               <control type="image">
-                  <visible>Integer.IsGreaterOrEqual(ListItem.Property(averageScore),75)</visible>
+                  <visible>Integer.IsGreaterOrEqual(ListItem.Property(rating_average),75)</visible>
                   <width>35</width>
                   <height>35</height>
                   <texture>$INFO[Window().Property(texture.aver)]</texture>
               </control>
               <control type="image">
-                  <visible>Integer.IsGreater(ListItem.Property(averageScore),60) + Integer.IsLess(ListItem.Property(averageScore),75)</visible>
+                  <visible>Integer.IsGreater(ListItem.Property(rating_average),60) + Integer.IsLess(ListItem.Property(rating_average),75)</visible>
                   <width>35</width>
                   <height>35</height>
                   <texture>$INFO[Window().Property(texture.averstr)]</texture>
               </control>
               <control type="image">
-                  <visible>Integer.IsGreater(ListItem.Property(averageScore),0) + Integer.IsLessOrEqual(ListItem.Property(averageScore),60)</visible>
+                  <visible>Integer.IsGreater(ListItem.Property(rating_average),0) + Integer.IsLessOrEqual(ListItem.Property(rating_average),60)</visible>
                   <width>35</width>
                   <height>35</height>
                   <texture>$INFO[Window().Property(texture.aversad)]</texture>
               </control>
+              <control type="image">
+                  <visible>Integer.IsEqual(ListItem.Property(rating_average),0) | IsEmpty(ListItem.Property(rating_average))</visible>
+                  <width>35</width>
+                  <height>35</height>
+                  <texture>$INFO[Window().Property(texture.avernone)]</texture>
+              </control>
             </control>
+
             <control type="label">
-              <visible>Integer.IsGreater(ListItem.Property(averageScore),0)</visible>
-              <left>220</left>
-              <top>345</top>
+              <left>5</left>
+              <top>48</top>
+              <width>100</width>
+              <height>22</height>
+              <font>font12</font>
+              <textcolor>AAFFFFFF</textcolor>
+              <align>left</align>
+              <label>$INFO[ListItem.Property(rating_average)]%</label>
+            </control>
+
+            <control type="image">
+                <left>10</left>
+                <top>86</top>
+                <width>35</width>
+                <height>35</height>
+                <texture>$INFO[Window().Property(texture.mal)]</texture>
+            </control>
+
+            <control type="label">
+              <left>10</left>
+              <top>124</top>
               <width>50</width>
               <height>22</height>
               <font>font12</font>
               <textcolor>AAFFFFFF</textcolor>
               <align>left</align>
-              <label>$INFO[ListItem.Property(averageScore)]%</label>
+              <label>$INFO[ListItem.Property(rating_mal)]</label>
             </control>
+
+            <control type="image">
+                <left>10</left>
+                <top>162</top>
+                <width>35</width>
+                <height>35</height>
+                <texture>$INFO[Window().Property(texture.imdb)]</texture>
+            </control>
+
+            <control type="label">
+              <left>10</left>
+              <top>200</top>
+              <width>50</width>
+              <height>22</height>
+              <font>font12</font>
+              <textcolor>AAFFFFFF</textcolor>
+              <align>left</align>
+              <label>$INFO[ListItem.Property(rating_imdb)]</label>
+            </control>
+
+            <control type="image">
+                <left>10</left>
+                <top>238</top>
+                <width>35</width>
+                <height>35</height>
+                <texture>$INFO[Window().Property(texture.trakt)]</texture>
+            </control>
+
+            <control type="label">
+              <left>10</left>
+              <top>276</top>
+              <width>50</width>
+              <height>22</height>
+              <font>font12</font>
+              <textcolor>AAFFFFFF</textcolor>
+              <align>left</align>
+              <label>$INFO[ListItem.Property(rating_trakt)]</label>
+            </control>
+
+            <control type="image">
+                <left>10</left>
+                <top>314</top>
+                <width>35</width>
+                <height>35</height>
+                <texture>$INFO[Window().Property(texture.tmdb)]</texture>
+            </control>
+
+            <control type="label">
+              <left>10</left>
+              <top>350</top>
+              <width>50</width>
+              <height>22</height>
+              <font>font12</font>
+              <textcolor>AAFFFFFF</textcolor>
+              <align>left</align>
+              <label>$INFO[ListItem.Property(rating_tmdb)]</label>
+            </control>
+
             <control type="group">
               <left>700</left>
               <top>60</top>

@@ -594,9 +594,8 @@ class AnimeScheduleCalendar:
                 rating_imdb = mdblist_ratings.get('imdb', 0.0)
                 rating_trakt = mdblist_ratings.get('trakt', 0.0)
                 rating_tmdb = mdblist_ratings.get('tmdb', 0.0)
-                # Convert score_average to percentage (0-10 scale to 0-100 scale)
-                rating_average_decimal = mdblist_ratings.get('score_average', 0.0)
-                rating_average = int(rating_average_decimal * 10) if rating_average_decimal > 0 else 0
+                # score_average is already 0-100 scale from MDBList API
+                rating_average = mdblist_ratings.get('score_average', 0)
 
                 # Build Anichart item
                 anichart_item = {
