@@ -638,6 +638,10 @@ class AnimeScheduleCalendar:
                 # anilist_score is 0-100 scale from AniList API, convert to 0-10 decimal
                 anilist_score_raw = anilist_ratings.get('anilist_score', 0)
                 rating_anilist = round(anilist_score_raw / 10.0, 1) if anilist_score_raw > 0 else 0.0
+                
+                # If MDBList has no average rating, fallback to AniList score (both are 0-100 scale)
+                if rating_average == 0 and anilist_score_raw > 0:
+                    rating_average = anilist_score_raw
 
                 # Convert 0 or 0.0 ratings to "-" for display
                 rating_mal = "-" if rating_mal in (0, 0.0) else str(rating_mal)
