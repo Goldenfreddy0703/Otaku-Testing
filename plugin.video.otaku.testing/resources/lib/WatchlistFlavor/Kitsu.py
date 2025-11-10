@@ -5,7 +5,6 @@ import pickle
 from resources.lib.ui import client, control, database, utils, get_meta
 from resources.lib.WatchlistFlavor.WatchlistFlavorBase import WatchlistFlavorBase
 from resources.lib.indexers.simkl import SIMKLAPI
-from resources.lib.endpoints import anilist
 from urllib import parse
 
 from resources.lib.ui.divide_flavors import div_flavor
@@ -384,12 +383,11 @@ class KitsuWLF(WatchlistFlavorBase):
         episode_count = eres["attributes"]['episodeCount'] if eres["attributes"]['episodeCount'] else 0
 
         if not control.getBool('playlist.unaired'):
-            airing_episode = simkl.Simkl().get_calendar_data(mal_id)
-            if not airing_episode:
-                airing_episode = anilist.Anilist().get_airing_calendar(mal_id)
+            from resources.lib.AnimeSchedule import get_anime_schedule
+            airing_anime = get_anime_schedule(mal_id)
 
-            if airing_episode:
-                episode_count = airing_episode
+            if airing_anime and airing_anime.get('episodes'):
+                episode_count = airing_anime['episodes']
 
         title = '%s - %d/%d' % (anime_title, next_up, episode_count)
         poster = image = eres["attributes"]['posterImage'].get('large', eres["attributes"]['posterImage']['original'])
