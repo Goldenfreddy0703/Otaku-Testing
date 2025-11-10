@@ -30,12 +30,12 @@ class AnimeScheduleCalendar:
 
         # Cache for /anime endpoint data (keyed by route)
         self._anime_cache = {}
-        
+
         # Cache file path
         self.cache_file = control.animeschedule_calendar_json
-        
-        # Cache duration in seconds (default: 1 hour)
-        self.cache_duration = control.getInt('animeschedule.cache.duration') or 3600
+
+        # Cache duration in seconds (default: 24 hours)
+        self.cache_duration = 86400  # 24 hours
 
     def get_calendar_data(self, days=7, types=['sub', 'dub', 'raw'], force_refresh=False):
         """
@@ -62,9 +62,9 @@ class AnimeScheduleCalendar:
                 if cached_data:
                     control.log("AnimESchedule: Using cached calendar data", "info")
                     return cached_data
-            
+
             control.log("AnimESchedule: Fetching fresh calendar data", "info")
-            
+
             if not self.token:
                 control.log("AnimESchedule token not found, cannot fetch timetables", "warning")
                 return []
@@ -73,7 +73,7 @@ class AnimeScheduleCalendar:
             today = datetime.datetime.now()
             year = today.year
             week = today.isocalendar()[1]
-            
+
             # Determine current season
             month = today.month
             if month in [12, 1, 2]:
@@ -119,12 +119,12 @@ class AnimeScheduleCalendar:
             # STEP 2: Fetch season anime in parallel (fixed number of pages)
             season_anime = {}
             matched_routes = set()
-            
+
             # Fetch first 10 pages (covers ~180 anime, enough for most ongoing seasons)
             max_pages_to_fetch = 10
-            
+
             control.log(f"AnimESchedule: Fetching {max_pages_to_fetch} pages in parallel", "info")
-            
+
             # Create parallel requests for multiple pages
             page_requests = [
                 {
@@ -134,10 +134,10 @@ class AnimeScheduleCalendar:
                 }
                 for page in range(1, max_pages_to_fetch + 1)
             ]
-            
+
             # Fetch all pages in parallel with 10 workers
             page_results = utils.parallel_fetch(page_requests, max_workers=10)
-            
+
             # Process all results
             for page_data in page_results:
                 if page_data:
@@ -145,7 +145,7 @@ class AnimeScheduleCalendar:
                         route = anime.get('route')
                         if route not in season_anime:
                             season_anime[route] = anime
-                        
+
                         if route in unique_routes:
                             matched_routes.add(route)
 
@@ -155,7 +155,7 @@ class AnimeScheduleCalendar:
             unmatched_routes = unique_routes - matched_routes
             if unmatched_routes:
                 control.log(f"AnimESchedule: Fetching {len(unmatched_routes)} unmatched routes individually", "info")
-                
+
                 # Create search requests for parallel fetching
                 search_requests = [
                     {
@@ -186,11 +186,11 @@ class AnimeScheduleCalendar:
                 if still_unmatched and len(still_unmatched) > 0:
                     import time
                     control.log(f"AnimESchedule: Retrying {len(still_unmatched)} failed routes", "info")
-                    
+
                     # Only delay if many failures (>10) to avoid rate limiting
                     if len(still_unmatched) > 10:
                         time.sleep(0.5)
-                    
+
                     retry_requests = [
                         {
                             'func': self._search_anime_by_route,
@@ -199,10 +199,10 @@ class AnimeScheduleCalendar:
                         }
                         for route in sorted(still_unmatched)
                     ]
-                    
+
                     # Use 12 workers for retry (increased from 10)
                     retry_results = utils.parallel_fetch(retry_requests, max_workers=12)
-                    
+
                     retry_found = 0
                     for result in retry_results:
                         if result and isinstance(result, dict):
@@ -211,7 +211,7 @@ class AnimeScheduleCalendar:
                                 season_anime[route] = result
                                 matched_routes.add(route)
                                 retry_found += 1
-                    
+
                     control.log(f"AnimESchedule: Retry found {retry_found}/{len(still_unmatched)}", "info")
 
             control.log(f"AnimESchedule: Total enriched {len(matched_routes)}/{unique_count}", "info")
@@ -268,10 +268,10 @@ class AnimeScheduleCalendar:
 
             mal_id_count = len([a for a in result if a.get('mal_id')])
             control.log(f"AnimESchedule: Returned {len(result)} anime with {mal_id_count} MAL IDs", "info")
-            
+
             # Save to cache
             self._save_cache(result)
-            
+
             return result
 
         except Exception as e:
@@ -281,7 +281,7 @@ class AnimeScheduleCalendar:
     def _load_cache(self):
         """
         Load calendar data from cache file if it exists and is not expired
-        
+
         Returns:
             list: Cached anime data, or None if cache is invalid/expired
         """
@@ -289,30 +289,30 @@ class AnimeScheduleCalendar:
             if not os.path.exists(self.cache_file):
                 control.log("AnimESchedule: No cache file found", "debug")
                 return None
-            
+
             with open(self.cache_file, 'r', encoding='utf-8') as f:
                 cache_data = json.load(f)
-            
+
             # Check cache timestamp
             cached_time = cache_data.get('timestamp', 0)
             current_time = datetime.datetime.now().timestamp()
-            
+
             if current_time - cached_time > self.cache_duration:
                 control.log(f"AnimESchedule: Cache expired (age: {int(current_time - cached_time)}s)", "debug")
                 return None
-            
+
             anime_data = cache_data.get('data', [])
             control.log(f"AnimESchedule: Cache valid ({len(anime_data)} anime, age: {int(current_time - cached_time)}s)", "info")
             return anime_data
-            
+
         except Exception as e:
             control.log(f"Error loading cache: {str(e)}", "error")
             return None
-    
+
     def _save_cache(self, anime_data):
         """
         Save calendar data to cache file with timestamp
-        
+
         Args:
             anime_data (list): Anime data to cache
         """
@@ -321,20 +321,20 @@ class AnimeScheduleCalendar:
             cache_dir = os.path.dirname(self.cache_file)
             if not os.path.exists(cache_dir):
                 os.makedirs(cache_dir)
-            
+
             cache_data = {
                 'timestamp': datetime.datetime.now().timestamp(),
                 'data': anime_data
             }
-            
+
             with open(self.cache_file, 'w', encoding='utf-8') as f:
                 json.dump(cache_data, f, ensure_ascii=False, indent=2)
-            
+
             control.log(f"AnimESchedule: Saved {len(anime_data)} anime to cache", "info")
-            
+
         except Exception as e:
             control.log(f"Error saving cache: {str(e)}", "error")
-    
+
     def clear_cache(self):
         """Clear the calendar cache file"""
         try:
@@ -427,10 +427,10 @@ class AnimeScheduleCalendar:
             dict: Anime data if found, None otherwise
         """
         import time
-        
+
         max_attempts = 2
         retry_delay = 0.2  # Reduced from 0.3 for faster retries
-        
+
         for attempt in range(max_attempts):
             try:
                 # Use direct route endpoint: /anime/{route}
@@ -453,7 +453,7 @@ class AnimeScheduleCalendar:
                     time.sleep(retry_delay)
                 else:
                     control.log(f"Error fetching route {route} after {max_attempts} attempts: {str(e)}", "debug")
-        
+
         return None
 
     def _extract_mal_id(self, anime):
@@ -485,54 +485,54 @@ class AnimeScheduleCalendar:
         """
         Clean HTML tags and decode HTML entities from text
         Converts HTML formatting to Kodi formatting tags
-        
+
         Args:
             text (str): Text with HTML tags/entities
-            
+
         Returns:
             str: Cleaned text with Kodi formatting
         """
         if not text:
             return ''
-        
+
         # Decode HTML entities first (&#39; -> ', &amp; -> &, etc.)
         text = unescape(text)
-        
+
         # Convert HTML formatting to Kodi formatting (following maintainer pattern)
         text = text.replace('<i>', '[I]').replace('</i>', '[/I]')
         text = text.replace('<b>', '[B]').replace('</b>', '[/B]')
         text = text.replace('<br>', '[CR]').replace('<br/>', '[CR]').replace('<br />', '[CR]')
-        
+
         # Remove remaining HTML tags
         text = re.sub(r'<[^>]+>', '', text)
-        
+
         # Add space after period if missing (e.g., "Monogatari.Sato" -> "Monogatari. Sato")
         text = re.sub(r'\.([A-Z])', r'. \1', text)
-        
+
         # Clean up extra whitespace but preserve [CR] line breaks
         text = re.sub(r'[ \t]+', ' ', text)
         text = text.replace('\n', '').strip()
-        
+
         return text
 
     def format_for_anichart(self, anime_list):
         """
         Transform enriched anime data into Anichart display format
-        
+
         Args:
             anime_list (list): List of enriched anime entries from get_calendar_data()
-            
+
         Returns:
             list: List of formatted anime items for Anichart window
         """
         from resources.lib.ui import control
-        
+
         # Get user's title language preference (0=romaji, 1=english)
         title_lang_pref = control.getInt("titlelanguage")
-        
+
         # Collect all MAL IDs for batch ratings fetch
         mal_ids = [anime.get('mal_id') for anime in anime_list if anime.get('mal_id')]
-        
+
         # Fetch ratings for all anime in one batch request (MDBList and AniList)
         ratings_map = {}
         anilist_ratings_map = {}
@@ -541,14 +541,14 @@ class AnimeScheduleCalendar:
                 ratings_map = mdblist.get_ratings_for_mal_ids(mal_ids)
             except Exception:
                 pass
-            
+
             try:
                 anilist_ratings_map = anilist.get_anilist_ratings_for_mal_ids(mal_ids)
             except Exception:
                 pass
-        
+
         formatted_items = []
-        
+
         for anime in anime_list:
             try:
                 # Select title based on user preference
@@ -556,7 +556,7 @@ class AnimeScheduleCalendar:
                     title = anime.get('english') or anime.get('romaji') or anime.get('title')
                 else:  # Romaji (default)
                     title = anime.get('romaji') or anime.get('english') or anime.get('title')
-                
+
                 # Format stats
                 stats = anime.get('stats', {})
                 score_raw = stats.get('averageScore', 0)
@@ -565,18 +565,18 @@ class AnimeScheduleCalendar:
                 score = int(score_raw) if score_raw else 0
                 popularity = stats.get('popularity', 0)
                 rank = stats.get('rank', 0)
-                
+
                 # Format genres and studios
                 genres = ', '.join(anime.get('genres', []))
                 studios = ', '.join(anime.get('studios', []))
-                
+
                 # Format streams/episodes info
                 streams = anime.get('streams', [])
                 stream_info = self._format_streams(streams)
-                
+
                 # Process all release types
                 releases = anime.get('releases', {})
-                
+
                 # RAW release data
                 raw_data = releases.get('raw', {})
                 raw_ep = raw_data.get('episode_number', 0)
@@ -585,7 +585,7 @@ class AnimeScheduleCalendar:
                 raw_date_formatted = self._format_episode_date(raw_date)
                 raw_time = self._format_episode_time(raw_date)
                 raw_countdown = self._format_countdown(raw_date)
-                
+
                 # SUB release data
                 sub_data = releases.get('sub', {})
                 sub_ep = sub_data.get('episode_number', 0)
@@ -594,7 +594,7 @@ class AnimeScheduleCalendar:
                 sub_date_formatted = self._format_episode_date(sub_date)
                 sub_time = self._format_episode_time(sub_date)
                 sub_countdown = self._format_countdown(sub_date)
-                
+
                 # DUB release data
                 dub_data = releases.get('dub', {})
                 dub_ep = dub_data.get('episode_number', 0)
@@ -603,17 +603,17 @@ class AnimeScheduleCalendar:
                 dub_date_formatted = self._format_episode_date(dub_date)
                 dub_time = self._format_episode_time(dub_date)
                 dub_countdown = self._format_countdown(dub_date)
-                
+
                 # Determine primary release (first available: raw > sub > dub)
                 primary_ep = raw_ep or sub_ep or dub_ep
                 primary_date = raw_date or sub_date or dub_date
-                
+
                 # Get MDBList ratings for this anime
                 mal_id = anime.get('mal_id')
                 mdblist_ratings = ratings_map.get(mal_id, {}) if mal_id else {}
-                
+
                 rating_mal = mdblist_ratings.get('mal', 0.0)
-                
+
                 # If MDBList has no MAL rating (0.0), fallback to database score
                 if rating_mal == 0.0 and mal_id:
                     db_mapping = database.get_mappings(mal_id, 'mal_id')
@@ -626,19 +626,19 @@ class AnimeScheduleCalendar:
                                 rating_mal = 9.9
                         except (ValueError, TypeError):
                             rating_mal = 0.0
-                
+
                 rating_imdb = mdblist_ratings.get('imdb', 0.0)
                 rating_trakt = mdblist_ratings.get('trakt', 0.0)
                 rating_tmdb = mdblist_ratings.get('tmdb', 0.0)
                 # score_average is already 0-100 scale from MDBList API
                 rating_average = mdblist_ratings.get('score_average', 0)
-                
+
                 # Get AniList rating for this anime
                 anilist_ratings = anilist_ratings_map.get(mal_id, {}) if mal_id else {}
                 # anilist_score is 0-100 scale from AniList API, convert to 0-10 decimal
                 anilist_score_raw = anilist_ratings.get('anilist_score', 0)
                 rating_anilist = round(anilist_score_raw / 10.0, 1) if anilist_score_raw > 0 else 0.0
-                
+
                 # If MDBList has no average rating, fallback to AniList score (both are 0-100 scale)
                 if rating_average == 0 and anilist_score_raw > 0:
                     rating_average = anilist_score_raw
@@ -711,47 +711,47 @@ class AnimeScheduleCalendar:
                     # AniList Rating
                     'rating_anilist': rating_anilist,
                 }
-                
+
                 formatted_items.append(anichart_item)
-                
+
             except Exception as e:
                 control.log(f"Error formatting anime for Anichart: {str(e)}", "error")
                 continue
-        
+
         return formatted_items
-    
+
     def _format_episode_day(self, episode_date):
         """
         Format episode day
-        
+
         Args:
             episode_date (str): ISO format datetime string
-            
+
         Returns:
             str: Formatted day (e.g., "Thursday")
         """
         if not episode_date or episode_date == '0001-01-01T00:00:00Z':
             return 'TBA'
-        
+
         try:
             dt = datetime.datetime.fromisoformat(episode_date.replace('Z', '+00:00'))
             return dt.strftime('%A')
         except:
             return episode_date
-    
+
     def _format_episode_date(self, episode_date):
         """
         Format episode date
-        
+
         Args:
             episode_date (str): ISO format datetime string
-            
+
         Returns:
             str: Formatted date (e.g., "06 Nov")
         """
         if not episode_date or episode_date == '0001-01-01T00:00:00Z':
             return 'TBA'
-        
+
         try:
             dt = datetime.datetime.fromisoformat(episode_date.replace('Z', '+00:00'))
             return dt.strftime('%d %b')
@@ -761,16 +761,16 @@ class AnimeScheduleCalendar:
     def _format_episode_time(self, episode_date):
         """
         Format episode time
-        
+
         Args:
             episode_date (str): ISO format datetime string
-            
+
         Returns:
             str: Formatted time (e.g., "12:00 PM")
         """
         if not episode_date or episode_date == '0001-01-01T00:00:00Z':
             return 'TBA'
-        
+
         try:
             dt = datetime.datetime.fromisoformat(episode_date.replace('Z', '+00:00'))
             return dt.strftime('%I:%M %p')
@@ -780,32 +780,32 @@ class AnimeScheduleCalendar:
     def _format_countdown(self, episode_date):
         """
         Calculate countdown to episode release
-        
+
         Args:
             episode_date (str): ISO format datetime string
-            
+
         Returns:
             str: Formatted countdown (e.g., "14h 54m" or "Released")
         """
         if not episode_date or episode_date == '0001-01-01T00:00:00Z':
             return 'TBA'
-        
+
         try:
             # Parse ISO format date
             dt = datetime.datetime.fromisoformat(episode_date.replace('Z', '+00:00'))
             now = datetime.datetime.now(dt.tzinfo)
-            
+
             # Calculate difference
             diff = dt - now
-            
+
             if diff.total_seconds() < 0:
                 return 'Released'
-            
+
             # Convert to hours and minutes
             total_minutes = int(diff.total_seconds() / 60)
             hours = total_minutes // 60
             minutes = total_minutes % 60
-            
+
             if hours > 24:
                 days = hours // 24
                 hours = hours % 24
@@ -819,7 +819,7 @@ class AnimeScheduleCalendar:
         """Format streaming service information"""
         if not streams:
             return 'Not specified'
-        
+
         stream_names = []
         for stream in streams:
             if isinstance(stream, dict):
@@ -828,7 +828,7 @@ class AnimeScheduleCalendar:
                     stream_names.append(name)
             else:
                 stream_names.append(str(stream))
-        
+
         return ', '.join(stream_names) if stream_names else 'Not specified'
 
     def get_anime_by_mal_id(self, mal_id):
@@ -900,11 +900,11 @@ class AnimeScheduleCalendar:
 def get_calendar(days=7, force_refresh=False):
     """
     Get calendar data for upcoming days
-    
+
     Args:
         days (int): Number of days to fetch (default: 7)
         force_refresh (bool): If True, bypass cache and fetch fresh data
-    
+
     Returns:
         list: Anime calendar data
     """

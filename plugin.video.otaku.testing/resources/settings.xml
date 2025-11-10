@@ -3990,11 +3990,6 @@
 					<default>0</default>
 					<control type="edit" format="integer"/>
 				</setting>
-				<setting id="animeschedule.cache.duration" type="integer" label="" help="">
-					<level>4</level>
-					<default>3600</default>
-					<control type="edit" format="integer"/>
-				</setting>
 				<setting id="version" type="string" label="" help="">
 					<level>4</level>
 					<default/>

@@ -176,10 +176,10 @@ def parallel_fetch(requests_list, max_workers=5, timeout=30):
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Submit all tasks and maintain order with a dict mapping futures to original index
         future_to_index = {executor.submit(execute_request, req): idx for idx, req in enumerate(requests_list)}
-        
+
         # Create a results list to maintain order
         results = [None] * len(requests_list)
-        
+
         # Collect results as they complete (true parallel execution)
         # No timeout on as_completed since individual requests might take a while
         for future in concurrent.futures.as_completed(future_to_index):

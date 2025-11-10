@@ -1,3 +1,26 @@
+<!--
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                    ANIME CALENDAR (ANICHART) WINDOW                       ║
+║                                                                           ║
+║  This XML defines the anime calendar UI with:                            ║
+║  - Background layers with fanart                                          ║
+║  - Panel list (ID: 1000) showing anime cards                             ║
+║  - Two layouts: itemlayout (unfocused) & focusedlayout (focused)         ║
+║                                                                           ║
+║  KEY COMPONENTS:                                                          ║
+║  1. Background Section (lines ~8-50)                                      ║
+║  2. Panel Control (ID: 1000) - Main anime list (lines ~60-1200)          ║
+║     ├── itemlayout (unfocused cards)                                      ║
+║     └── focusedlayout (focused card with animations)                      ║
+║                                                                           ║
+║  EACH CARD DISPLAYS:                                                      ║
+║  - Poster image (260x370px)                                               ║
+║  - Vertical ratings bar (Average, MAL, AniList, IMDb, Trakt, TMDb)       ║
+║  - Title, Episode info (Raw/Sub/Dub), Countdown timers                   ║
+║  - Plot description, Genres                                               ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+-->
+
 <window type="dialog">
     <defaultcontrol>1000</defaultcontrol>
     <coordinates>
@@ -5,12 +28,18 @@
         <top>0</top>
     </coordinates>
     <controls>
-        <!-- Background Texture -->
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- SECTION 1: BACKGROUND LAYERS                                     -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+
+        <!-- Black base layer -->
         <control type="image">
             <texture>white.png</texture>
             <colordiffuse>FF000000</colordiffuse>
         </control>
-        <!-- Background -->
+
+        <!-- Fanart background (from Window Property) -->
         <control type="image">
             <top>0</top>
             <left>0</left>
@@ -19,6 +48,7 @@
             <texture background="true">$INFO[Window().Property(otaku.fanart)]</texture>
         </control>
 
+        <!-- Dark overlay on fanart (80% opacity) -->
         <control type="image">
             <top>0</top>
             <left>0</left>
@@ -28,15 +58,7 @@
             <colordiffuse>CC000000</colordiffuse>
         </control>
 
-
-
-        <!--&lt;!&ndash; Additional Background Diffuse &ndash;&gt;-->
-        <!--<control type="image">-->
-        <!--<texture>white.png</texture>-->
-        <!--<colordiffuse>8936353b</colordiffuse>-->
-        <!--</control>-->
-
-        <!-- Otaku Logo -->
+        <!-- Otaku Logo (hidden off-screen with negative top) -->
         <control type="image" id="1001">
             <top>-990</top>
             <left>913</left>
@@ -45,7 +67,7 @@
             <texture>$INFO[Window().Property(otaku.logo)]</texture>
         </control>
 
-        <!-- Grouplist Texture -->
+        <!-- Panel container background -->
         <control type="image">
             <visible>true</visible>
             <left>120</left>
@@ -57,7 +79,13 @@
             <colordiffuse>88000000</colordiffuse>
         </control>
 
-        <!-- Sources List -->
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- SECTION 2: MAIN ANIME PANEL (ID: 1000)                          -->
+        <!-- Navigation: Left=9000, Right=60, Up/Down=52                     -->
+        <!-- Contains itemlayout & focusedlayout for anime cards             -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+
         <control type="panel" id="1000">
             <left>120</left>
             <top>100</top>
@@ -71,7 +99,13 @@
             <autoscroll>true</autoscroll>
             <viewtype label="Sources">icon</viewtype>
             <pagecontrol>60</pagecontrol>
+
+            <!-- ───────────────────────────────────────────────────────────── -->
+            <!-- ITEMLAYOUT: Unfocused anime card (390px height x 800px width) -->
+            <!-- ───────────────────────────────────────────────────────────── -->
             <itemlayout height="390" width="800">
+
+                <!-- ▼ POSTER IMAGE (260x370px, left side) ▼ -->
                 <control type="image">
                     <left>10</left>
                     <top>10</top>
@@ -80,31 +114,32 @@
                     <texture>$INFO[ListItem.Property(poster)]</texture>
                 </control>
 
-                <!-- Vertical Ratings Group -->
+                <!-- ▼ VERTICAL RATINGS BAR (overlays left side of poster) ▼ -->
                 <control type="group">
                     <left>10</left>
                     <top>10</top>
                     <width>50</width>
-                    <height>430</height>
+                    <height>390</height>
 
-                    <!-- Background rectangle -->
+                    <!-- Dark background for ratings -->
                     <control type="image">
                         <left>0</left>
                         <top>0</top>
                         <width>50</width>
-                        <height>430</height>
+                        <height>370</height>
                         <texture>white.png</texture>
                         <colordiffuse>CC000000</colordiffuse>
                     </control>
 
-                    <!-- Rating Average (AniSchedule Score) -->
+                    <!-- ★ Rating #1: Average Score (0-100%, top position) ★ -->
                     <control type="group">
                         <left>0</left>
                         <top>5</top>
                         <width>50</width>
                         <height>60</height>
 
-                        <!-- Emoji icons -->
+                        <!-- Emoji icon (changes based on score) -->
+                        <!-- Happy face: 75%+ -->
                         <control type="image">
                             <visible>Integer.IsGreaterOrEqual(ListItem.Property(rating_average),75)</visible>
                             <left>5</left>
@@ -114,6 +149,7 @@
                             <texture>$INFO[Window().Property(texture.aver)]</texture>
                             <aspectratio>keep</aspectratio>
                         </control>
+                        <!-- Straight face: 61-74% -->
                         <control type="image">
                             <visible>Integer.IsGreater(ListItem.Property(rating_average),60) + Integer.IsLess(ListItem.Property(rating_average),75)</visible>
                             <left>5</left>
@@ -145,7 +181,7 @@
                         <!-- Score label -->
                         <control type="label">
                             <left>0</left>
-                            <top>32</top>
+                            <top>25</top>
                             <width>50</width>
                             <height>25</height>
                             <font>font12</font>
@@ -158,7 +194,7 @@
                     <!-- MAL Rating -->
                     <control type="group">
                         <left>0</left>
-                        <top>70</top>
+                        <top>65</top>
                         <width>50</width>
                         <height>60</height>
 
@@ -173,7 +209,7 @@
 
                         <control type="label">
                             <left>0</left>
-                            <top>32</top>
+                            <top>25</top>
                             <width>50</width>
                             <height>25</height>
                             <font>font12</font>
@@ -186,7 +222,7 @@
                     <!-- Anilist Rating -->
                     <control type="group">
                         <left>0</left>
-                        <top>135</top>
+                        <top>125</top>
                         <width>50</width>
                         <height>60</height>
 
@@ -201,7 +237,7 @@
 
                         <control type="label">
                             <left>0</left>
-                            <top>32</top>
+                            <top>25</top>
                             <width>50</width>
                             <height>25</height>
                             <font>font12</font>
@@ -214,7 +250,7 @@
                     <!-- IMDb Rating -->
                     <control type="group">
                         <left>0</left>
-                        <top>200</top>
+                        <top>185</top>
                         <width>50</width>
                         <height>60</height>
 
@@ -229,7 +265,7 @@
 
                         <control type="label">
                             <left>0</left>
-                            <top>32</top>
+                            <top>25</top>
                             <width>50</width>
                             <height>25</height>
                             <font>font12</font>
@@ -242,7 +278,7 @@
                     <!-- Trakt Rating -->
                     <control type="group">
                         <left>0</left>
-                        <top>265</top>
+                        <top>245</top>
                         <width>50</width>
                         <height>60</height>
 
@@ -257,7 +293,7 @@
 
                         <control type="label">
                             <left>0</left>
-                            <top>32</top>
+                            <top>25</top>
                             <width>50</width>
                             <height>25</height>
                             <font>font12</font>
@@ -270,7 +306,7 @@
                     <!-- TMDb Rating -->
                     <control type="group">
                         <left>0</left>
-                        <top>330</top>
+                        <top>305</top>
                         <width>50</width>
                         <height>60</height>
 
@@ -285,7 +321,7 @@
 
                         <control type="label">
                             <left>0</left>
-                            <top>32</top>
+                            <top>25</top>
                             <width>50</width>
                             <height>25</height>
                             <font>font12</font>
@@ -294,7 +330,6 @@
                             <label>$INFO[ListItem.Property(rating_tmdb)]</label>
                         </control>
                     </control>
-
                 </control>
 
                 <!-- Release Title -->
@@ -543,164 +578,6 @@
                     <label>[B]$INFO[ListItem.Property(genres)][/B]</label>
                 </control>
 
-                <control type="group">
-                    <left>700</left>
-                    <top>60</top>
-                    <control type="image">
-                        <visible>Integer.IsGreater(ListItem.Property(rank),0)</visible>
-                        <width>35</width>
-                        <height>35</height>
-                        <texture>$INFO[Window().Property(texture.popular)]</texture>
-                    </control>
-                </control>
-                <control type="label">
-                    <visible>Integer.IsGreater(ListItem.Property(rank),0)</visible>
-                    <left>745</left>
-                    <top>60</top>
-                    <width>50</width>
-                    <height>22</height>
-                    <font>font12</font>
-                    <textcolor>AAFFFFFF</textcolor>
-                    <align>left</align>
-                    <label>#$INFO[ListItem.Property(rank)]</label>
-                </control>
-
-                <control type="group">
-                    <left>750</left>
-                    <top>10</top>
-                    <control type="label">
-                        <visible>Integer.IsGreater(ListItem.Property(rating),0)</visible>
-                        <left>-110</left>
-                        <top>0</top>
-                        <width>100</width>
-                        <height>22</height>
-                        <font>font12</font>
-                        <textcolor>AAFFFFFF</textcolor>
-                        <align>right</align>
-                        <label>$INFO[ListItem.Property(rating)]%</label>
-                    </control>
-                    <control type="image">
-                        <visible>Integer.IsGreaterOrEqual(ListItem.Property(rating),75)</visible>
-                        <left>0</left>
-                        <top>0</top>
-                        <width>35</width>
-                        <height>35</height>
-                        <texture>$INFO[Window().Property(texture.aver)]</texture>
-                    </control>
-                    <control type="image">
-                        <visible>Integer.IsGreater(ListItem.Property(rating),60) + Integer.IsLess(ListItem.Property(rating),75)</visible>
-                        <left>0</left>
-                        <top>0</top>
-                        <width>35</width>
-                        <height>35</height>
-                        <texture>$INFO[Window().Property(texture.averstr)]</texture>
-                    </control>
-                    <control type="image">
-                        <visible>Integer.IsGreater(ListItem.Property(rating),0) + Integer.IsLessOrEqual(ListItem.Property(rating),60)</visible>
-                        <left>0</left>
-                        <top>0</top>
-                        <width>35</width>
-                        <height>35</height>
-                        <texture>$INFO[Window().Property(texture.aversad)]</texture>
-                    </control>
-                </control>
-
-                <control type="group">
-                    <left>750</left>
-                    <top>60</top>
-                    <control type="label">
-                        <visible>Integer.IsGreater(ListItem.Property(simkl_rank),0)</visible>
-                        <left>-110</left>
-                        <top>0</top>
-                        <width>100</width>
-                        <height>22</height>
-                        <font>font12</font>
-                        <textcolor>AAFFFFFF</textcolor>
-                        <align>right</align>
-                        <label>#$INFO[ListItem.Property(simkl_rank)]</label>
-                    </control>
-                    <control type="image">
-                        <visible>Integer.IsGreater(ListItem.Property(simkl_rank),0)</visible>
-                        <left>0</left>
-                        <top>0</top>
-                        <width>35</width>
-                        <height>35</height>
-                        <texture>$INFO[Window().Property(texture.simkl_rank)]</texture>
-                    </control>
-                </control>
-
-                <!-- Studios Section (ITEMLAYOUT) -->
-                <!-- <control type="label">
-              <visible>!IsEmpty(ListItem.Property(studios))</visible>
-              <left>300</left>
-              <top>365</top>
-              <width>200</width>
-              <height>20</height>
-              <font>font9</font>
-              <textcolor>AA4da6ff</textcolor>
-              <align>left</align>
-              <label>[B]Studios:[/B]</label>
-            </control>
-            <control type="textbox">
-              <visible>!IsEmpty(ListItem.Property(studios))</visible>
-              <left>300</left>
-              <top>385</top>
-              <width>400</width>
-              <height>25</height>
-              <font>font9</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>left</align>
-              <label>$INFO[ListItem.Property(studios)]</label>
-            </control> -->
-
-                <!-- Status Section (ITEMLAYOUT) -->
-                <!-- <control type="label">
-              <visible>!IsEmpty(ListItem.Property(status))</visible>
-              <left>300</left>
-              <top>410</top>
-              <width>200</width>
-              <height>20</height>
-              <font>font9</font>
-              <textcolor>AA4da6ff</textcolor>
-              <align>left</align>
-              <label>[B]Status:[/B]</label>
-            </control>
-            <control type="label">
-              <visible>!IsEmpty(ListItem.Property(status))</visible>
-              <left>300</left>
-              <top>427</top>
-              <width>200</width>
-              <height>20</height>
-              <font>font9</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>left</align>
-              <label>$INFO[ListItem.Property(status)]</label>
-            </control> -->
-
-                <!-- Streams Section (ITEMLAYOUT) -->
-                <!-- <control type="label">
-              <visible>!IsEmpty(ListItem.Property(streams))</visible>
-              <left>300</left>
-              <top>447</top>
-              <width>200</width>
-              <height>20</height>
-              <font>font9</font>
-              <textcolor>AA4da6ff</textcolor>
-              <align>left</align>
-              <label>[B]Streams:[/B]</label>
-            </control>
-            <control type="textbox">
-              <visible>!IsEmpty(ListItem.Property(streams))</visible>
-              <left>300</left>
-              <top>464</top>
-              <width>400</width>
-              <height>35</height>
-              <font>font9</font>
-              <textcolor>AAFFFFFF</textcolor>
-              <align>left</align>
-              <label>$INFO[ListItem.Property(streams)]</label>
-            </control> -->
-
             </itemlayout>
             <focusedlayout height="390" width="800">
                 <control type="image">
@@ -730,7 +607,7 @@
                         <left>0</left>
                         <top>0</top>
                         <width>50</width>
-                        <height>390</height>
+                        <height>380</height>
                         <texture>white.png</texture>
                         <colordiffuse>CC000000</colordiffuse>
                         <animation effect="slide" end="0,0,50,390" time="100">focus</animation>
@@ -784,7 +661,7 @@
                         <!-- Score label -->
                         <control type="label">
                             <left>0</left>
-                            <top>32</top>
+                            <top>25</top>
                             <width>50</width>
                             <height>25</height>
                             <font>font12</font>
@@ -797,7 +674,7 @@
                     <!-- MAL Rating -->
                     <control type="group">
                         <left>0</left>
-                        <top>70</top>
+                        <top>65</top>
                         <width>50</width>
                         <height>60</height>
 
@@ -812,7 +689,7 @@
 
                         <control type="label">
                             <left>0</left>
-                            <top>32</top>
+                            <top>25</top>
                             <width>50</width>
                             <height>25</height>
                             <font>font12</font>
@@ -825,7 +702,7 @@
                     <!-- Anilist Rating -->
                     <control type="group">
                         <left>0</left>
-                        <top>135</top>
+                        <top>125</top>
                         <width>50</width>
                         <height>60</height>
 
@@ -840,7 +717,7 @@
 
                         <control type="label">
                             <left>0</left>
-                            <top>32</top>
+                            <top>25</top>
                             <width>50</width>
                             <height>25</height>
                             <font>font12</font>
@@ -853,7 +730,7 @@
                     <!-- IMDb Rating -->
                     <control type="group">
                         <left>0</left>
-                        <top>200</top>
+                        <top>185</top>
                         <width>50</width>
                         <height>60</height>
 
@@ -868,7 +745,7 @@
 
                         <control type="label">
                             <left>0</left>
-                            <top>32</top>
+                            <top>25</top>
                             <width>50</width>
                             <height>25</height>
                             <font>font12</font>
@@ -881,7 +758,7 @@
                     <!-- Trakt Rating -->
                     <control type="group">
                         <left>0</left>
-                        <top>265</top>
+                        <top>245</top>
                         <width>50</width>
                         <height>60</height>
 
@@ -896,7 +773,7 @@
 
                         <control type="label">
                             <left>0</left>
-                            <top>32</top>
+                            <top>25</top>
                             <width>50</width>
                             <height>25</height>
                             <font>font12</font>
@@ -909,7 +786,7 @@
                     <!-- TMDb Rating -->
                     <control type="group">
                         <left>0</left>
-                        <top>330</top>
+                        <top>305</top>
                         <width>50</width>
                         <height>60</height>
 
@@ -924,7 +801,7 @@
 
                         <control type="label">
                             <left>0</left>
-                            <top>32</top>
+                            <top>25</top>
                             <width>50</width>
                             <height>25</height>
                             <font>font12</font>
@@ -933,7 +810,6 @@
                             <label>$INFO[ListItem.Property(rating_tmdb)]</label>
                         </control>
                     </control>
-
                 </control>
 
                 <!-- Release Title -->
@@ -1182,96 +1058,11 @@
                     <align>center</align>
                     <label>[B]$INFO[ListItem.Property(genres)][/B]</label>
                 </control>
-                <control type="group">
-                    <left>700</left>
-                    <top>60</top>
-                    <control type="image">
-                        <visible>Integer.IsGreater(ListItem.Property(rank),0)</visible>
-                        <width>35</width>
-                        <height>35</height>
-                        <texture>$INFO[Window().Property(texture.popular)]</texture>
-                    </control>
-                </control>
-                <control type="label">
-                    <visible>Integer.IsGreater(ListItem.Property(rank),0)</visible>
-                    <left>745</left>
-                    <top>60</top>
-                    <width>50</width>
-                    <height>22</height>
-                    <font>font12</font>
-                    <textcolor>AAFFFFFF</textcolor>
-                    <align>left</align>
-                    <label>#$INFO[ListItem.Property(rank)]</label>
-                </control>
-
-                <control type="group">
-                    <left>750</left>
-                    <top>10</top>
-                    <control type="label">
-                        <visible>Integer.IsGreater(ListItem.Property(rating),0)</visible>
-                        <left>-110</left>
-                        <top>0</top>
-                        <width>100</width>
-                        <height>22</height>
-                        <font>font12</font>
-                        <textcolor>AAFFFFFF</textcolor>
-                        <align>right</align>
-                        <label>$INFO[ListItem.Property(rating)]%</label>
-                    </control>
-                    <control type="image">
-                        <visible>Integer.IsGreaterOrEqual(ListItem.Property(rating),75)</visible>
-                        <left>0</left>
-                        <top>0</top>
-                        <width>35</width>
-                        <height>35</height>
-                        <texture>$INFO[Window().Property(texture.aver)]</texture>
-                    </control>
-                    <control type="image">
-                        <visible>Integer.IsGreater(ListItem.Property(rating),60) + Integer.IsLess(ListItem.Property(rating),75)</visible>
-                        <left>0</left>
-                        <top>0</top>
-                        <width>35</width>
-                        <height>35</height>
-                        <texture>$INFO[Window().Property(texture.averstr)]</texture>
-                    </control>
-                    <control type="image">
-                        <visible>Integer.IsGreater(ListItem.Property(rating),0) + Integer.IsLessOrEqual(ListItem.Property(rating),60)</visible>
-                        <left>0</left>
-                        <top>0</top>
-                        <width>35</width>
-                        <height>35</height>
-                        <texture>$INFO[Window().Property(texture.aversad)]</texture>
-                    </control>
-                </control>
-
-                <control type="group">
-                    <left>750</left>
-                    <top>60</top>
-                    <control type="label">
-                        <visible>Integer.IsGreater(ListItem.Property(simkl_rank),0)</visible>
-                        <left>-110</left>
-                        <top>0</top>
-                        <width>100</width>
-                        <height>22</height>
-                        <font>font12</font>
-                        <textcolor>AAFFFFFF</textcolor>
-                        <align>right</align>
-                        <label>#$INFO[ListItem.Property(simkl_rank)]</label>
-                    </control>
-                    <control type="image">
-                        <visible>Integer.IsGreater(ListItem.Property(simkl_rank),0)</visible>
-                        <left>0</left>
-                        <top>0</top>
-                        <width>35</width>
-                        <height>35</height>
-                        <texture>$INFO[Window().Property(texture.simkl_rank)]</texture>
-                    </control>
-                </control>
 
             </focusedlayout>
         </control>
 
-        <!--LAYOUT GRID-->
+        <!-- DEBUG: Layout grid (commented out) -->
         <!--<control type="image">-->
         <!--<width>100%</width>-->
         <!--<height>100%</height>-->
@@ -1280,3 +1071,108 @@
         <!--</control>-->
     </controls>
 </window>
+
+<!--
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                          FILE NAVIGATION GUIDE                            ║
+╠═══════════════════════════════════════════════════════════════════════════╣
+║                                                                           ║
+║  📍 QUICK JUMP TO SECTIONS:                                              ║
+║  ────────────────────────────────────────────────────────────────────── ║
+║  Line ~1-30    : Header comments & window setup                          ║
+║  Line ~30-95   : Background layers (fanart, overlays, logo)              ║
+║  Line ~95-700  : ITEMLAYOUT (unfocused anime cards)                      ║
+║  Line ~700-1280: FOCUSEDLAYOUT (focused card with zoom animation)        ║
+║  Line ~1310+   : Debug grid (commented out)                              ║
+║                                                                           ║
+║  🎨 LAYOUT STRUCTURE (both itemlayout & focusedlayout):                  ║
+║  ────────────────────────────────────────────────────────────────────── ║
+║  1. Poster Image (260x370px, left: 10px)                                 ║
+║  2. Vertical Ratings Bar (50px wide, overlays left edge of poster)       ║
+║     ├─ Rating Average (0-100%, emoji icons)                              ║
+║     ├─ MAL Rating (0-10)                                                 ║
+║     ├─ AniList Rating (0-10)                                             ║
+║     ├─ IMDb Rating (0-10)                                                ║
+║     ├─ Trakt Rating (0-10)                                               ║
+║     └─ TMDb Rating (0-10)                                                ║
+║  3. Title (left: 300px, scrolling text)                                  ║
+║  4. Episode Info Row (RAW | SUB | DUB)                                   ║
+║     ├─ Episode numbers with colors (green/blue/yellow)                   ║
+║     ├─ Release times (under each type)                                   ║
+║     ├─ Day/Date (shared, fallback priority: raw→sub→dub)                ║
+║     └─ Countdown timers (shared, fallback priority: raw→sub→dub)        ║
+║  5. Plot/Description (textbox, auto-height)                              ║
+║  6. Genres Bar (purple background with centered text)                    ║
+║                                                                           ║
+║  🔑 KEY PROPERTIES USED:                                                  ║
+║  ────────────────────────────────────────────────────────────────────── ║
+║  • release_title          - Anime title (respects user language pref)    ║
+║  • poster                 - Poster image URL                             ║
+║  • rating_average         - Average score (0-100%, MDBList/AniList)      ║
+║  • rating_mal             - MyAnimeList score (0-10 or "-")              ║
+║  • rating_anilist         - AniList score (0-10 or "-")                  ║
+║  • rating_imdb            - IMDb score (0-10 or "-")                     ║
+║  • rating_trakt           - Trakt score (0-10 or "-")                    ║
+║  • rating_tmdb            - TMDb score (0-10 or "-")                     ║
+║  • raw_episode            - Next RAW episode number                      ║
+║  • sub_episode            - Next SUB episode number                      ║
+║  • dub_episode            - Next DUB episode number                      ║
+║  • raw_time               - RAW episode time (e.g., "03:00 PM")          ║
+║  • sub_time               - SUB episode time                             ║
+║  • dub_time               - DUB episode time                             ║
+║  • raw_day                - RAW episode day (e.g., "Thursday")           ║
+║  • sub_day                - SUB episode day                              ║
+║  • dub_day                - DUB episode day                              ║
+║  • raw_date_formatted     - RAW episode date (e.g., "06 Nov")            ║
+║  • sub_date_formatted     - SUB episode date                             ║
+║  • dub_date_formatted     - DUB episode date                             ║
+║  • raw_countdown          - RAW countdown (e.g., "5h 23m") 🔄 DYNAMIC!   ║
+║  • sub_countdown          - SUB countdown 🔄 DYNAMIC!                    ║
+║  • dub_countdown          - DUB countdown 🔄 DYNAMIC!                    ║
+║  • plot                   - Anime description                            ║
+║  • genres                 - Comma-separated genre list                   ║
+║                                                                           ║
+║  ⚡ IMPORTANT: COUNTDOWN TIMERS ARE DYNAMIC!                             ║
+║  ────────────────────────────────────────────────────────────────────── ║
+║  The countdown properties (raw_countdown, sub_countdown, dub_countdown)  ║
+║  are calculated FRESH every time the window opens. They are NOT cached!  ║
+║                                                                           ║
+║  How it works:                                                            ║
+║  1. Cache stores: episode_date timestamp (e.g., "2025-11-10T20:00:00Z")  ║
+║  2. Python calculates: current_time - episode_date = countdown           ║
+║  3. Result: Always accurate countdown (e.g., "5h 23m" or "Released")     ║
+║                                                                           ║
+║  This means:                                                              ║
+║  ✅ User opens calendar at 2:00 PM → "6h 0m until 8:00 PM episode"      ║
+║  ✅ User opens again at 6:00 PM → "2h 0m until 8:00 PM episode"         ║
+║  ✅ Cache can last 24 hours, countdowns stay fresh!                      ║
+║                                                                           ║
+║  🎨 COLOR CODES:                                                          ║
+║  ────────────────────────────────────────────────────────────────────── ║
+║  • FF53b56f (green)  - RAW episodes                                      ║
+║  • FF2fb2ff (blue)   - SUB episodes                                      ║
+║  • FF9fd33a (yellow) - DUB episodes                                      ║
+║  • FFFF9800 (orange) - Countdown timers                                  ║
+║  • AA4da6ff (purple) - Genre bar background                              ║
+║  • AAFFFFFF (white)  - General text (70% opacity)                        ║
+║  • 88B7C0CC (gray)   - Secondary text (53% opacity)                      ║
+║                                                                           ║
+║  📐 DIMENSIONS:                                                           ║
+║  ────────────────────────────────────────────────────────────────────── ║
+║  • Window: 1920x1080 (full screen)                                       ║
+║  • Panel container: 1700x900 (left: 120, top: 100)                       ║
+║  • Card size: 800x390 (each anime item)                                  ║
+║  • Poster: 260x370                                                       ║
+║  • Ratings bar: 50x430 (overlays poster left edge)                       ║
+║  • Each rating slot: 50x60 (icon 40x30, label below)                     ║
+║                                                                           ║
+║  🔧 EDITING TIPS:                                                         ║
+║  ────────────────────────────────────────────────────────────────────── ║
+║  • itemlayout & focusedlayout are nearly identical - edit both!          ║
+║  • To change rating order: adjust <top> values (70, 135, 200, 265, 330) ║
+║  • Episode row starts at <top>40</top> below title                       ║
+║  • Countdown fallback logic: raw → sub → dub (uses first available)     ║
+║  • Focused layout adds zoom animation: effect="zoom" end="5,5,270,380"  ║
+║                                                                           ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+-->
