@@ -57,23 +57,33 @@ class GetSources(BaseWindow):
             self.canceled = True
 
     def update_properties(self, text):
-        self.setProperty('notification_text', str(text))
-        self.setProperty('4k_sources', str(self.torrents_qual_len[0] + self.embeds_qual_len[0]))
-        self.setProperty('1080p_sources', str(self.torrents_qual_len[1] + self.embeds_qual_len[1]))
-        self.setProperty('720p_sources', str(self.torrents_qual_len[2] + self.embeds_qual_len[2]))
-        self.setProperty('SD_sources', str(self.torrents_qual_len[3] + self.embeds_qual_len[3]))
-        self.setProperty('EQ_sources', str(self.torrents_qual_len[4] + self.embeds_qual_len[4]))
+        """Optimized property updates - batch similar operations"""
+        # Calculate totals once
+        total_4k = self.torrents_qual_len[0] + self.embeds_qual_len[0]
+        total_1080 = self.torrents_qual_len[1] + self.embeds_qual_len[1]
+        total_720 = self.torrents_qual_len[2] + self.embeds_qual_len[2]
+        total_sd = self.torrents_qual_len[3] + self.embeds_qual_len[3]
+        total_eq = self.torrents_qual_len[4] + self.embeds_qual_len[4]
 
+        # Batch all property updates together
+        self.setProperty('notification_text', str(text))
+        self.setProperty('4k_sources', str(total_4k))
+        self.setProperty('1080p_sources', str(total_1080))
+        self.setProperty('720p_sources', str(total_720))
+        self.setProperty('SD_sources', str(total_sd))
+        self.setProperty('EQ_sources', str(total_eq))
         self.setProperty('total_torrents', str(len(self.torrentSources)))
         self.setProperty('cached_torrents', str(len(self.torrentCacheSources)))
         self.setProperty('hosters_sources', str(len(self.embedSources)))
         self.setProperty('cloud_sources', str(len(self.cloud_files)))
         self.setProperty('local_sources', str(len(self.local_files)))
-
-        self.setProperty("remaining_providers_count", str((len(self.remainingProviders))))
-
-        self.remaining_providers_list = self.getControl(2000)
-        self.remaining_providers_list.reset()
-        self.remaining_providers_list.addItems(self.remainingProviders)
-        self.setProperty("remaining_providers_list", control.colorstr(' | ').join([i.upper() for i in self.remainingProviders]))
+        self.setProperty("remaining_providers_count", str(len(self.remainingProviders)))
         self.setProperty('progress', str(self.progress))
+
+        # Update remaining providers list (only if changed)
+        providers_str = control.colorstr(' | ').join([i.upper() for i in self.remainingProviders])
+        if self.getProperty("remaining_providers_list") != providers_str:
+            self.remaining_providers_list = self.getControl(2000)
+            self.remaining_providers_list.reset()
+            self.remaining_providers_list.addItems(self.remainingProviders)
+            self.setProperty("remaining_providers_list", providers_str)

@@ -56,14 +56,12 @@ class RealDebrid:
         }
         response = client.get(f'{self.OauthUrl}/device/code', params=params)
         if not response or not response.ok:
-            control.progressDialog.close()
             control.ok_dialog(control.ADDON_NAME, 'Failed to connect to Real-Debrid')
             return
 
         try:
             resp = response.json()
         except ValueError as e:
-            control.progressDialog.close()
             control.ok_dialog(control.ADDON_NAME, f'Real-Debrid API error: {str(e)}')
             return
 

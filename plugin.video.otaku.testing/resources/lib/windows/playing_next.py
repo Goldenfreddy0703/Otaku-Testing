@@ -20,14 +20,18 @@ class PlayingNext(BaseWindow):
         self.background_tasks()
 
     def background_tasks(self):
+        """Optimized background task with reduced updates"""
         progress_bar = self.getControl(3014)
         while not self.closed and self.playing_file == self.player.getPlayingFile():
             xbmc.sleep(1000)
             if progress_bar:
-                percent = ((self.total_time - int(self.player.getTime())) / self.duration) * 100
-                if percent < 2:
+                try:
+                    percent = ((self.total_time - int(self.player.getTime())) / self.duration) * 100
+                    if percent < 2:
+                        break
+                    progress_bar.setPercent(percent)
+                except Exception:
                     break
-                progress_bar.setPercent(percent)
         self.close()
 
     def doModal(self):
@@ -39,6 +43,8 @@ class PlayingNext(BaseWindow):
             if self.default_action == 1:
                 self.player.pause()
         self.closed = True
+        # Cleanup references
+        self.player = None
         super(PlayingNext, self).close()
 
     def onClick(self, controlID):

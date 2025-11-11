@@ -18,6 +18,7 @@
 """
 
 import gzip
+import http.client
 import io
 import json
 import random
@@ -39,9 +40,22 @@ CERT_FILE = TRANSLATEPATH('special://xbmc/system/certs/cacert.pem')
 _COOKIE_HEADER = "Cookie"
 _HEADER_RE = re.compile(r"^([\w\d-]+?)=(.*?)$")
 
-# Session-like storage for cookies and connection reuse
+# Session-like storage for cookies and connection reuse with automatic cleanup
 _session_cookies = {}
 _session_openers = {}
+_session_timestamps = {}
+_SESSION_TIMEOUT = 600  # 10 minutes
+
+
+def _cleanup_old_sessions():
+    """Clean up sessions older than timeout to prevent memory leaks"""
+    import time
+    current_time = time.time()
+    expired_keys = [k for k, v in _session_timestamps.items() if current_time - v > _SESSION_TIMEOUT]
+    for key in expired_keys:
+        _session_cookies.pop(key, None)
+        _session_openers.pop(key, None)
+        _session_timestamps.pop(key, None)
 
 
 def _get_cached_useragent(mobile=False):
@@ -157,6 +171,10 @@ def request(
         if not url:
             return
 
+        # Clean up old sessions periodically (1 in 20 requests)
+        if random.randint(1, 20) == 1:
+            _cleanup_old_sessions()
+
         # Initialize response to None to avoid UnboundLocalError
         response = None
 
@@ -258,8 +276,9 @@ def request(
         if handlers:
             opener = urllib.request.build_opener(*handlers)
             if use_session:
-                # Store opener for session reuse
+                # Store opener for session reuse with timestamp
                 _session_openers[domain] = opener
+                _session_timestamps[domain] = time.time()
             else:
                 urllib.request.install_opener(opener)
 
@@ -536,13 +555,33 @@ def request(
                 if content_length > 0:
                     # Read exactly what we need (up to 5MB max for safety)
                     buffer_size = min(content_length, 5242880)
-                    result = response.read(buffer_size)
+                    try:
+                        result = response.read(buffer_size)
+                    except http.client.IncompleteRead as e:
+                        # Handle incomplete read - use partial data if available
+                        control.log(f'IncompleteRead: Expected {buffer_size} bytes, got {len(e.partial)} bytes from {url}', 'warning')
+                        result = e.partial
+                        if not result:
+                            # If no partial data, return None to trigger retry
+                            return None
                 else:
                     # Fallback to 5MB default
-                    result = response.read(5242880)
+                    try:
+                        result = response.read(5242880)
+                    except http.client.IncompleteRead as e:
+                        control.log(f'IncompleteRead: Got {len(e.partial)} bytes from {url}', 'warning')
+                        result = e.partial
+                        if not result:
+                            return None
             except (ValueError, TypeError):
                 # Fallback if Content-Length is malformed
-                result = response.read(5242880)
+                try:
+                    result = response.read(5242880)
+                except http.client.IncompleteRead as e:
+                    control.log(f'IncompleteRead: Got {len(e.partial)} bytes from {url}', 'warning')
+                    result = e.partial
+                    if not result:
+                        return None
 
         encoding = None
         text_content = False

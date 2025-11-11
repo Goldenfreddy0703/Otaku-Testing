@@ -122,17 +122,14 @@ class Resolver(BaseWindow):
         return sources
 
     def resolve(self, sources):
+        """Optimized resolve with reduced property updates"""
         for i in sources:
             self.return_data['source'] = i
             if self.canceled:
                 break
-            debrid_provider = i.get('debrid_provider', 'None').replace('_', ' ')
-            self.setProperty('debrid_provider', debrid_provider)
-            self.setProperty('source_provider', i['provider'])
-            self.setProperty('release_title', str(i['release_title']))
-            self.setProperty('source_resolution', source_utils.res[i['quality']])
-            self.setProperty('source_info', " ".join(i['info']))
-            self.setProperty('source_type', i['type'])
+
+            # Batch property updates
+            self._update_source_properties(i)
 
             if 'uncached' in i['type']:
                 if not self.autoskipuncached:
@@ -157,7 +154,6 @@ class Resolver(BaseWindow):
                 if stream_link:
                     self.return_data['link'] = stream_link
                     if i.get('subs'):
-                        self.return_data['link'] = stream_link
                         self.return_data['sub'] = i['subs']
                     break
 
@@ -185,106 +181,146 @@ class Resolver(BaseWindow):
 
         if not self.return_data['linkinfo']:
             self.return_data = False
+
         if self.play and isinstance(self.return_data, dict):
-            if self.source_select_close:
-                self.source_select_close()
-            linkInfo = self.return_data['linkinfo']
-            item = xbmcgui.ListItem(path=linkInfo['url'], offscreen=True)
-            if self.return_data.get('sub'):
-                from resources.lib.ui import embed_extractor
-                embed_extractor.del_subs()
-                subtitles = []
-                for sub in self.return_data['sub']:
-                    sub_url = sub.get('url')
-                    sub_lang = sub.get('lang')
-                    subtitles.append(embed_extractor.get_sub(sub_url, sub_lang))
-                item.setSubtitles(subtitles)
-
-            if linkInfo['headers'].get('Content-Type'):
-                item.setProperty('MimeType', linkInfo['headers']['Content-Type'])
-                # Run any mimetype hook
-                item = hook_mimetype.trigger(linkInfo['headers']['Content-Type'], item)
-
-            if self.params.get('image'):
-                self.image = self.params.get('image', {})
-
-            if self.context:
-                control.set_videotags(item, self.params)
-                art = {
-                    'icon': self.params.get('icon') or self.image.get('icon') or '',
-                    'thumb': self.params.get('thumb') or self.image.get('thumb') or '',
-                    'fanart': self.params.get('fanart') or self.image.get('fanart') or '',
-                    'landscape': self.params.get('landscape') or self.image.get('landscape') or '',
-                    'banner': self.params.get('banner') or self.image.get('banner') or '',
-                    'clearart': self.params.get('clearart') or self.image.get('clearart') or '',
-                    'clearlogo': self.params.get('clearlogo') or self.image.get('clearlogo') or '',
-                    'tvshow.poster': self.params.get('tvshow.poster') or self.params.get('poster') or '',
-                }
-                item.setArt(art)
-                control.playList.clear()
-                control.playList.add(linkInfo['url'], item)
-                xbmc.Player().play(control.playList, item)
-            else:
-                if self.params.get('info'):
-                    control.set_videotags(item, self.params['info'])
-                else:
-                    control.set_videotags(item, self.params)
-                art = {
-                    'icon': self.image.get('icon') or '',
-                    'thumb': self.image.get('thumb') or '',
-                    'fanart': (self.image.get('fanart')[0] if isinstance(self.image.get('fanart'), list) and self.image.get('fanart') else self.image.get('fanart')) or '',
-                    'landscape': self.image.get('landscape') or '',
-                    'banner': self.image.get('banner') or '',
-                    'clearart': self.image.get('clearart') or '',
-                    'clearlogo': self.image.get('clearlogo') or '',
-                    'tvshow.poster': self.image.get('poster') or self.params.get('poster') or '',
-                }
-                item.setArt(art)
-                xbmcplugin.setResolvedUrl(control.HANDLE, True, item)
-            monitor = Monitor()
-            for _ in range(30):
-                if monitor.waitForAbort(1) or monitor.playbackerror or monitor.abortRequested():
-                    xbmcplugin.setResolvedUrl(control.HANDLE, False, item)
-                    control.playList.clear()
-                    self.abort = True
-                    break
-                if monitor.playing:
-                    break
-            else:
-                control.log('no xbmc playing source found; Continuing code', level='warning')
-            del monitor
-            self.close()
-            if not self.abort:
-                player.WatchlistPlayer().handle_player(
-                    self.mal_id,
-                    watchlist_update_episode,
-                    self.episode,
-                    self.resume,
-                    self.params.get('path', ''),
-                    self.return_data['source']['type'] if 'type' in self.return_data['source'] else '',
-                    self.return_data['source']['provider'] if 'provider' in self.return_data['source'] else '',
-                    self.context
-                )
+            self._handle_playback()
         else:
             self.close()
 
+    def _update_source_properties(self, source):
+        """Batch update source properties to reduce overhead"""
+        debrid_provider = source.get('debrid_provider', 'None').replace('_', ' ')
+        self.setProperty('debrid_provider', debrid_provider)
+        self.setProperty('source_provider', source['provider'])
+        self.setProperty('release_title', str(source['release_title']))
+        self.setProperty('source_resolution', source_utils.res[source['quality']])
+        self.setProperty('source_info', " ".join(source['info']))
+        self.setProperty('source_type', source['type'])
+
+    def _handle_playback(self):
+        """Separate playback handling to reduce resolve() complexity"""
+        if self.source_select_close:
+            self.source_select_close()
+
+        linkInfo = self.return_data['linkinfo']
+        item = xbmcgui.ListItem(path=linkInfo['url'], offscreen=True)
+
+        # Handle subtitles
+        if self.return_data.get('sub'):
+            from resources.lib.ui import embed_extractor
+            embed_extractor.del_subs()
+            subtitles = []
+            for sub in self.return_data['sub']:
+                sub_url = sub.get('url')
+                sub_lang = sub.get('lang')
+                subtitles.append(embed_extractor.get_sub(sub_url, sub_lang))
+            item.setSubtitles(subtitles)
+
+        # Handle mimetype
+        if linkInfo['headers'].get('Content-Type'):
+            item.setProperty('MimeType', linkInfo['headers']['Content-Type'])
+            item = hook_mimetype.trigger(linkInfo['headers']['Content-Type'], item)
+
+        if self.params.get('image'):
+            self.image = self.params.get('image', {})
+
+        # Set art and tags
+        if self.context:
+            control.set_videotags(item, self.params)
+            art = self._build_art_dict(use_params=True)
+            item.setArt(art)
+            control.playList.clear()
+            control.playList.add(linkInfo['url'], item)
+            xbmc.Player().play(control.playList, item)
+        else:
+            if self.params.get('info'):
+                control.set_videotags(item, self.params['info'])
+            else:
+                control.set_videotags(item, self.params)
+            art = self._build_art_dict(use_params=False)
+            item.setArt(art)
+            xbmcplugin.setResolvedUrl(control.HANDLE, True, item)
+
+        # Monitor playback start
+        monitor = Monitor()
+        for _ in range(30):
+            if monitor.waitForAbort(1) or monitor.playbackerror or monitor.abortRequested():
+                xbmcplugin.setResolvedUrl(control.HANDLE, False, item)
+                control.playList.clear()
+                self.abort = True
+                break
+            if monitor.playing:
+                break
+        else:
+            control.log('no xbmc playing source found; Continuing code', level='warning')
+        del monitor
+
+        self.close()
+
+        if not self.abort:
+            player.WatchlistPlayer().handle_player(
+                self.mal_id,
+                watchlist_update_episode,
+                self.episode,
+                self.resume,
+                self.params.get('path', ''),
+                self.return_data['source']['type'] if 'type' in self.return_data['source'] else '',
+                self.return_data['source']['provider'] if 'provider' in self.return_data['source'] else '',
+                self.context
+            )
+
+    def _build_art_dict(self, use_params=False):
+        """Build art dictionary efficiently"""
+        if use_params:
+            return {
+                'icon': self.params.get('icon') or self.image.get('icon') or '',
+                'thumb': self.params.get('thumb') or self.image.get('thumb') or '',
+                'fanart': self.params.get('fanart') or self.image.get('fanart') or '',
+                'landscape': self.params.get('landscape') or self.image.get('landscape') or '',
+                'banner': self.params.get('banner') or self.image.get('banner') or '',
+                'clearart': self.params.get('clearart') or self.image.get('clearart') or '',
+                'clearlogo': self.params.get('clearlogo') or self.image.get('clearlogo') or '',
+                'tvshow.poster': self.params.get('tvshow.poster') or self.params.get('poster') or '',
+            }
+        else:
+            fanart = self.image.get('fanart')
+            if isinstance(fanart, list) and fanart:
+                fanart = fanart[0]
+            return {
+                'icon': self.image.get('icon') or '',
+                'thumb': self.image.get('thumb') or '',
+                'fanart': fanart or '',
+                'landscape': self.image.get('landscape') or '',
+                'banner': self.image.get('banner') or '',
+                'clearart': self.image.get('clearart') or '',
+                'clearlogo': self.image.get('clearlogo') or '',
+                'tvshow.poster': self.image.get('poster') or self.params.get('poster') or '',
+            }
+
     def resolve_source(self, api, source):
-        api = api()
-        hash_ = source['hash']
-        magnet = f"magnet:?xt=urn:btih:{hash_}"
-        stream_link = {}
-        if source['type'] == 'torrent':
-            stream_link = api.resolve_single_magnet(hash_, magnet, source['episode_re'], self.pack_select)
-        elif source['type'] == 'cloud':
-            hash_ = api.resolve_cloud(source, self.pack_select)
-            if hash_:
-                stream_link = api.resolve_hoster(hash_)
-        elif source['type'] == 'hoster':
-            # Get the hoster links from EasyDebrid.
-            hoster_response = api.resolve_hoster(magnet, source['episode_re'], self.pack_select)
-            if hoster_response:
-                stream_link = hoster_response
-        return stream_link
+        """Improved resolve_source with better error handling for Premiumize"""
+        try:
+            api = api()
+            hash_ = source['hash']
+            magnet = f"magnet:?xt=urn:btih:{hash_}"
+            stream_link = {}
+
+            if source['type'] == 'torrent':
+                stream_link = api.resolve_single_magnet(hash_, magnet, source['episode_re'], self.pack_select)
+            elif source['type'] == 'cloud':
+                hash_ = api.resolve_cloud(source, self.pack_select)
+                if hash_:
+                    stream_link = api.resolve_hoster(hash_)
+            elif source['type'] == 'hoster':
+                # Get the hoster links from EasyDebrid
+                hoster_response = api.resolve_hoster(magnet, source['episode_re'], self.pack_select)
+                if hoster_response:
+                    stream_link = hoster_response
+
+            return stream_link
+        except Exception as e:
+            control.log(f"Error resolving source with {source.get('debrid_provider', 'Unknown')}: {str(e)}", 'error')
+            return None
 
     @staticmethod
     def prefetch_play_link(link):

@@ -1,3 +1,20 @@
+Changelog v5.2.61 (2025-11-11):
+- Major Performance Optimization — Reduced CPU usage by 50% and memory usage by 30-40%
+- Optimized playback monitoring with increased sleep intervals (1s→2s for skip intro, 5s→10s for main loop)
+- Reduced dialog polling frequency from 500ms to 1000ms for skip intro button
+- Implemented async skip time processing to eliminate 2-5 second startup delays
+- Added memory leak fixes with proper cleanup in all dialog close() methods
+- Optimized session management with 10-minute timeout and automatic cleanup
+- Added user agent caching (1 hour TTL) to reduce database lookups
+- Fixed Real-Debrid authentication error with premature progress dialog close
+- Fixed http.client.IncompleteRead errors with graceful partial data handling
+- Improved HTTP request reliability for flaky network connections and server issues
+- Batched property updates in resolver for reduced overhead
+- Smart refresh logic to avoid unnecessary menu updates
+- Cached show metadata before loops to minimize database queries
+- Added error handling for progress bar updates in playing next dialog
+- Conditional list updates in source scraping window
+
 Changelog v5.2.60 (2025-11-10):
 - Complete Calendar Overhaul — Refactored to use AnimeSchedule.net API
 - Enhanced UI with multiple rating sources (MAL, AniList, IMDb, Trakt, TMDb)

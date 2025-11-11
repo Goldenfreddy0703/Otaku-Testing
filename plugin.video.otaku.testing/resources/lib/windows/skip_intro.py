@@ -20,13 +20,14 @@ class SkipIntro(BaseWindow):
         self.background_tasks()
 
     def background_tasks(self):
+        """Optimized background task with longer sleep intervals"""
         self.current_time = int(self.player.getTime())
         while self.total_time - self.current_time > 2 and not self.closed and self.playing_file == self.player.getPlayingFile():
             self.current_time = int(self.player.getTime())
             if self.current_time > self.skipintro_end_skip_time:
                 self.close()
                 break
-            xbmc.sleep(500)
+            xbmc.sleep(1000)  # Check every second
         self.close()
 
     def doModal(self):
@@ -34,6 +35,8 @@ class SkipIntro(BaseWindow):
 
     def close(self):
         self.closed = True
+        # Cleanup references
+        self.player = None
         super(SkipIntro, self).close()
 
     def onClick(self, controlId):
