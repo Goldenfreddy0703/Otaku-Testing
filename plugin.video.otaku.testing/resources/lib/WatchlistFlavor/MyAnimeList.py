@@ -393,8 +393,8 @@ class MyAnimeListWLF(WatchlistFlavorBase):
             from resources.lib.AnimeSchedule import get_anime_schedule
             airing_anime = get_anime_schedule(mal_id)
 
-            if airing_anime and airing_anime.get('episodes'):
-                eps_total = airing_anime['episodes']
+            if airing_anime and airing_anime.get('current_episode'):
+                eps_total = airing_anime['current_episode']
 
         if 0 < eps_total < next_up:
             return

@@ -849,6 +849,48 @@ def delete(url, data=None, json_data=None, headers=None, timeout=20, verify=True
     return Response(content=None, status_code=0, url=url)
 
 
+def head(url, headers=None, timeout=20, verify=True, cookies=None, params=None):
+    """
+    Requests-like HEAD method that returns a Response object
+    HEAD requests only fetch headers, not the body (faster for checking if URL exists)
+
+    Usage:
+        response = client.head(url)
+        response = client.head(url, timeout=5)
+        print(response.status_code)  # 200, 404, etc.
+        print(response.headers)
+        if response.ok:
+            print("URL is accessible")
+    """
+    result = request(url, headers=headers or {}, timeout=timeout, verify=verify, cookie=cookies, params=params, limit='0', output='extended')
+
+    if result and isinstance(result, tuple) and len(result) >= 5:
+        content, status_code, response_headers, request_headers, cookie, response_url = result
+
+        # Parse cookies into dict
+        cookie_dict = {}
+        if cookie:
+            for item in cookie.split('; '):
+                if '=' in item:
+                    key, val = item.split('=', 1)
+                    cookie_dict[key] = val
+
+        return Response(
+            content='',  # HEAD has no body
+            status_code=int(status_code) if status_code else 200,
+            headers=response_headers,
+            url=response_url or url,
+            cookies=cookie_dict,
+            is_binary=False
+        )
+    elif result:
+        # Fallback for simple request
+        return Response(content='', status_code=200, url=url)
+
+    # Return failed response
+    return Response(content=None, status_code=0, url=url)
+
+
 def session_request(url, method='GET', data=None, headers=None, timeout=20, verify=True):
     """
     Session-based request that maintains cookies across calls (like requests.Session)

@@ -386,8 +386,8 @@ class KitsuWLF(WatchlistFlavorBase):
             from resources.lib.AnimeSchedule import get_anime_schedule
             airing_anime = get_anime_schedule(mal_id)
 
-            if airing_anime and airing_anime.get('episodes'):
-                episode_count = airing_anime['episodes']
+            if airing_anime and airing_anime.get('current_episode'):
+                episode_count = airing_anime['current_episode']
 
         title = '%s - %d/%d' % (anime_title, next_up, episode_count)
         poster = image = eres["attributes"]['posterImage'].get('large', eres["attributes"]['posterImage']['original'])

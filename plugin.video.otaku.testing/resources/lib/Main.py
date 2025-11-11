@@ -289,8 +289,6 @@ def WATCH_HISTORY(payload, params):
 
 @Route('airing_calendar')
 def AIRING_CALENDAR(payload: str, params: dict):
-    page = int(params.get('page', 1))
-
     # Get enriched calendar data from AnimeSchedule
     from resources.lib.AnimeSchedule import AnimeScheduleCalendar
     scheduler = AnimeScheduleCalendar()
@@ -1993,7 +1991,6 @@ def find_episode_by_title(mal_ids, episode_titles):
         # Use shared clean_text for normalization
         cleaned_candidates = [clean_text(c) for c in episode_candidates]
         # Run fuzzy matching for each cleaned title variant individually
-        best_score = -1
         best_idx = None
         for cleaned_query in cleaned_titles:
             match_indices = get_fuzzy_match(cleaned_query, cleaned_candidates)

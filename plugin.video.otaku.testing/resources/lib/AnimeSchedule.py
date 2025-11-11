@@ -241,7 +241,7 @@ class AnimeScheduleCalendar:
                         'romaji': raw_anime.get('romaji'),
                         'english': raw_anime.get('english'),
                         'native': raw_anime.get('native'),
-                        'image': self._get_image_url(raw_anime),
+                        'image': self._get_image_url(raw_anime, mal_id),
                         'total_episodes': enriched_data.get('episodes') if enriched_data else None,
                         'status': enriched_data.get('status') if enriched_data else None,
                         'airing_status': raw_anime.get('airingStatus'),
@@ -474,8 +474,11 @@ class AnimeScheduleCalendar:
 
         return None
 
-    def _get_image_url(self, anime):
-        """Construct full image URL from route"""
+    def _get_image_url(self, anime, mal_id=None):
+        """
+        Get image URL from AnimESchedule - fast and reliable
+        No validation needed, Kodi handles 404s gracefully
+        """
         image_route = anime.get('imageVersionRoute')
         if image_route:
             return f"https://img.animeschedule.net/production/assets/public/img/{image_route}"
@@ -831,15 +834,59 @@ class AnimeScheduleCalendar:
 
         return ', '.join(stream_names) if stream_names else 'Not specified'
 
+    def _calculate_current_episode(self, premier_date, airing_time, total_episodes):
+        """
+        Calculate the current airing episode based on premier date and airing schedule
+
+        Args:
+            premier_date (str): ISO format datetime string of premiere
+            airing_time (str): ISO format datetime string of weekly airing time
+            total_episodes (int): Total number of episodes
+
+        Returns:
+            int: Current episode number, or 0 if not yet aired
+        """
+        try:
+            # Check for invalid/placeholder dates
+            if not premier_date or premier_date == '0001-01-01T00:00:00Z':
+                return 0
+            if not airing_time or airing_time == '0001-01-01T00:00:00Z':
+                return 0
+
+            # Parse dates
+            premier = datetime.datetime.fromisoformat(premier_date.replace('Z', '+00:00'))
+            now = datetime.datetime.now(premier.tzinfo)
+
+            # If hasn't premiered yet
+            if now < premier:
+                return 0
+
+            # Calculate weeks since premiere
+            time_diff = now - premier
+            weeks_since_premier = int(time_diff.total_seconds() / (7 * 24 * 60 * 60))
+
+            # Current episode is weeks since premier + 1 (episode 1 airs on week 0)
+            current_episode = weeks_since_premier + 1
+
+            # Cap at total episodes if specified
+            if total_episodes and total_episodes > 0:
+                current_episode = min(current_episode, total_episodes)
+
+            return current_episode
+
+        except Exception as e:
+            control.log(f"Error calculating current episode: {str(e)}", "debug")
+            return 0
+
     def get_anime_by_mal_id(self, mal_id):
         """
-        Get specific anime's data by MAL ID
+        Get specific anime's data by MAL ID with calculated current episode
 
         Args:
             mal_id (int): MyAnimeList ID
 
         Returns:
-            dict: Anime data with airing information
+            dict: Anime data with airing information and current episode
         """
         try:
             params = {
@@ -855,13 +902,22 @@ class AnimeScheduleCalendar:
                 if anime_list:
                     anime = anime_list[0]
 
+                    # Get premiere and airing time for RAW (Japanese release)
+                    premier_date = anime.get('premier')
+                    jpn_time = anime.get('jpnTime')
+                    total_episodes = anime.get('episodes')
+
+                    # Calculate current RAW episode
+                    current_episode = self._calculate_current_episode(premier_date, jpn_time, total_episodes)
+
                     enriched_anime = {
                         'mal_id': mal_id,
                         'route': anime.get('route'),
                         'title': anime.get('title'),
-                        'image': self._get_image_url(anime),
+                        'image': self._get_image_url(anime, mal_id),
                         'description': anime.get('description'),
-                        'episodes': anime.get('episodes'),
+                        'episodes': total_episodes,
+                        'current_episode': current_episode,
                         'genres': [g['name'] for g in anime.get('genres', [])],
                         'status': anime.get('status'),
                         'studios': [s['name'] for s in anime.get('studios', [])],
