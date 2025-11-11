@@ -1,4 +1,3 @@
-import time
 import json
 import random
 import pickle
@@ -9,7 +8,6 @@ import datetime
 
 from bs4 import BeautifulSoup
 from functools import partial
-from resources.lib.endpoints.simkl import Simkl
 from resources.lib.ui import database, control, client, utils, get_meta
 from resources.lib.ui.BrowserBase import BrowserBase
 from resources.lib.ui.divide_flavors import div_flavor
@@ -43,12 +41,6 @@ class MalBrowser(BrowserBase):
         all_results = list(map(mapfunc, res['data']))
         hasNextPage = res['pagination']['has_next_page']
         all_results += self.handle_paging(hasNextPage, base_plugin_url, page)
-        return all_results
-
-    def process_airing_view(self, json_res):
-        ts = int(time.time())
-        mapfunc = partial(self.base_airing_view, ts=ts)
-        all_results = list(map(mapfunc, json_res['data']))
         return all_results
 
     def process_res(self, res):
@@ -139,76 +131,6 @@ class MalBrowser(BrowserBase):
         return (season, year, year_start_date, year_end_date, season_start_date, season_end_date,
                 season_start_date_last, season_end_date_last, year_start_date_last, year_end_date_last,
                 season_start_date_next, season_end_date_next, year_start_date_next, year_end_date_next)
-
-    def get_airing_calendar(self, page=1):
-        days_of_week = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-        list_ = []
-
-        mal_cache = self.get_cached_data()
-        if mal_cache:
-            list_ = mal_cache
-        else:
-            for day in days_of_week:
-                day_results = []
-                current_page = page
-                request_count = 0
-
-                while True:
-                    retries = 3
-                    popular = None
-                    while retries > 0:
-                        popular = self.get_airing_calendar_res(day, current_page)
-                        if popular and 'data' in popular:
-                            break
-                        retries -= 1
-                        time.sleep(1)  # Add delay before retrying
-
-                    if not popular or 'data' not in popular:
-                        break
-
-                    day_results.extend(popular['data'])
-
-                    if not popular['pagination']['has_next_page']:
-                        break
-
-                    current_page += 1
-                    request_count += 1
-
-                    if request_count >= 3:
-                        time.sleep(1)  # Add delay to respect API rate limit
-                        request_count = 0
-
-                day_results.reverse()
-                list_.extend(day_results)
-                self.set_cached_data(list_)
-
-        # Wrap the results in a dictionary that mimics the API response structure
-        wrapped_results = {
-            "pagination": {
-                "last_visible_page": 1,
-                "has_next_page": False,
-                "current_page": 1,
-                "items": {
-                    "count": len(list_),
-                    "total": len(list_),
-                    "per_page": 25
-                }
-            },
-            "data": list_
-        }
-
-        airing = self.process_airing_view(wrapped_results)
-        return airing
-
-    def get_cached_data(self):
-        if os.path.exists(control.mal_calendar_json):
-            with open(control.mal_calendar_json, 'r') as f:
-                return json.load(f)
-        return None
-
-    def set_cached_data(self, data):
-        with open(control.mal_calendar_json, 'w') as f:
-            json.dump(data, f)
 
     def get_anime(self, mal_id):
         res = database.get(self.get_base_res, 24, f"{self._BASE_URL}/anime/{mal_id}")
@@ -1518,11 +1440,6 @@ class MalBrowser(BrowserBase):
         if r:
             return r.json()
 
-    def get_airing_calendar_res(self, day, page=1):
-        url = f'{self._BASE_URL}/schedules?kids=false&sfw=false&limit=25&page={page}&filter={day}'
-        results = self.get_base_res(url)
-        return results
-
     # @div_flavor
     # def recommendation_relation_view(self, res, completed=None, mal_dub=None):
     #     if res.get('entry'):
@@ -1702,51 +1619,6 @@ class MalBrowser(BrowserBase):
             base['info']['mediatype'] = 'movie'
             return utils.parse_view(base, False, True, dub)
         return utils.parse_view(base, True, False, dub)
-
-    def base_airing_view(self, res, ts):
-        airingAt = datetime.datetime.fromisoformat(res['aired']['from'].replace('Z', '+00:00'))
-        airingAt_day = airingAt.strftime('%A')
-        airingAt_time = airingAt.strftime('%I:%M %p')
-        airing_status = 'airing' if airingAt.timestamp() > ts else 'aired'
-        simkl_rank = None
-        genres = [genre['name'] for genre in res['genres']]
-        if genres:
-            genres = ' | '.join(genres[:3])
-        else:
-            genres = 'Genres Not Found'
-        title = res['title']
-        episode = res.get('episode', 'N/A')
-        rating = res['score']
-
-        # Find Simkl entry
-        simkl_entry = Simkl().fetch_and_find_simkl_entry(res['mal_id'])
-        if simkl_entry:
-            episode = simkl_entry['episode']['episode']
-            rating = simkl_entry['ratings']['simkl']['rating']
-            simkl_rank = simkl_entry['rank']
-            airingAt = datetime.datetime.fromisoformat(simkl_entry['date'].replace('Z', '+00:00'))
-            airingAt_day = airingAt.strftime('%A')
-            airingAt_time = airingAt.strftime('%I:%M %p')
-            airing_status = 'airing' if airingAt.timestamp() > ts else 'aired'
-
-        if rating is not None:
-            score = f"{rating * 10:.0f}"
-        else:
-            score = 'N/A'
-
-        base = {
-            'release_title': title,
-            'poster': res['images']['jpg']['image_url'],
-            'ep_title': '{} {} {}'.format(episode, airing_status, airingAt_day),
-            'ep_airingAt': airingAt_time,
-            'rating': score,
-            'simkl_rank': simkl_rank,
-            'plot': res['synopsis'].replace('<br><br>', '[CR]').replace('<br>', '').replace('<i>', '[I]').replace('</i>', '[/I]') if res['synopsis'] else res['synopsis'],
-            'genres': genres,
-            'id': res['mal_id']
-        }
-
-        return base
 
     def database_update_show(self, res):
         mal_id = res['mal_id']

@@ -4,7 +4,6 @@ import pickle
 from resources.lib.ui import utils, client, control, get_meta, database
 from resources.lib.WatchlistFlavor.WatchlistFlavorBase import WatchlistFlavorBase
 from resources.lib.ui.divide_flavors import div_flavor
-from resources.lib.endpoints import simkl, anilist
 
 
 class AniListWLF(WatchlistFlavorBase):
@@ -315,12 +314,11 @@ class AniListWLF(WatchlistFlavorBase):
         episode_count = res['episodes'] if res['episodes'] else 0
 
         if not control.getBool('playlist.unaired'):
-            airing_episode = simkl.Simkl().get_calendar_data(mal_id)
-            if not airing_episode:
-                airing_episode = anilist.Anilist().get_airing_calendar(mal_id)
+            from resources.lib.AnimeSchedule import get_anime_schedule
+            airing_anime = get_anime_schedule(mal_id)
 
-            if airing_episode:
-                episode_count = airing_episode
+            if airing_anime and airing_anime.get('current_episode'):
+                episode_count = airing_anime['current_episode']
 
         base_title = res['title'].get(self.title_lang) or res['title'].get('userPreferred')
         title = f"{base_title} - {next_up}/{episode_count}"

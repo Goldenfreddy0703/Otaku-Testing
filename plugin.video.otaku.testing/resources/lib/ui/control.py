@@ -51,9 +51,7 @@ genre_json = os.path.join(dataPath, 'genres.json')
 sort_options_json = os.path.join(dataPath, 'sort_options.json')
 watch_history_json = os.path.join(dataPath, 'watch_history.json')
 embeds_json = os.path.join(dataPath, 'embeds.json')
-simkl_calendar_json = os.path.join(dataPath, 'simkl_calendar.json')
-anilist_calendar_json = os.path.join(dataPath, 'anilist_calendar.json')
-mal_calendar_json = os.path.join(dataPath, 'mal_calendar.json')
+animeschedule_calendar_json = os.path.join(dataPath, 'animeschedule_calendar.json')
 
 # Kodi system paths
 kodi_userdata_path = xbmcvfs.translatePath('special://userdata/')

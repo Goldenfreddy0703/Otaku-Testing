@@ -42,10 +42,10 @@ def refresh_apis():
 
 def update_calendars():
     control.log("### Updating Calendars")
-    from resources.lib.endpoints import anilist, mal, simkl
-    simkl.Simkl().update_calendar()
-    anilist.Anilist().update_calendar()
-    mal.Mal().update_calendar()
+    # from resources.lib.endpoints import anilist, mal, simkl
+    # simkl.Simkl().update_calendar()
+    # anilist.Anilist().update_calendar()
+    # mal.Mal().update_calendar()
     control.log("### Calendars updated successfully")
 
 
@@ -244,7 +244,7 @@ if __name__ == "__main__":
             sync_watchlist(True)
             control.setInt('update.time.7', int(time.time()))
         if time.time() > control.getInt('update.time.1') + 86_400:   # 1 day
-            update_calendars()
+            # update_calendars()
             sync_watchlist(True)
             control.setInt('update.time.1', int(time.time()))
     control.log('##################  MAINTENANCE COMPLETE ######################')

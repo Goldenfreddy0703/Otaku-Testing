@@ -29,6 +29,11 @@ class Anichart(BaseWindow):
         self.display_list = self.getControl(1000)
         menu_items = []
 
+        control.log(f"[ANICHART] Initializing with {len(self.anime_items)} anime items", "info")
+        if self.anime_items and len(self.anime_items) > 0:
+            control.log(f"[ANICHART] First item keys: {list(self.anime_items[0].keys())}", "info")
+            control.log(f"[ANICHART] First item sample: {str(self.anime_items[0])[:500]}", "info")
+
         for idx, i in enumerate(self.anime_items):
             if not i:
                 continue
@@ -47,6 +52,7 @@ class Anichart(BaseWindow):
             menu_items.append(menu_item)
             self.display_list.addItem(menu_item)
 
+        control.log(f"[ANICHART] Successfully added {len(menu_items)} items to display list", "info")
         self.setFocusId(1000)
 
     def doModal(self):
@@ -151,9 +157,41 @@ class Anichart(BaseWindow):
             return
 
         self.position = self.display_list.getSelectedPosition()
-        anime = self.anime_items[self.position]['id']
-        url = f"animes/{anime}/"
+
+        # Get the selected anime item
+        selected_item = self.anime_items[self.position]
+
+        control.log(f"[ANICHART] Selected anime at position {self.position}", "info")
+        control.log(f"[ANICHART] Selected item keys: {list(selected_item.keys())}", "debug")
+        control.log(f"[ANICHART] Selected item title: {selected_item.get('release_title', 'N/A')}", "info")
+        control.log(f"[ANICHART] Selected item mal_id: {selected_item.get('mal_id', 'N/A')}", "info")
+        control.log(f"[ANICHART] Selected item id: {selected_item.get('id', 'N/A')}", "info")
+        control.log(f"[ANICHART] Selected item route: {selected_item.get('route', 'N/A')}", "info")
+
+        # Extract MAL ID - try different fields for compatibility
+        anime_id = selected_item.get('mal_id') or selected_item.get('id') or selected_item.get('route')
+
+        # Fetch anime data to ensure it's cached
+        from resources.lib.OtakuBrowser import OtakuBrowser
+        OtakuBrowser().get_anime_data(anime_id)
+
+        control.log(f"[ANICHART] Resolved anime_id: {anime_id}", "info")
+
+        if not anime_id:
+            control.log("Error: Could not find anime ID in selected item", "error")
+            return
+
+        # Ensure we have a numeric ID for the URL
+        try:
+            if not isinstance(anime_id, int):
+                anime_id = int(anime_id) if anime_id.isdigit() else anime_id
+        except (ValueError, AttributeError):
+            pass
+
+        url = f"animes/{anime_id}/"
         self.anime_path = control.addon_url(url)
+
+        control.log(f"[ANICHART] Generated URL: {self.anime_path}", "info")
 
         # Show progress dialog for all actions
         control.progressDialog.create(control.ADDON_NAME, "Loading..")
