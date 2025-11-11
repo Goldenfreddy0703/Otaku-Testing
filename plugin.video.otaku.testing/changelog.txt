@@ -1,3 +1,19 @@
+Changelog v5.2.60 (2025-11-10):
+- Complete Calendar Overhaul — Refactored to use AnimeSchedule.net API
+- Enhanced UI with multiple rating sources (MAL, AniList, IMDb, Trakt, TMDb)
+- Integrated MDBList API for comprehensive rating aggregation
+- Added multi-release type support (RAW, SUB, DUB) with individual countdown timers
+- Improved episode airing display with day/time formatting for each release type
+- Fixed Unicode encoding issues (SPY×FAMILY now displays correctly)
+- Added release type fallback logic for better TBA handling
+- Implemented 24-hour file-based caching for calendar data
+- Improved current episode calculation based on premiere date and airing schedule
+- Added rating fallback logic (AniList and Mal score when MDBList unavailable)
+- Centralized airing episode handling across WatchlistFlavor classes
+- Added new rating icons and improved visual consistency
+- Removed legacy calendar logic from AniList, MAL, and Otaku browsers
+- Improved logging granularity for better debugging
+
 Changelog v5.2.59 (2025-10-28):
 - Major Performance Optimization — 4–6x faster across all components
 - Added TVDB API v4 as new artwork provider alongside Fanart.tv and TMDB
