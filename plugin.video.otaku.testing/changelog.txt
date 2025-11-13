@@ -1,3 +1,14 @@
+Changelog v5.2.62 (2025-11-13):
+- Fixed artwork selection for multiple image types with improved random selection logic
+- Updated artwork handling across all browser menus for consistency
+- Added new artwork preference settings (Clearlogo, Theme, Fanart source selection)
+- Migrated utility script for artwork database updates
+- Renumbered language string IDs from 309xx to 300xx range for standardization
+- Improved language string organization and consistency across all UI elements
+- Added string ID renumbering automation script (renumber_string_ids.py)
+- Added symlink utility script (symbolic_string.py) for language resource management
+- Enhanced strings.po metadata and documentation with proper ID range comments
+
 Changelog v5.2.61 (2025-11-11):
 - Major Performance Optimization — Reduced CPU usage by 50% and memory usage by 30-40%
 - Optimized playback monitoring with increased sleep intervals (1s→2s for skip intro, 5s→10s for main loop)
