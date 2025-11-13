@@ -8,7 +8,7 @@ headers = {'Api-Key': api_key}
 language = ["ja", 'en'][control.getInt("titlelanguage")]
 
 
-def getArt(meta_ids, mtype):
+def getArt(meta_ids, mtype, limit=None):
     art = {}
     if mid := meta_ids.get('themoviedb_id') if mtype == 'movies' else meta_ids.get('thetvdb_id'):
         response = client.get(f'{baseUrl}/{mtype}/{mid}', headers=headers)
@@ -17,27 +17,27 @@ def getArt(meta_ids, mtype):
             if mtype == 'movies':
                 if res.get('moviebackground'):
                     items = [item.get('url') for item in res['moviebackground'] if item.get('lang') in lang]
-                    art['fanart'] = items
+                    art['fanart'] = items[:limit] if limit else items
                 if res.get('moviethumb'):
                     items = [item.get('url') for item in res['moviethumb'] if item.get('lang') in lang]
-                    art['thumb'] = items
+                    art['thumb'] = items[:limit] if limit else items
             else:
                 if res.get('showbackground'):
                     items = [item.get('url') for item in res['showbackground'] if item.get('lang') in lang]
-                    art['fanart'] = items
+                    art['fanart'] = items[:limit] if limit else items
                 if res.get('tvthumb'):
                     items = [item.get('url') for item in res['tvthumb'] if item.get('lang') in lang]
-                    art['thumb'] = items
+                    art['thumb'] = items[:limit] if limit else items
 
             if res.get('clearart'):
                 items = [item.get('url') for item in res['clearart'] if item.get('lang') in lang]
-                art['clearart'] = items
+                art['clearart'] = items[:limit] if limit else items
             elif res.get('hdclearart'):
                 items = [item.get('url') for item in res['hdclearart'] if item.get('lang') in lang]
-                art['clearart'] = items
+                art['clearart'] = items[:limit] if limit else items
             elif res.get('hdmovieclearart'):
                 items = [item.get('url') for item in res['hdmovieclearart'] if item.get('lang') in lang]
-                art['clearart'] = items
+                art['clearart'] = items[:limit] if limit else items
 
             if res.get('clearlogo'):
                 items = sorted([item for item in res['clearlogo'] if item.get('lang') in lang], key=lambda x: int(x['id']))

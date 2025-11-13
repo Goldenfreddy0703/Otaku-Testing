@@ -4,6 +4,9 @@ import xbmcgui
 
 from resources.lib.ui import control, database
 
+# Session-based cache for artwork selections to avoid repeated random.choice() calls
+_artwork_cache = {}
+
 
 class BaseWindow(xbmcgui.WindowXMLDialog):
     def __init__(self, xml_file, location, actionArgs=None):
@@ -39,38 +42,65 @@ class BaseWindow(xbmcgui.WindowXMLDialog):
 
     def _set_window_properties(self):
         """Set window properties in a single method to reduce overhead"""
-        # Handle thumb
+        # Handle thumb with caching
         thumb = self.item_information.get('thumb')
         if thumb:
             if isinstance(thumb, list):
-                thumb = random.choice(thumb)
+                cache_key = f"thumb_{self._mal_id}"
+                if cache_key in _artwork_cache:
+                    thumb = _artwork_cache[cache_key]
+                else:
+                    thumb = random.choice(thumb)
+                    _artwork_cache[cache_key] = thumb
             self.setProperty('item.art.thumb', thumb)
 
-        # Handle fanart
+        # Handle fanart with new artwork.fanart setting and caching
+        artwork_fanart_enabled = control.getBool('artwork.fanart')
         fanart = self.item_information.get('fanart')
-        if not fanart or control.settingids.fanart_disable:
+        if not fanart or not artwork_fanart_enabled:
             fanart = control.OTAKU_FANART
         else:
             if isinstance(fanart, list):
                 if control.settingids.fanart_select and self._mal_id:
-                    # Get fanart selection using string lists
-                    mal_ids = control.getStringList('fanart.mal_ids')
-                    fanart_selections = control.getStringList('fanart.selections')
-                    mal_id_str = str(self._mal_id)
+                    cache_key = f"fanart_{self._mal_id}"
+                    if cache_key in _artwork_cache:
+                        fanart = _artwork_cache[cache_key]
+                    else:
+                        # Get fanart selection using string lists
+                        mal_ids = control.getStringList('fanart.mal_ids')
+                        fanart_selections = control.getStringList('fanart.selections')
+                        mal_id_str = str(self._mal_id)
 
-                    try:
-                        index = mal_ids.index(mal_id_str)
-                        fanart_select = fanart_selections[index] if index < len(fanart_selections) else ''
-                        fanart = fanart_select if fanart_select else random.choice(fanart)
-                    except (ValueError, IndexError):
-                        fanart = random.choice(fanart)
+                        try:
+                            index = mal_ids.index(mal_id_str)
+                            fanart_select = fanart_selections[index] if index < len(fanart_selections) else ''
+                            fanart = fanart_select if fanart_select else random.choice(fanart)
+                        except (ValueError, IndexError):
+                            fanart = random.choice(fanart)
+                        _artwork_cache[cache_key] = fanart
                 else:
-                    fanart = random.choice(fanart)
+                    cache_key = f"fanart_{self._mal_id}"
+                    if cache_key in _artwork_cache:
+                        fanart = _artwork_cache[cache_key]
+                    else:
+                        fanart = random.choice(fanart)
+                        _artwork_cache[cache_key] = fanart
+            # If fanart is already a string (pre-selected), use it directly
 
-        # Handle clearlogo
+        # Handle clearlogo with new artwork.clearlogo setting
+        artwork_clearlogo_enabled = control.getBool('artwork.clearlogo')
         clearlogo = self.item_information.get('clearlogo', control.OTAKU_LOGO2_PATH)
-        if isinstance(clearlogo, list):
-            clearlogo = control.OTAKU_LOGO2_PATH if control.settingids.clearlogo_disable else random.choice(clearlogo)
+        if not artwork_clearlogo_enabled:
+            clearlogo = control.OTAKU_LOGO2_PATH
+        elif isinstance(clearlogo, list):
+            # This shouldn't happen with new code, but handle legacy data
+            cache_key = f"clearlogo_{self._mal_id}"
+            if cache_key in _artwork_cache:
+                clearlogo = _artwork_cache[cache_key]
+            else:
+                clearlogo = random.choice(clearlogo)
+                _artwork_cache[cache_key] = clearlogo
+        # If clearlogo is already a string (pre-selected), use it directly
 
         # Set properties in batch
         if self.item_information.get('format') not in ['MOVIE', 'Movie']:

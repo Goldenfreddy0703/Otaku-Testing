@@ -1839,23 +1839,18 @@ class OtakuBrowser(BrowserBase):
         # Images
         image = None
         poster = None
-        banner = None
         fanart = None
 
         # MAL images
         if mal_res and mal_res.get('images'):
             image = mal_res['images']['webp'].get('large_image_url')
             poster = image
-            # MAL does not provide banner, fallback to AniList
-            banner = mal_res['images']['webp'].get('banner_image_url') if 'banner_image_url' in mal_res['images']['webp'] else None
             fanart = kodi_meta['fanart'] if kodi_meta.get('fanart') else image
         # AniList fallback for missing images
         if not image and anilist_res and anilist_res.get('coverImage'):
             image = anilist_res['coverImage'].get('extraLarge')
         if not poster and anilist_res and anilist_res.get('coverImage'):
             poster = anilist_res['coverImage'].get('extraLarge')
-        if not banner and anilist_res and anilist_res.get('bannerImage'):
-            banner = anilist_res.get('bannerImage')
         if not fanart and anilist_res and anilist_res.get('coverImage'):
             fanart = anilist_res['coverImage'].get('extraLarge')
 
@@ -1865,16 +1860,21 @@ class OtakuBrowser(BrowserBase):
             "image": image,
             "poster": poster,
             'fanart': fanart,
-            "banner": banner,
             "info": info
         }
 
+        # Pull all artwork from kodi_meta (already respects settings and is pre-selected)
+        if kodi_meta.get('banner'):
+            base['banner'] = kodi_meta['banner']
         if kodi_meta.get('thumb'):
-            base['landscape'] = random.choice(kodi_meta['thumb'])
+            thumb = kodi_meta['thumb']
+            base['landscape'] = random.choice(thumb) if isinstance(thumb, list) else thumb
         if kodi_meta.get('clearart'):
-            base['clearart'] = random.choice(kodi_meta['clearart'])
+            clearart = kodi_meta['clearart']
+            base['clearart'] = random.choice(clearart) if isinstance(clearart, list) else clearart
         if kodi_meta.get('clearlogo'):
-            base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+            clearlogo = kodi_meta['clearlogo']
+            base['clearlogo'] = random.choice(clearlogo) if isinstance(clearlogo, list) else clearlogo
 
         # Movie/episode logic
         episodes = mal_res.get('episodes') or (anilist_res.get('episodes') if anilist_res else None)

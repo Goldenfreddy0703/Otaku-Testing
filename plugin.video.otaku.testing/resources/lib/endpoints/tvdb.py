@@ -22,7 +22,7 @@ def get_auth_token():
     return None
 
 
-def getArt(meta_ids, mtype):
+def getArt(meta_ids, mtype, limit=None):
     """Get artwork from TVDB API v4"""
     art = {}
     tvdb_id = meta_ids.get('thetvdb_id')
@@ -76,20 +76,23 @@ def getArt(meta_ids, mtype):
             if not image_url.startswith('http'):
                 image_url = f'https://artworks.thetvdb.com{image_url}'
 
-            # Fanart/Background
+            # Fanart/Background - apply limit check
             if artwork_type in [3, 15]:  # 3=Series Background, 15=Movie Background
                 if artwork_lang in lang or not artwork_lang:
-                    fanart_images.append(image_url)
+                    if limit is None or len(fanart_images) < limit:
+                        fanart_images.append(image_url)
 
-            # Thumbnails/Posters
+            # Thumbnails/Posters - apply limit check
             elif artwork_type in [2, 14]:  # 2=Series Poster, 14=Movie Poster
                 if artwork_lang in lang or not artwork_lang:
-                    thumb_images.append(image_url)
+                    if limit is None or len(thumb_images) < limit:
+                        thumb_images.append(image_url)
 
-            # Clear Art
+            # Clear Art - apply limit check
             elif artwork_type in [22, 23]:  # 22=Clear Art, 23=HD Clear Art
                 if artwork_lang in lang or not artwork_lang:
-                    clearart_images.append(image_url)
+                    if limit is None or len(clearart_images) < limit:
+                        clearart_images.append(image_url)
 
             # Clear Logo (language-specific)
             elif artwork_type in [5, 6]:  # 5=Clear Logo, 6=HD Clear Logo

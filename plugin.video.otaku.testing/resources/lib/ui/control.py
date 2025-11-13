@@ -11,6 +11,9 @@ import shutil
 
 from urllib import parse
 
+# Session-based cache for artwork selections to avoid repeated random.choice() calls
+_artwork_cache = {}
+
 try:
     HANDLE = int(sys.argv[1])
 except IndexError:
@@ -398,32 +401,55 @@ def xbmc_add_dir(name, url, art, info, draw_cm, bulk_add, isfolder, isplayable):
     if draw_cm:
         cm = [(x[0], f'RunPlugin(plugin://{ADDON_ID}/{x[1]}/{url})') for x in draw_cm]
         liz.addContextMenuItems(cm)
-    if not art.get('fanart') or settingids.fanart_disable:
+    # Check new artwork.fanart setting (inverted logic from old fanart_disable)
+    artwork_fanart_enabled = getBool('artwork.fanart')
+
+    if not art.get('fanart') or not artwork_fanart_enabled:
         art['fanart'] = OTAKU_FANART
     else:
         if isinstance(art['fanart'], list):
             if settingids.fanart_select:
                 if info.get('UniqueIDs', {}).get('mal_id'):
-                    # Get fanart selection using string lists
-                    mal_ids = getStringList('fanart.mal_ids')
-                    fanart_selections = getStringList('fanart.selections')
                     mal_id = str(info["UniqueIDs"]["mal_id"])
 
-                    fanart_select = ''
-                    try:
-                        index = mal_ids.index(mal_id)
-                        fanart_select = fanart_selections[index] if index < len(fanart_selections) else ''
-                    except (ValueError, IndexError):
-                        pass
+                    # Check cache first
+                    cache_key = f"fanart_{mal_id}"
+                    if cache_key in _artwork_cache:
+                        art['fanart'] = _artwork_cache[cache_key]
+                    else:
+                        # Get fanart selection using string lists (only once)
+                        mal_ids = getStringList('fanart.mal_ids')
+                        fanart_selections = getStringList('fanart.selections')
 
-                    art['fanart'] = fanart_select if fanart_select else random.choice(art['fanart'])
+                        fanart_select = ''
+                        try:
+                            index = mal_ids.index(mal_id)
+                            fanart_select = fanart_selections[index] if index < len(fanart_selections) else ''
+                        except (ValueError, IndexError):
+                            pass
+
+                        selected = fanart_select if fanart_select else random.choice(art['fanart'])
+                        _artwork_cache[cache_key] = selected
+                        art['fanart'] = selected
                 else:
                     art['fanart'] = OTAKU_FANART
             else:
-                art['fanart'] = random.choice(art['fanart'])
+                # Use cached random selection if available
+                cache_key = f"fanart_{url}"
+                if cache_key in _artwork_cache:
+                    art['fanart'] = _artwork_cache[cache_key]
+                else:
+                    selected = random.choice(art['fanart'])
+                    _artwork_cache[cache_key] = selected
+                    art['fanart'] = selected
+        # If fanart is already a string (pre-selected), use it directly
 
-    if settingids.clearlogo_disable:
+    # Check new artwork.clearlogo setting (inverted logic from old clearlogo_disable)
+    artwork_clearlogo_enabled = getBool('artwork.clearlogo')
+    if not artwork_clearlogo_enabled or not art.get('clearlogo'):
         art['clearlogo'] = OTAKU_ICONS_PATH
+    # If clearlogo is already a string (pre-selected), use it directly
+    # No need for random.choice() since get_meta.py pre-selects it
     if isplayable:
         art['tvshow.poster'] = art.pop('poster')
         liz.setProperties({'Video': 'true', 'IsPlayable': 'true'})
@@ -592,8 +618,6 @@ class SettingIDs:
         # Bools
         self.showuncached = getBool('show.uncached')
         self.smart_scroll = getBool('general.smart.scroll.enable')
-        self.clearlogo_disable = getBool('interface.clearlogo.disable')
-        self.fanart_disable = getBool('interface.fanart.disable')
         self.watchlist_sync = getBool('watchlist.sync.enabled')
         self.filler = getBool('jz.filler')
         self.clean_titles = getBool('interface.cleantitles')

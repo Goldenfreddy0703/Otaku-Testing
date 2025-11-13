@@ -1,8 +1,105 @@
+import json
 from resources.lib.ui import client, control
 
 
 class Anilist:
     _BASE_URL = "https://graphql.anilist.co"
+
+    def get_anilist_by_mal_ids(self, mal_ids, page=1, media_type="ANIME"):
+        query = '''
+        query ($page: Int, $malIds: [Int], $type: MediaType) {
+          Page(page: $page) {
+            pageInfo {
+              hasNextPage
+              total
+            }
+            media(idMal_in: $malIds, type: $type) {
+              id
+              idMal
+              title {
+                romaji
+                english
+              }
+              coverImage {
+                extraLarge
+              }
+              bannerImage
+              startDate {
+                year
+                month
+                day
+              }
+              description
+              synonyms
+              format
+              episodes
+              status
+              genres
+              duration
+              countryOfOrigin
+              averageScore
+              characters(
+                page: 1
+                sort: ROLE
+                perPage: 10
+              ) {
+                edges {
+                  node {
+                    name {
+                      userPreferred
+                    }
+                  }
+                  voiceActors(language: JAPANESE) {
+                    name {
+                      userPreferred
+                    }
+                    image {
+                      large
+                    }
+                  }
+                }
+              }
+              studios {
+                edges {
+                  node {
+                    name
+                  }
+                }
+              }
+              trailer {
+                id
+                site
+              }
+              stats {
+                scoreDistribution {
+                  score
+                  amount
+                }
+              }
+            }
+          }
+        }
+        '''
+
+        all_media = []
+        page = 1
+        while True:
+            variables = {
+                "page": page,
+                "malIds": mal_ids,
+                "type": media_type
+            }
+            result = client.request(self._BASE_URL, post={'query': query, 'variables': variables}, jpost=True)
+            results = json.loads(result)
+            page_data = results.get('data', {}).get('Page', {})
+            media = page_data.get('media', [])
+            all_media.extend(media)
+            has_next = page_data.get('pageInfo', {}).get('hasNextPage', False)
+            if not has_next:
+                break
+            page += 1
+        return all_media
+
 
     def get_anilist_ratings_batch(self, mal_ids):
         """
@@ -19,8 +116,6 @@ class Anilist:
         """
         if not mal_ids:
             return {}
-
-        _ANILIST_BASE_URL = "https://graphql.anilist.co"
 
         # Filter valid MAL IDs and convert to integers
         valid_mal_ids = []
@@ -63,7 +158,7 @@ class Anilist:
                     "type": "ANIME"
                 }
 
-                result = client.post(_ANILIST_BASE_URL, json_data={'query': query, 'variables': variables})
+                result = client.post(self._BASE_URL, json_data={'query': query, 'variables': variables})
 
                 if not result:
                     break
@@ -107,6 +202,150 @@ class Anilist:
         except Exception as e:
             control.log(f"Error fetching AniList ratings batch: {str(e)}", "error")
             return {}
+
+
+    def get_banners_batch(self, mal_ids):
+        """
+        Get AniList banners for multiple anime using MAL IDs in batch
+        Fetches bannerImage from AniList API
+
+        Args:
+            mal_ids (list): List of MyAnimeList IDs (integers or strings)
+
+        Returns:
+            dict: Dictionary mapping MAL IDs to their banner URLs
+                  Format: {mal_id: 'banner_url'}
+        """
+        if not mal_ids:
+            return {}
+
+        # Filter valid MAL IDs and convert to integers
+        valid_mal_ids = []
+        for mal_id in mal_ids:
+            if mal_id and mal_id != 0:
+                try:
+                    valid_mal_ids.append(int(mal_id))
+                except (ValueError, TypeError):
+                    continue
+
+        if not valid_mal_ids:
+            return {}
+
+        # AniList GraphQL query for banners only
+        query = '''
+        query ($page: Int, $malIds: [Int], $type: MediaType) {
+          Page(page: $page, perPage: 50) {
+            pageInfo {
+              hasNextPage
+              total
+            }
+            media(idMal_in: $malIds, type: $type) {
+              idMal
+              bannerImage
+            }
+          }
+        }
+        '''
+
+        banner_map = {}
+        page = 1
+
+        try:
+            while True:
+                variables = {
+                    "page": page,
+                    "malIds": valid_mal_ids,
+                    "type": "ANIME"
+                }
+
+                result = client.post(self._BASE_URL, json_data={'query': query, 'variables': variables})
+
+                if not result:
+                    break
+
+                results = result.json()
+
+                # Check for errors
+                if "errors" in results:
+                    control.log(f"AniList API error: {results['errors']}", "error")
+                    break
+
+                page_data = results.get('data', {}).get('Page', {})
+                media_list = page_data.get('media', [])
+
+                # Process each anime's banner
+                for media in media_list:
+                    mal_id = media.get('idMal')
+                    banner_url = media.get('bannerImage')
+
+                    if mal_id and banner_url:
+                        banner_map[int(mal_id)] = banner_url
+
+                # Check if there are more pages
+                has_next = page_data.get('pageInfo', {}).get('hasNextPage', False)
+                if not has_next:
+                    break
+
+                page += 1
+
+            return banner_map
+
+        except Exception as e:
+            control.log(f"Error fetching AniList banners batch: {str(e)}", "error")
+            return {}
+
+
+    def get_banner(self, mal_id):
+        """
+        Get AniList banner for a single anime using MAL ID
+
+        Args:
+            mal_id (int or str): MyAnimeList ID
+
+        Returns:
+            str: Banner URL or None if not found
+        """
+        if not mal_id:
+            return None
+
+        try:
+            mal_id = int(mal_id)
+        except (ValueError, TypeError):
+            return None
+
+        # AniList GraphQL query for single banner
+        query = '''
+        query ($malId: Int, $type: MediaType) {
+          Media(idMal: $malId, type: $type) {
+            bannerImage
+          }
+        }
+        '''
+
+        try:
+            variables = {
+                "malId": mal_id,
+                "type": "ANIME"
+            }
+
+            result = client.post(self._BASE_URL, json_data={'query': query, 'variables': variables})
+
+            if not result:
+                return None
+
+            results = result.json()
+
+            # Check for errors
+            if "errors" in results:
+                control.log(f"AniList API error: {results['errors']}", "error")
+                return None
+
+            media = results.get('data', {}).get('Media', {})
+            return media.get('bannerImage')
+
+        except Exception as e:
+            control.log(f"Error fetching AniList banner for MAL ID {mal_id}: {str(e)}", "error")
+            return None
 
 
 # Convenience functions

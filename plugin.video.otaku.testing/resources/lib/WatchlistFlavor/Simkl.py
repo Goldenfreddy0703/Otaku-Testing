@@ -279,7 +279,6 @@ class SimklWLF(WatchlistFlavorBase):
         show_meta = database.get_show_meta(mal_id)
         kodi_meta = pickle.loads(show_meta.get('art')) if show_meta else {}
         poster = image
-        banner = None
         fanart = kodi_meta.get('fanart', image)
         # AniList fallback for missing images
         if anilist_res and anilist_res.get('coverImage'):
@@ -289,8 +288,6 @@ class SimklWLF(WatchlistFlavorBase):
                 poster = anilist_res['coverImage'].get('extraLarge')
             if not fanart:
                 fanart = anilist_res['coverImage'].get('extraLarge')
-        if anilist_res and anilist_res.get('bannerImage'):
-            banner = anilist_res.get('bannerImage')
 
         info = {
             'UniqueIDs': unique_ids,
@@ -323,16 +320,21 @@ class SimklWLF(WatchlistFlavorBase):
             "image": image,
             "poster": poster,
             'fanart': fanart,
-            "banner": banner,
             "info": info
         }
 
+        # Pull all artwork from kodi_meta (already respects settings and is pre-selected)
+        if kodi_meta.get('banner'):
+            base['banner'] = kodi_meta['banner']
         if kodi_meta.get('thumb'):
-            base['landscape'] = random.choice(kodi_meta['thumb'])
+            thumb = kodi_meta['thumb']
+            base['landscape'] = random.choice(thumb) if isinstance(thumb, list) else thumb
         if kodi_meta.get('clearart'):
-            base['clearart'] = random.choice(kodi_meta['clearart'])
+            clearart = kodi_meta['clearart']
+            base['clearart'] = random.choice(clearart) if isinstance(clearart, list) else clearart
         if kodi_meta.get('clearlogo'):
-            base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+            clearlogo = kodi_meta['clearlogo']
+            base['clearlogo'] = random.choice(clearlogo) if isinstance(clearlogo, list) else clearlogo
 
         if res["total_episodes_count"] == 1:
             base['url'] = f'play_movie/{mal_id}/'
@@ -414,12 +416,18 @@ class SimklWLF(WatchlistFlavorBase):
             art = pickle.loads(show_meta['art'])
             if art.get('fanart'):
                 base['fanart'] = art['fanart']
+            # Pull all artwork from kodi_meta (already respects settings and is pre-selected)
+            if art.get('banner'):
+                base['banner'] = art['banner']
             if art.get('thumb'):
-                base['landscape'] = random.choice(art['thumb'])
+                thumb = art['thumb']
+                base['landscape'] = random.choice(thumb) if isinstance(thumb, list) else thumb
             if art.get('clearart'):
-                base['clearart'] = random.choice(art['clearart'])
+                clearart = art['clearart']
+                base['clearart'] = random.choice(clearart) if isinstance(clearart, list) else clearart
             if art.get('clearlogo'):
-                base['clearlogo'] = random.choice(art['clearlogo'])
+                clearlogo = art['clearlogo']
+                base['clearlogo'] = random.choice(clearlogo) if isinstance(clearlogo, list) else clearlogo
 
         if res["total_episodes_count"] == 1:
             base['url'] = f'play_movie/{mal_id}/'

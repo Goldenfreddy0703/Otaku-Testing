@@ -311,7 +311,6 @@ class KitsuWLF(WatchlistFlavorBase):
         poster_image = eres["attributes"]['posterImage']
         image = poster_image.get('large', poster_image['original'])
         poster = image
-        banner = None
         fanart = kodi_meta.get('fanart', image)
         # AniList fallback for missing images
         if anilist_res and anilist_res.get('coverImage'):
@@ -321,8 +320,6 @@ class KitsuWLF(WatchlistFlavorBase):
                 poster = anilist_res['coverImage'].get('extraLarge')
             if not fanart:
                 fanart = anilist_res['coverImage'].get('extraLarge')
-        if anilist_res and anilist_res.get('bannerImage'):
-            banner = anilist_res.get('bannerImage')
 
         info = {
             'UniqueIDs': info_unique_ids,
@@ -354,16 +351,21 @@ class KitsuWLF(WatchlistFlavorBase):
             "image": image,
             "poster": poster,
             'fanart': fanart,
-            "banner": banner,
             "info": info
         }
 
+        # Pull all artwork from kodi_meta (already respects settings and is pre-selected)
+        if kodi_meta.get('banner'):
+            base['banner'] = kodi_meta['banner']
         if kodi_meta.get('thumb'):
-            base['landscape'] = random.choice(kodi_meta['thumb'])
+            thumb = kodi_meta['thumb']
+            base['landscape'] = random.choice(thumb) if isinstance(thumb, list) else thumb
         if kodi_meta.get('clearart'):
-            base['clearart'] = random.choice(kodi_meta['clearart'])
+            clearart = kodi_meta['clearart']
+            base['clearart'] = random.choice(clearart) if isinstance(clearart, list) else clearart
         if kodi_meta.get('clearlogo'):
-            base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+            clearlogo = kodi_meta['clearlogo']
+            base['clearlogo'] = random.choice(clearlogo) if isinstance(clearlogo, list) else clearlogo
 
         if eres['attributes']['subtype'] == 'movie' and eres['attributes']['episodeCount'] == 1:
             base['url'] = f'play_movie/{mal_id}/'
@@ -431,12 +433,18 @@ class KitsuWLF(WatchlistFlavorBase):
             art = pickle.loads(show_meta['art'])
             if art.get('fanart'):
                 base['fanart'] = art['fanart']
+            # Pull all artwork from kodi_meta (already respects settings and is pre-selected)
+            if art.get('banner'):
+                base['banner'] = art['banner']
             if art.get('thumb'):
-                base['landscape'] = random.choice(art['thumb'])
+                thumb = art['thumb']
+                base['landscape'] = random.choice(thumb) if isinstance(thumb, list) else thumb
             if art.get('clearart'):
-                base['clearart'] = random.choice(art['clearart'])
+                clearart = art['clearart']
+                base['clearart'] = random.choice(clearart) if isinstance(clearart, list) else clearart
             if art.get('clearlogo'):
-                base['clearlogo'] = random.choice(art['clearlogo'])
+                clearlogo = art['clearlogo']
+                base['clearlogo'] = random.choice(clearlogo) if isinstance(clearlogo, list) else clearlogo
 
         if next_up_meta:
             # Ensure mal_id and next_up are integers

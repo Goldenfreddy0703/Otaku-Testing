@@ -284,16 +284,21 @@ class AniListWLF(WatchlistFlavorBase):
             "image": image,
             "poster": image,
             'fanart': kodi_meta['fanart'] if kodi_meta.get('fanart') else image,
-            "banner": res.get('bannerImage'),
             "info": info
         }
 
+        # Pull all artwork from kodi_meta (already respects settings and is pre-selected)
+        if kodi_meta.get('banner'):
+            base['banner'] = kodi_meta['banner']
         if kodi_meta.get('thumb'):
-            base['landscape'] = random.choice(kodi_meta['thumb'])
+            thumb = kodi_meta['thumb']
+            base['landscape'] = random.choice(thumb) if isinstance(thumb, list) else thumb
         if kodi_meta.get('clearart'):
-            base['clearart'] = random.choice(kodi_meta['clearart'])
+            clearart = kodi_meta['clearart']
+            base['clearart'] = random.choice(clearart) if isinstance(clearart, list) else clearart
         if kodi_meta.get('clearlogo'):
-            base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+            clearlogo = kodi_meta['clearlogo']
+            base['clearlogo'] = random.choice(clearlogo) if isinstance(clearlogo, list) else clearlogo
 
         if res['format'] == 'MOVIE' and res['episodes'] == 1:
             base['url'] = f'play_movie/{mal_id}/'
@@ -371,12 +376,18 @@ class AniListWLF(WatchlistFlavorBase):
             art = pickle.loads(show_meta['art'])
             if art.get('fanart'):
                 base['fanart'] = art['fanart']
+            # Pull all artwork from kodi_meta (already respects settings and is pre-selected)
+            if art.get('banner'):
+                base['banner'] = art['banner']
             if art.get('thumb'):
-                base['landscape'] = random.choice(art['thumb'])
+                thumb = art['thumb']
+                base['landscape'] = random.choice(thumb) if isinstance(thumb, list) else thumb
             if art.get('clearart'):
-                base['clearart'] = random.choice(art['clearart'])
+                clearart = art['clearart']
+                base['clearart'] = random.choice(clearart) if isinstance(clearart, list) else clearart
             if art.get('clearlogo'):
-                base['clearlogo'] = random.choice(art['clearlogo'])
+                clearlogo = art['clearlogo']
+                base['clearlogo'] = random.choice(clearlogo) if isinstance(clearlogo, list) else clearlogo
 
         if res['format'] == 'MOVIE' and res['episodes'] == 1:
             base['url'] = f"play_movie/{mal_id}/"

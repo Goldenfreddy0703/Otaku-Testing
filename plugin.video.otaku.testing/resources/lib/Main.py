@@ -258,11 +258,14 @@ def WATCH_HISTORY(payload, params):
 
                 import random
                 if entry.get('thumb'):
-                    base['landscape'] = random.choice(entry['thumb'])
+                    thumb = entry['thumb']
+                    base['landscape'] = random.choice(thumb) if isinstance(thumb, list) else thumb
                 if entry.get('clearart'):
-                    base['clearart'] = random.choice(entry['clearart'])
+                    clearart = entry['clearart']
+                    base['clearart'] = random.choice(clearart) if isinstance(clearart, list) else clearart
                 if entry.get('clearlogo'):
-                    base['clearlogo'] = random.choice(entry['clearlogo'])
+                    clearlogo = entry['clearlogo']
+                    base['clearlogo'] = random.choice(clearlogo) if isinstance(clearlogo, list) else clearlogo
 
                 # Simple movie detection: if episodes == 1, treat as movie
                 episodes = entry.get('episodes', 0)
@@ -2739,11 +2742,14 @@ def LIST_MENU(payload, params):
             # Add artwork
             import random
             if kodi_meta.get('thumb'):
-                base['landscape'] = random.choice(kodi_meta['thumb'])
+                thumb = kodi_meta['thumb']
+                base['landscape'] = random.choice(thumb) if isinstance(thumb, list) else thumb
             if kodi_meta.get('clearart'):
-                base['clearart'] = random.choice(kodi_meta['clearart'])
+                clearart = kodi_meta['clearart']
+                base['clearart'] = random.choice(clearart) if isinstance(clearart, list) else clearart
             if kodi_meta.get('clearlogo'):
-                base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+                clearlogo = kodi_meta['clearlogo']
+                base['clearlogo'] = random.choice(clearlogo) if isinstance(clearlogo, list) else clearlogo
 
             # Determine if it's a movie or TV show
             episodes = kodi_meta.get('episodes', 0)
@@ -2805,11 +2811,14 @@ def MOVIES_MENU(payload, params):
             # Add artwork
             import random
             if kodi_meta.get('thumb'):
-                base['landscape'] = random.choice(kodi_meta['thumb'])
+                thumb = kodi_meta['thumb']
+                base['landscape'] = random.choice(thumb) if isinstance(thumb, list) else thumb
             if kodi_meta.get('clearart'):
-                base['clearart'] = random.choice(kodi_meta['clearart'])
+                clearart = kodi_meta['clearart']
+                base['clearart'] = random.choice(clearart) if isinstance(clearart, list) else clearart
             if kodi_meta.get('clearlogo'):
-                base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+                clearlogo = kodi_meta['clearlogo']
+                base['clearlogo'] = random.choice(clearlogo) if isinstance(clearlogo, list) else clearlogo
 
             # Determine if it's a movie or TV show
             episodes = kodi_meta.get('episodes', 0)
@@ -2871,11 +2880,14 @@ def TV_SHOWS_MENU(payload, params):
             # Add artwork
             import random
             if kodi_meta.get('thumb'):
-                base['landscape'] = random.choice(kodi_meta['thumb'])
+                thumb = kodi_meta['thumb']
+                base['landscape'] = random.choice(thumb) if isinstance(thumb, list) else thumb
             if kodi_meta.get('clearart'):
-                base['clearart'] = random.choice(kodi_meta['clearart'])
+                clearart = kodi_meta['clearart']
+                base['clearart'] = random.choice(clearart) if isinstance(clearart, list) else clearart
             if kodi_meta.get('clearlogo'):
-                base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+                clearlogo = kodi_meta['clearlogo']
+                base['clearlogo'] = random.choice(clearlogo) if isinstance(clearlogo, list) else clearlogo
 
             # Determine if it's a movie or TV show
             episodes = kodi_meta.get('episodes', 0)
@@ -2937,11 +2949,14 @@ def TV_SHORTS_MENU(payload, params):
             # Add artwork
             import random
             if kodi_meta.get('thumb'):
-                base['landscape'] = random.choice(kodi_meta['thumb'])
+                thumb = kodi_meta['thumb']
+                base['landscape'] = random.choice(thumb) if isinstance(thumb, list) else thumb
             if kodi_meta.get('clearart'):
-                base['clearart'] = random.choice(kodi_meta['clearart'])
+                clearart = kodi_meta['clearart']
+                base['clearart'] = random.choice(clearart) if isinstance(clearart, list) else clearart
             if kodi_meta.get('clearlogo'):
-                base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+                clearlogo = kodi_meta['clearlogo']
+                base['clearlogo'] = random.choice(clearlogo) if isinstance(clearlogo, list) else clearlogo
 
             # Determine if it's a movie or TV show
             episodes = kodi_meta.get('episodes', 0)
@@ -3003,11 +3018,14 @@ def SPECIALS_MENU(payload, params):
             # Add artwork
             import random
             if kodi_meta.get('thumb'):
-                base['landscape'] = random.choice(kodi_meta['thumb'])
+                thumb = kodi_meta['thumb']
+                base['landscape'] = random.choice(thumb) if isinstance(thumb, list) else thumb
             if kodi_meta.get('clearart'):
-                base['clearart'] = random.choice(kodi_meta['clearart'])
+                clearart = kodi_meta['clearart']
+                base['clearart'] = random.choice(clearart) if isinstance(clearart, list) else clearart
             if kodi_meta.get('clearlogo'):
-                base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+                clearlogo = kodi_meta['clearlogo']
+                base['clearlogo'] = random.choice(clearlogo) if isinstance(clearlogo, list) else clearlogo
 
             # Determine if it's a movie or TV show
             episodes = kodi_meta.get('episodes', 0)
@@ -3069,11 +3087,14 @@ def OVAS_MENU(payload, params):
             # Add artwork
             import random
             if kodi_meta.get('thumb'):
-                base['landscape'] = random.choice(kodi_meta['thumb'])
+                thumb = kodi_meta['thumb']
+                base['landscape'] = random.choice(thumb) if isinstance(thumb, list) else thumb
             if kodi_meta.get('clearart'):
-                base['clearart'] = random.choice(kodi_meta['clearart'])
+                clearart = kodi_meta['clearart']
+                base['clearart'] = random.choice(clearart) if isinstance(clearart, list) else clearart
             if kodi_meta.get('clearlogo'):
-                base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+                clearlogo = kodi_meta['clearlogo']
+                base['clearlogo'] = random.choice(clearlogo) if isinstance(clearlogo, list) else clearlogo
 
             # Determine if it's a movie or TV show
             episodes = kodi_meta.get('episodes', 0)
@@ -3135,11 +3156,14 @@ def ONAS_MENU(payload, params):
             # Add artwork
             import random
             if kodi_meta.get('thumb'):
-                base['landscape'] = random.choice(kodi_meta['thumb'])
+                thumb = kodi_meta['thumb']
+                base['landscape'] = random.choice(thumb) if isinstance(thumb, list) else thumb
             if kodi_meta.get('clearart'):
-                base['clearart'] = random.choice(kodi_meta['clearart'])
+                clearart = kodi_meta['clearart']
+                base['clearart'] = random.choice(clearart) if isinstance(clearart, list) else clearart
             if kodi_meta.get('clearlogo'):
-                base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+                clearlogo = kodi_meta['clearlogo']
+                base['clearlogo'] = random.choice(clearlogo) if isinstance(clearlogo, list) else clearlogo
 
             # Determine if it's a movie or TV show
             episodes = kodi_meta.get('episodes', 0)
@@ -3201,11 +3225,14 @@ def MUSIC_MENU(payload, params):
             # Add artwork
             import random
             if kodi_meta.get('thumb'):
-                base['landscape'] = random.choice(kodi_meta['thumb'])
+                thumb = kodi_meta['thumb']
+                base['landscape'] = random.choice(thumb) if isinstance(thumb, list) else thumb
             if kodi_meta.get('clearart'):
-                base['clearart'] = random.choice(kodi_meta['clearart'])
+                clearart = kodi_meta['clearart']
+                base['clearart'] = random.choice(clearart) if isinstance(clearart, list) else clearart
             if kodi_meta.get('clearlogo'):
-                base['clearlogo'] = random.choice(kodi_meta['clearlogo'])
+                clearlogo = kodi_meta['clearlogo']
+                base['clearlogo'] = random.choice(clearlogo) if isinstance(clearlogo, list) else clearlogo
 
             # Determine if it's a movie or TV show
             episodes = kodi_meta.get('episodes', 0)

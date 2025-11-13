@@ -7,7 +7,7 @@ thumbPath = "https://image.tmdb.org/t/p/w500"
 backgroundPath = "https://image.tmdb.org/t/p/original"
 
 
-def getArt(meta_ids, mtype):
+def getArt(meta_ids, mtype, limit=None):
     art = {}
     mid = meta_ids.get('themoviedb_id')
     if mid is None:
@@ -35,7 +35,9 @@ def getArt(meta_ids, mtype):
             if res.get('backdrops'):
                 items = []
                 items2 = []
-                for item in res['backdrops']:
+                # Apply limit during collection if specified
+                backdrops = res['backdrops'][:limit] if limit else res['backdrops']
+                for item in backdrops:
                     if item.get('file_path'):
                         items.append(backgroundPath + item['file_path'])
                         items2.append(thumbPath + item['file_path'])
@@ -43,7 +45,8 @@ def getArt(meta_ids, mtype):
                 art['thumb'] = items2
 
             if res.get('logos'):
-                items = [backgroundPath + item["file_path"] for item in res['logos'] if item.get('file_path')]
+                logos = res['logos'][:limit] if limit else res['logos']
+                items = [backgroundPath + item["file_path"] for item in logos if item.get('file_path')]
                 art['clearart'] = items
     return art
 

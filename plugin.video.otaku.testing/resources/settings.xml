@@ -627,41 +627,29 @@
 
 
 
-				<setting id="artwork.size" type="integer" label="Preffered Artwork Size" help="">
+				<setting id="artwork.preference" type="integer" label="30115" help="">
 					<level>0</level>
-					<default>1</default>
+					<default>0</default>
 					<constraints>
 						<options>
-							<option label="Small">0</option>
-							<option label="Medium">1</option>
-							<option label="Large">2</option>
+							<option label="30441">0</option>
+							<option label="30442">1</option>
+							<option label="30443">2</option>
+							<option label="21475">3</option>
 						</options>
 					</constraints>
 					<control type="spinner" format="string"/>
 				</setting>
-				<setting id="artwork.preference" type="integer" label="Prefer Anime Artwork from" help="">
-					<level>0</level>
-					<default>1</default>
-					<constraints>
-						<options>
-							<option label="Fanart-TV">0</option>
-							<option label="TMDb">1</option>
-							<option label="TVDB">2</option>
-							<option label="Both">3</option>
-						</options>
-					</constraints>
-					<control type="spinner" format="string"/>
-				</setting>
-				<setting id="artwork.advanced" type="boolean" label="Show Advanced Artwork Settings" help="">
+				<setting id="artwork.advanced" type="boolean" label="30444" help="">
 					<level>0</level>
 					<default>false</default>
 					<control type="toggle"/>
 				</setting>
-				<setting id="artwork.poster" type="integer" label="Poster" help="">
+				<setting id="artwork.fanart.count" type="integer" label="20445" help="">
 					<level>0</level>
-					<default>1</default>
+					<default>5</default>
 					<constraints>
-						<minimum>0</minimum>
+						<minimum>1</minimum>
 						<step>1</step>
 						<maximum>20</maximum>
 					</constraints>
@@ -672,22 +660,7 @@
 						<dependency type="visible" setting="artwork.advanced">true</dependency>
 					</dependencies>
 				</setting>
-				<setting id="artwork.fanart" type="integer" label="Fanart" help="">
-					<level>0</level>
-					<default>1</default>
-					<constraints>
-						<minimum>0</minimum>
-						<step>1</step>
-						<maximum>20</maximum>
-					</constraints>
-					<control type="slider" format="integer">
-						<popup>false</popup>
-					</control>
-					<dependencies>
-						<dependency type="visible" setting="artwork.advanced">true</dependency>
-					</dependencies>
-				</setting>
-				<setting id="artwork.banner" type="boolean" label="Banner" help="">
+				<setting id="artwork.fanart" type="boolean" label="20445" help="">
 					<level>0</level>
 					<default>true</default>
 					<control type="toggle"/>
@@ -695,7 +668,7 @@
 						<dependency type="visible" setting="artwork.advanced">true</dependency>
 					</dependencies>
 				</setting>
-				<setting id="artwork.landscape" type="boolean" label="Landscape" help="">
+				<setting id="artwork.landscape" type="boolean" label="30445" help="">
 					<level>0</level>
 					<default>true</default>
 					<control type="toggle"/>
@@ -703,18 +676,29 @@
 						<dependency type="visible" setting="artwork.advanced">true</dependency>
 					</dependencies>
 				</setting>
-
-
-
-				<setting id="interface.fanart.disable" type="boolean" label="30115" help="">
+				<setting id="artwork.clearlogo" type="boolean" label="30116" help="">
 					<level>0</level>
-					<default>false</default>
+					<default>true</default>
 					<control type="toggle"/>
+					<dependencies>
+						<dependency type="visible" setting="artwork.advanced">true</dependency>
+					</dependencies>
 				</setting>
-				<setting id="interface.clearlogo.disable" type="boolean" label="30116" help="">
+				<setting id="artwork.clearart" type="boolean" label="30446" help="">
 					<level>0</level>
-					<default>false</default>
+					<default>true</default>
 					<control type="toggle"/>
+					<dependencies>
+						<dependency type="visible" setting="artwork.advanced">true</dependency>
+					</dependencies>
+				</setting>
+				<setting id="artwork.banner" type="boolean" label="20020" help="">
+					<level>0</level>
+					<default>true</default>
+					<control type="toggle"/>
+					<dependencies>
+						<dependency type="visible" setting="artwork.advanced">true</dependency>
+					</dependencies>
 				</setting>
 			</group>
 

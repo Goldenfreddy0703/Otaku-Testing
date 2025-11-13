@@ -185,8 +185,14 @@ class ANIDBAPI:
         kodi_meta.update(pickle.loads(show_meta['art']))
         fanart = kodi_meta.get('fanart')
         poster = kodi_meta.get('poster')
-        clearart = random.choice(kodi_meta['clearart']) if kodi_meta.get('clearart') else ''
-        clearlogo = random.choice(kodi_meta['clearlogo']) if kodi_meta.get('clearlogo') else ''
+        # Handle clearart - support both string (new) and list (legacy) formats
+        clearart = kodi_meta.get('clearart', '')
+        if isinstance(clearart, list):
+            clearart = random.choice(clearart) if clearart else ''
+        # Handle clearlogo - support both string (new) and list (legacy) formats
+        clearlogo = kodi_meta.get('clearlogo', '')
+        if isinstance(clearlogo, list):
+            clearlogo = random.choice(clearlogo) if clearlogo else ''
         tvshowtitle = kodi_meta['title_userPreferred']
         if not (eps_watched := kodi_meta.get('eps_watched')) and control.settingids.watchlist_data:
             from resources.lib.WatchlistFlavor import WatchlistFlavor
