@@ -33,7 +33,7 @@ class EasyDebrid:
             paid_until = int(resp.get('paid_until', 0))
             auth_status = "Premium" if paid_until > current_time else "Expired"
             control.setSetting('easydebrid.auth.status', auth_status)
-            control.ok_dialog(control.ADDON_NAME, f'EasyDebrid {control.lang(30024)}')
+            control.ok_dialog(control.ADDON_NAME, f'EasyDebrid {control.lang(30084)}')
         return resp and "id" in resp
 
     def resolve_hoster(self, endpoint, episode, pack_select):

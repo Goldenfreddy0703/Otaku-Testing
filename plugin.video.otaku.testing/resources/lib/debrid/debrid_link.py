@@ -55,11 +55,11 @@ class DebridLink:
 
             copied = control.copy2clip(resp.get('user_code'))
             display_dialog = (
-                f"{control.lang(30021).format(control.colorstr(resp['verification_url']))}[CR]"
-                f"{control.lang(30022).format(control.colorstr(resp['user_code']))}"
+                f"{control.lang(30081).format(control.colorstr(resp['verification_url']))}[CR]"
+                f"{control.lang(30082).format(control.colorstr(resp['user_code']))}"
             )
             if copied:
-                display_dialog = f"{display_dialog}[CR]{control.lang(30023)}"
+                display_dialog = f"{display_dialog}[CR]{control.lang(30083)}"
             control.progressDialog.create(f'{control.ADDON_NAME}: Debrid-Link Auth', display_dialog)
             control.progressDialog.update(100)
             auth_done = False
@@ -77,14 +77,14 @@ class DebridLink:
         username = response['value']['pseudo']
         premium = response['value']['premiumLeft'] > 0
         control.setSetting('debridlink.username', username)
-        control.ok_dialog(control.ADDON_NAME, f'Debrid-Link {control.lang(30024)}')
+        control.ok_dialog(control.ADDON_NAME, f'Debrid-Link {control.lang(30084)}')
         control.setBool('show.uncached', True)
         control.setBool('uncached.autoruninforground', False)
         control.setBool('uncached.autoruninbackground', False)
         control.setBool('uncached.autoskipuncached', True)
         if not premium:
             control.setSetting('debridlink.auth.status', 'Expired')
-            control.ok_dialog(f'{control.ADDON_NAME}: Debrid-Link', control.lang(30025))
+            control.ok_dialog(f'{control.ADDON_NAME}: Debrid-Link', control.lang(30085))
         else:
             control.setSetting('debridlink.auth.status', 'Premium')
 

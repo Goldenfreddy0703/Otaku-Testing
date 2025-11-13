@@ -5,7 +5,7 @@
 
 # String ID Ranges:
 # 30000-30999: Plugin strings and settings
-# 31000-31999: Skin strings  
+# 31000-31999: Skin strings
 # 32000-32999: Script strings
 # 33000-33999: Common addon strings
 

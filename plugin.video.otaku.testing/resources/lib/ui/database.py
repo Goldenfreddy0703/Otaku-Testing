@@ -98,7 +98,7 @@ def cache_clear():
         cursor.execute("VACUUM")
         cursor.connection.commit()
         cursor.execute('CREATE TABLE IF NOT EXISTS cache (key TEXT, value TEXT, date INTEGER, UNIQUE(key))')
-        control.notify(f'{control.ADDON_NAME}: {control.lang(30030)}', control.lang(30031), time=5000, sound=False)
+        control.notify(f'{control.ADDON_NAME}: {control.lang(30086)}', control.lang(30087), time=5000, sound=False)
 
 
 def is_cache_valid(cached_time, cache_timeout):

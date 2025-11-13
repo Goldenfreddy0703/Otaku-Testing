@@ -14,21 +14,21 @@
               <height>100</height>
               <width>1800</width>
               <font>font12</font>
-              <label>$ADDON[plugin.video.otaku.testing 30040]</label>
+              <label>$ADDON[plugin.video.otaku.testing 30092]</label>
            </control>
            <control type="label">
               <top>50</top>
               <height>100</height>
               <width>1800</width>
               <font>font12</font>
-              <label>$ADDON[plugin.video.otaku.testing 30041]</label>
+              <label>$ADDON[plugin.video.otaku.testing 30093]</label>
            </control>
            <control type="label">
               <top>100</top>
               <height>100</height>
               <width>1800</width>
               <font>font12</font>
-              <label>$ADDON[plugin.video.otaku.testing 30044]</label>
+              <label>$ADDON[plugin.video.otaku.testing 30096]</label>
            </control>
         </control>
 

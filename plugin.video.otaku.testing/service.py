@@ -203,7 +203,7 @@ def apply_migration_settings():
             # Here the button labels are:
             # Button 0: "Yes"   | Button 1: "No"
             choice = control.yesno_dialog(
-                control.ADDON_NAME + ' - ' + control.lang(30417),
+                control.ADDON_NAME + ' - ' + control.lang(30415),
                 "Welcome back to Otaku!!!\nSense most of your settings have been deleted, would you like to go through the setup wizard?",
                 "No", "Yes",
             )

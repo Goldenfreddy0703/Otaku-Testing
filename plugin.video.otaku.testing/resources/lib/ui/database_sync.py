@@ -60,7 +60,7 @@ class SyncDatabase:
                 # Here the button labels are:
                 # Button 0: "Yes"   | Button 1: "No"
                 choice = control.yesno_dialog(
-                    control.ADDON_NAME + ' - ' + control.lang(30417),
+                    control.ADDON_NAME + ' - ' + control.lang(30415),
                     "Welcome to Otaku!!!\nWould you like to go through the setup wizard?",
                     "No", "Yes",
                 )
@@ -164,7 +164,7 @@ class SyncDatabase:
         import service
 
         if not silent:
-            confirm = control.yesno_dialog(control.ADDON_NAME, control.lang(30032))
+            confirm = control.yesno_dialog(control.ADDON_NAME, control.lang(30088))
             if confirm == 0:
                 return
 

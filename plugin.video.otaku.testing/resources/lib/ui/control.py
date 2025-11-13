@@ -526,7 +526,7 @@ def get_view_type(viewtype):
 def clear_settings(silent=False):
     from resources.lib.ui.database_sync import SyncDatabase
     if not silent:
-        confirm = yesno_dialog(ADDON_NAME, lang(30034))
+        confirm = yesno_dialog(ADDON_NAME, lang(30090))
         if confirm == 0:
             return
 

@@ -33,10 +33,10 @@ class SimklWLF(WatchlistFlavorBase):
         device_code = r.json() if r else {}
 
         copied = control.copy2clip(device_code["user_code"])
-        display_dialog = (f"{control.lang(30021).format(control.colorstr('https://simkl.com/pin'))}[CR]"
-                          f"{control.lang(30022).format(control.colorstr(device_code['user_code']))}")
+        display_dialog = (f"{control.lang(30081).format(control.colorstr('https://simkl.com/pin'))}[CR]"
+                          f"{control.lang(30082).format(control.colorstr(device_code['user_code']))}")
         if copied:
-            display_dialog = f"{display_dialog}[CR]{control.lang(30023)}"
+            display_dialog = f"{display_dialog}[CR]{control.lang(30083)}"
         control.progressDialog.create('SIMKL Auth', display_dialog)
         control.progressDialog.update(100)
         inter = int(device_code['expires_in'] / device_code['interval'])

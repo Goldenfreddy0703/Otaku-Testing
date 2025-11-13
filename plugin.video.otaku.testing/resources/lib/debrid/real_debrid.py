@@ -66,10 +66,10 @@ class RealDebrid:
             return
 
         copied = control.copy2clip(resp['user_code'])
-        display_dialog = (f"{control.lang(30021).format(control.colorstr('https://real-debrid.com/device'))}[CR]"
-                          f"{control.lang(30022).format(control.colorstr(resp['user_code']))}")
+        display_dialog = (f"{control.lang(30081).format(control.colorstr('https://real-debrid.com/device'))}[CR]"
+                          f"{control.lang(30082).format(control.colorstr(resp['user_code']))}")
         if copied:
-            display_dialog = f"{display_dialog}[CR]{control.lang(30023)}"
+            display_dialog = f"{display_dialog}[CR]{control.lang(30083)}"
         control.progressDialog.create(f'{control.ADDON_NAME}: Real-Debrid Auth', display_dialog)
         control.progressDialog.update(100)
         self.OauthTotalTimeout = self.OauthTimeout = int(resp['expires_in'])
@@ -121,13 +121,13 @@ class RealDebrid:
             user_info = response.json()
             control.setSetting('realdebrid.username', user_info['username'])
             control.setSetting('realdebrid.auth.status', user_info['type'].capitalize())
-            control.ok_dialog(control.ADDON_NAME, f'Real-Debrid {control.lang(30024)}')
+            control.ok_dialog(control.ADDON_NAME, f'Real-Debrid {control.lang(30084)}')
             control.setBool('show.uncached', True)
             control.setBool('uncached.autoruninforground', False)
             control.setBool('uncached.autoruninbackground', False)
             control.setBool('uncached.autoskipuncached', True)
             if user_info['type'] != 'premium':
-                control.ok_dialog(f'{control.ADDON_NAME}: Real-Debrid', control.lang(30025))
+                control.ok_dialog(f'{control.ADDON_NAME}: Real-Debrid', control.lang(30085))
         except (ValueError, KeyError) as e:
             control.ok_dialog(control.ADDON_NAME, f'Real-Debrid user info error: {str(e)}')
 

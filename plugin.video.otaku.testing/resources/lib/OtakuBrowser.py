@@ -1623,7 +1623,7 @@ class OtakuBrowser(BrowserBase):
         genres_list = []
         for x in genre:
             genres_list.append(x['name'])
-        multiselect = control.multiselect_dialog(control.lang(30940), genres_list, preselect=[])
+        multiselect = control.multiselect_dialog(control.lang(30040), genres_list, preselect=[])
         if not multiselect:
             return []
         genre_display_list = []
@@ -2051,7 +2051,7 @@ class OtakuBrowser(BrowserBase):
         genre = mal_res['data']
         genres_list = [x['name'] for x in genre]
 
-        multiselect = control.multiselect_dialog(control.lang(30940), genres_list, preselect=[])
+        multiselect = control.multiselect_dialog(control.lang(30040), genres_list, preselect=[])
         if not multiselect:
             return []
 
