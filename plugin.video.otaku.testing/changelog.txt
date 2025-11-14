@@ -1,3 +1,14 @@
+Changelog v5.2.63 (2025-11-14):
+- Added comprehensive source filter system with 5 categories (Video Codecs, HDR Codecs, Audio Codecs, Audio Channels, Miscellaneous)
+- Implemented Seren-style filter dialog with visual selection feedback
+- Added granular codec filtering to replace disable265 toggle and disablebatch toggle
+- Implemented special HDR/DV/HYBRID filtering logic for hybrid sources
+- Added deepskyblue theme styling for selected filter items
+- Added smooth slide animations to filter and sort selection dialogs
+- Optimized filter storage using native Kodi list[String] type
+- Added getControlList() helper method to BaseWindow for control validation
+- Implemented efficient set-based filtering algorithm in sortSources()
+
 Changelog v5.2.62 (2025-11-13):
 - Fixed artwork selection for multiple image types with improved random selection logic
 - Updated artwork handling across all browser menus for consistency
