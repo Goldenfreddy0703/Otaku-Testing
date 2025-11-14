@@ -19,8 +19,8 @@ class FilterSelect(BaseWindow):
         self.audiochannels_list = None
         self.misc_list = None
 
-        filter_string = control.get_setting("general.filters")
-        self.current_filters = set() if filter_string is None else set(filter_string.split(","))
+        filter_list = control.getStringList("general.filters")
+        self.current_filters = set(filter_list) if filter_list else set()
 
     def onInit(self):
         self.videocodec_list = self.getControlList(1000)
@@ -81,23 +81,29 @@ class FilterSelect(BaseWindow):
             self.current_filters.add(label)
             list_item.setProperty("value", str(True))
 
-    def handle_action(self, action, control_id=None):
-        if action == 7:
-            if control_id in [1000, 2000, 3000, 4000, 5000]:
-                lists = {
-                    1000: self.videocodec_list,
-                    2000: self.hdrcodec_list,
-                    3000: self.audiocodec_list,
-                    4000: self.audiochannels_list,
-                    5000: self.misc_list,
-                }
+    def onClick(self, control_id):
+        """Kodi callback when a control is clicked"""
+        if control_id in [1000, 2000, 3000, 4000, 5000]:
+            lists = {
+                1000: self.videocodec_list,
+                2000: self.hdrcodec_list,
+                3000: self.audiocodec_list,
+                4000: self.audiochannels_list,
+                5000: self.misc_list,
+            }
 
-                li = lists.get(control_id).getSelectedItem()
+            li = lists.get(control_id).getSelectedItem()
+            self._flip_info(li)
+        elif control_id == 6001:
+            self.close()
 
-                self._flip_info(li)
-            if control_id == 6001:
-                self.close()
+    def onAction(self, action):
+        """Kodi callback when an action occurs"""
+        action_id = action.getId()
+        # ESC, Backspace, or context menu closes the dialog
+        if action_id in [92, 10, 117]:
+            self.close()
 
     def close(self):
-        control.set_setting("general.filters", ",".join(self.current_filters))
+        control.setStringList("general.filters", list(self.current_filters))
         super().close()

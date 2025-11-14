@@ -7,6 +7,28 @@ from resources.lib.windows.get_sources_window import GetSources
 from resources.lib.windows import sort_select
 
 
+# Filter structure for source filtering UI (similar to Seren)
+INFO_STRUCT = {
+    "videocodec": {
+        "AVC", "HEVC", "XVID", "DIVX", "WMV", "MP4", "MPEG", "VP9", "AV1",
+    },
+    "hdrcodec": {
+        "DV", "HDR", "HYBRID", "SDR",
+    },
+    "audiocodec": {
+        "AAC", "DTS", "DTS-HDMA", "DTS-HDHR", "DTS-X", "ATMOS", "TRUEHD",
+        "DD+", "DD", "MP3", "WMA", "OPUS",
+    },
+    "audiochannels": {
+        "2.0", "5.1", "7.1",
+    },
+    "misc": {
+        "CAM", "HDTV", "PDTV", "REMUX", "HDRIP", "BLURAY", "DVDRIP", "WEB",
+        "HC", "SCR", "3D", "60-FPS", "BATCH"
+    },
+}
+
+
 def getSourcesHelper(actionArgs):
     if control.getInt('general.dialog') in (5, 6):
         sources_window = Sources('get_sources_alt.xml', control.ADDON_PATH, actionArgs=actionArgs)
@@ -368,11 +390,33 @@ class Sources(GetSources):
         # Update sortedList to include the filtered torrent_list
         sortedList = [x for x in sortedList if x in torrent_list or x in embed_list or x in cloud_files or x in local_files]
 
-        # Filter out sources
-        if control.getBool('general.disable265'):
-            sortedList = [i for i in sortedList if 'HEVC' not in i['info']]
-        if control.getBool('general.disablebatch'):
-            sortedList = [i for i in sortedList if 'BATCH' not in i['info']]
+        # Apply general.filters (comprehensive filtering like Seren)
+        filter_list = control.getStringList("general.filters")
+        if filter_list:
+            current_filters = set(filter_list)
+            # Special HDR/DV handling (like Seren does for HYBRID sources)
+            disable_dv = "DV" in current_filters
+            disable_hdr = "HDR" in current_filters
+            filter_set = current_filters.difference({"HDR", "DV"})
+
+            filtered = []
+            for source in sortedList:
+                # Skip if ANY filtered tag is in source info (set intersection)
+                if filter_set & set(source['info']):
+                    continue
+                # DV filter: exclude DV sources unless they're HYBRID
+                if disable_dv and "DV" in source['info'] and "HYBRID" not in source['info']:
+                    continue
+                # HDR filter: exclude HDR sources unless they're HYBRID
+                if disable_hdr and "HDR" in source['info'] and "HYBRID" not in source['info']:
+                    continue
+                # Hybrid filter: if both DV and HDR are disabled, exclude HYBRID too
+                if disable_dv and disable_hdr and "HYBRID" in source['info']:
+                    continue
+                filtered.append(source)
+            sortedList = filtered
+
+        # Filter by language source
         source = control.getInt("general.source")
         if source != 0:
             if source == 1:

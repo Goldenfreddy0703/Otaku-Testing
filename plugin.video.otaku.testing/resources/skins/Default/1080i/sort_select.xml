@@ -1984,6 +1984,8 @@
 
 		<!-- Buttons -->
 		<control type="group">
+			<animation effect="slide" start="600,0" time="350" tween="cubic" easing="in">WindowOpen</animation>
+			<animation effect="slide" end="600,0" time="350" tween="cubic" easing="in">WindowClose</animation>
 			<top>110</top>
 			<right>20</right>
 			<width>500</width>

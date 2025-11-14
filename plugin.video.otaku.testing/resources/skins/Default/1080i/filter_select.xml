@@ -130,7 +130,7 @@
 						<width>350</width>
 						<height>50</height>
 						<font>font12</font>
-						<textcolor>Window().Property(settings.color)</textcolor>
+						<textcolor>deepskyblue</textcolor>
 						<align>left</align>
 						<aligny>center</aligny>
 						<label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
@@ -169,7 +169,7 @@
 						<width>350</width>
 						<height>50</height>
 						<font>font12</font>
-						<textcolor>Window().Property(settings.color)</textcolor>
+						<textcolor>deepskyblue</textcolor>
 						<align>left</align>
 						<aligny>center</aligny>
 						<label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
@@ -207,7 +207,7 @@
 						<width>350</width>
 						<height>50</height>
 						<font>font12</font>
-						<textcolor>Window().Property(settings.color)</textcolor>
+						<textcolor>deepskyblue</textcolor>
 						<align>left</align>
 						<aligny>center</aligny>
 						<label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
@@ -299,7 +299,7 @@
 						<width>350</width>
 						<height>50</height>
 						<font>font12</font>
-						<textcolor>Window().Property(settings.color)</textcolor>
+						<textcolor>deepskyblue</textcolor>
 						<align>left</align>
 						<aligny>center</aligny>
 						<label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
@@ -338,7 +338,7 @@
 						<width>350</width>
 						<height>50</height>
 						<font>font12</font>
-						<textcolor>Window().Property(settings.color)</textcolor>
+						<textcolor>deepskyblue</textcolor>
 						<align>left</align>
 						<aligny>center</aligny>
 						<label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
@@ -376,7 +376,7 @@
 						<width>350</width>
 						<height>50</height>
 						<font>font12</font>
-						<textcolor>Window().Property(settings.color)</textcolor>
+						<textcolor>deepskyblue</textcolor>
 						<align>left</align>
 						<aligny>center</aligny>
 						<label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
@@ -469,7 +469,7 @@
 						<width>350</width>
 						<height>50</height>
 						<font>font12</font>
-						<textcolor>Window().Property(settings.color)</textcolor>
+						<textcolor>deepskyblue</textcolor>
 						<align>left</align>
 						<aligny>center</aligny>
 						<label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
@@ -508,7 +508,7 @@
 						<width>350</width>
 						<height>50</height>
 						<font>font12</font>
-						<textcolor>Window().Property(settings.color)</textcolor>
+						<textcolor>deepskyblue</textcolor>
 						<align>left</align>
 						<aligny>center</aligny>
 						<label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
@@ -546,7 +546,7 @@
 						<width>350</width>
 						<height>50</height>
 						<font>font12</font>
-						<textcolor>Window().Property(settings.color)</textcolor>
+						<textcolor>deepskyblue</textcolor>
 						<align>left</align>
 						<aligny>center</aligny>
 						<label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
@@ -639,7 +639,7 @@
 						<width>350</width>
 						<height>50</height>
 						<font>font12</font>
-						<textcolor>Window().Property(settings.color)</textcolor>
+						<textcolor>deepskyblue</textcolor>
 						<align>left</align>
 						<aligny>center</aligny>
 						<label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
@@ -678,7 +678,7 @@
 						<width>350</width>
 						<height>50</height>
 						<font>font12</font>
-						<textcolor>Window().Property(settings.color)</textcolor>
+						<textcolor>deepskyblue</textcolor>
 						<align>left</align>
 						<aligny>center</aligny>
 						<label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
@@ -716,7 +716,7 @@
 						<width>350</width>
 						<height>50</height>
 						<font>font12</font>
-						<textcolor>Window().Property(settings.color)</textcolor>
+						<textcolor>deepskyblue</textcolor>
 						<align>left</align>
 						<aligny>center</aligny>
 						<label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
@@ -808,7 +808,7 @@
 						<width>350</width>
 						<height>50</height>
 						<font>font12</font>
-						<textcolor>Window().Property(settings.color)</textcolor>
+						<textcolor>deepskyblue</textcolor>
 						<align>left</align>
 						<aligny>center</aligny>
 						<label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
@@ -847,7 +847,7 @@
 						<width>350</width>
 						<height>50</height>
 						<font>font12</font>
-						<textcolor>Window().Property(settings.color)</textcolor>
+						<textcolor>deepskyblue</textcolor>
 						<align>left</align>
 						<aligny>center</aligny>
 						<label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
@@ -885,7 +885,7 @@
 						<width>350</width>
 						<height>50</height>
 						<font>font12</font>
-						<textcolor>Window().Property(settings.color)</textcolor>
+						<textcolor>deepskyblue</textcolor>
 						<align>left</align>
 						<aligny>center</aligny>
 						<label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
@@ -921,7 +921,7 @@
 					<control type="button" id="6001">
 						<height>80</height>
 						<textoffsetx>20</textoffsetx>
-						<texturefocus colordiffuse="$INFO[Window().Property(settings.color)]">white.png</texturefocus>
+						<texturefocus colordiffuse="deepskyblue">white.png</texturefocus>
 						<texturenofocus colordiffuse="22000000">white.png</texturenofocus>
 						<label>Close</label>
 						<align>right</align>

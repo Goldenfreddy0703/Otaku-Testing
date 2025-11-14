@@ -1820,3 +1820,7 @@ msgstr ""
 msgctxt "#30446"
 msgid "Clearart"
 msgstr ""
+
+msgctxt "#30447"
+msgid "Choose Items to Filter..."
+msgstr ""

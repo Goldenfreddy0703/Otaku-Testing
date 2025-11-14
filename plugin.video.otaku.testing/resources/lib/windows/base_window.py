@@ -116,6 +116,24 @@ class BaseWindow(xbmcgui.WindowXMLDialog):
             self.setProperty('item.info.rating', str(self.item_information.get('rating')))
             self.setProperty('item.info.title', self.item_information.get('title_userPreferred'))
 
+    def getControlList(self, control_id):
+        """Get and check the control for the ControlList type.
+
+        :param control_id: Control id to get and check for ControlList
+        :type control_id: int
+        :return: The checked control
+        :rtype: xbmcgui.ControlList
+        """
+        try:
+            ctrl = self.getControl(control_id)
+        except RuntimeError as e:
+            control.log(f'Control does not exist {control_id}', 'error')
+            control.log(str(e), 'error')
+            raise
+        if not isinstance(ctrl, xbmcgui.ControlList):
+            raise AttributeError(f"Control with Id {control_id} should be of type ControlList")
+        return ctrl
+
     def close(self):
         """Override close to ensure cleanup"""
         # Clear references to prevent memory leaks

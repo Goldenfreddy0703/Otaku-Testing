@@ -290,6 +290,17 @@ def WATCH_HISTORY(payload, params):
         control.draw_items([], 'tvshows')
 
 
+@Route('source_filter')
+def SOURCE_FILTER(payload, params):
+    """Open the filter selection dialog"""
+    from resources.lib.windows.filter_select import FilterSelect
+    try:
+        window = FilterSelect("filter_select.xml", control.ADDON_PATH)
+        window.doModal()
+    finally:
+        del window
+
+
 @Route('airing_calendar')
 def AIRING_CALENDAR(payload: str, params: dict):
     # Get enriched calendar data from AnimeSchedule
