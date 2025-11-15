@@ -339,7 +339,7 @@ def AIRING_LAST_SEASON(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_airing_last_season(page, format, prefix), 'tvshows')
 
@@ -366,7 +366,7 @@ def AIRING_THIS_SEASON(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_airing_this_season(page, format, prefix), 'tvshows')
 
@@ -393,7 +393,7 @@ def AIRING_NEXT_SEASON(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_airing_next_season(page, format, prefix), 'tvshows')
 
@@ -420,7 +420,7 @@ def TRENDING_LAST_YEAR(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_trending_last_year(page, format, prefix), 'tvshows')
 
@@ -447,7 +447,7 @@ def TRENDING_THIS_YEAR(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_trending_this_year(page, format, prefix), 'tvshows')
 
@@ -474,7 +474,7 @@ def TRENDING_LAST_SEASON(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_trending_last_season(page, format, prefix), 'tvshows')
 
@@ -501,7 +501,7 @@ def TRENDING_THIS_SEASON(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_trending_this_season(page, format, prefix), 'tvshows')
 
@@ -528,7 +528,7 @@ def ALL_TIME_TRENDING(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_all_time_trending(page, format, prefix), 'tvshows')
 
@@ -555,7 +555,7 @@ def POPULAR_LAST_YEAR(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_popular_last_year(page, format, prefix), 'tvshows')
 
@@ -582,7 +582,7 @@ def POPULAR_THIS_YEAR(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_popular_this_year(page, format, prefix), 'tvshows')
 
@@ -609,7 +609,7 @@ def POPULAR_LAST_SEASON(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_popular_last_season(page, format, prefix), 'tvshows')
 
@@ -636,7 +636,7 @@ def POPULAR_THIS_SEASON(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_popular_this_season(page, format, prefix), 'tvshows')
 
@@ -663,7 +663,7 @@ def ALL_TIME_POPULAR(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_all_time_popular(page, format, prefix), 'tvshows')
 
@@ -690,7 +690,7 @@ def VOTED_LAST_YEAR(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_voted_last_year(page, format, prefix), 'tvshows')
 
@@ -717,7 +717,7 @@ def VOTED_THIS_YEAR(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_voted_this_year(page, format, prefix), 'tvshows')
 
@@ -744,7 +744,7 @@ def VOTED_LAST_SEASON(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_voted_last_season(page, format, prefix), 'tvshows')
 
@@ -771,7 +771,7 @@ def VOTED_THIS_SEASON(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_voted_this_season(page, format, prefix), 'tvshows')
 
@@ -798,7 +798,7 @@ def ALL_TIME_VOTED(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_all_time_voted(page, format, prefix), 'tvshows')
 
@@ -825,7 +825,7 @@ def FAVOURITES_LAST_YEAR(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_favourites_last_year(page, format, prefix), 'tvshows')
 
@@ -852,7 +852,7 @@ def FAVOURITES_THIS_YEAR(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_favourites_this_year(page, format, prefix), 'tvshows')
 
@@ -879,7 +879,7 @@ def FAVOURITES_LAST_SEASON(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_favourites_last_season(page, format, prefix), 'tvshows')
 
@@ -906,7 +906,7 @@ def FAVOURITES_THIS_SEASON(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_favourites_this_season(page, format, prefix), 'tvshows')
 
@@ -933,7 +933,7 @@ def ALL_TIME_FAVOURITES(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_all_time_favourites(page, format, prefix), 'tvshows')
 
@@ -960,7 +960,7 @@ def TOP_100(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_top_100(page, format, prefix), 'tvshows')
 
@@ -988,7 +988,7 @@ def GENRES(payload, params):
     format = None
     base_key = plugin_url.split('/', 1)[0] + '//'
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     if genres or tags:
         prefix = plugin_url.split('/', 1)[0]
         control.draw_items(BROWSER.genres_payload(genres, tags, page, format, prefix), 'tvshows')
@@ -1037,7 +1037,7 @@ def GENRE_ACTION(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_action(page, format, prefix), 'tvshows')
 
@@ -1064,7 +1064,7 @@ def GENRE_ADVENTURE(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_adventure(page, format, prefix), 'tvshows')
 
@@ -1091,7 +1091,7 @@ def GENRE_COMEDY(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_comedy(page, format, prefix), 'tvshows')
 
@@ -1118,7 +1118,7 @@ def GENRE_DRAMA(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_drama(page, format, prefix), 'tvshows')
 
@@ -1145,7 +1145,7 @@ def GENRE_ECCHI(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_ecchi(page, format, prefix), 'tvshows')
 
@@ -1172,7 +1172,7 @@ def GENRE_FANTASY(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_fantasy(page, format, prefix), 'tvshows')
 
@@ -1199,7 +1199,7 @@ def GENRE_HENTAI(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_hentai(page, format, prefix), 'tvshows')
 
@@ -1226,7 +1226,7 @@ def GENRE_HORROR(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_horror(page, format, prefix), 'tvshows')
 
@@ -1253,7 +1253,7 @@ def GENRE_SHOUJO(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_shoujo(page, format, prefix), 'tvshows')
 
@@ -1280,7 +1280,7 @@ def GENRE_MECHA(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_mecha(page, format, prefix), 'tvshows')
 
@@ -1307,7 +1307,7 @@ def GENRE_MUSIC(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_music(page, format, prefix), 'tvshows')
 
@@ -1334,7 +1334,7 @@ def GENRE_MYSTERY(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_mystery(page, format, prefix), 'tvshows')
 
@@ -1361,7 +1361,7 @@ def GENRE_PSYCHOLOGICAL(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_psychological(page, format, prefix), 'tvshows')
 
@@ -1388,7 +1388,7 @@ def GENRE_ROMANCE(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_romance(page, format, prefix), 'tvshows')
 
@@ -1415,7 +1415,7 @@ def GENRE_SCI_FI(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_sci_fi(page, format, prefix), 'tvshows')
 
@@ -1442,7 +1442,7 @@ def GENRE_SLICE_OF_LIFE(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_slice_of_life(page, format, prefix), 'tvshows')
 
@@ -1469,7 +1469,7 @@ def GENRE_SPORTS(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_sports(page, format, prefix), 'tvshows')
 
@@ -1496,7 +1496,7 @@ def GENRE_SUPERNATURAL(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_supernatural(page, format, prefix), 'tvshows')
 
@@ -1523,7 +1523,7 @@ def GENRE_THRILLER(payload, params):
     format = None
     base_key = plugin_url.split('?', 1)[0]
     if base_key in mapping:
-        format = mapping[base_key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mapping[base_key][1]
+        format = mapping[base_key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mapping[base_key][1]
     prefix = plugin_url.split('?', 1)[0]
     control.draw_items(BROWSER.get_genre_thriller(page, format, prefix), 'tvshows')
 
@@ -1658,7 +1658,7 @@ def SEARCH(payload, params):
 
     for key in mappings:
         if plugin_url.startswith(key):
-            format = mappings[key][0] if control.settingids.browser_api in ['mal', 'otaku'] else mappings[key][1]
+            format = mappings[key][0] if control.getStr('browser.api') in ['mal', 'otaku'] else mappings[key][1]
             break
 
     query = payload

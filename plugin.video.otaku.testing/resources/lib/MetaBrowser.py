@@ -1,20 +1,40 @@
 import pickle
 
-from resources.lib.indexers import simkl, anizip, jikanmoe, kitsu, anidb, otaku
 from resources.lib.ui import control, database
 
-if control.settingids.browser_api == 'otaku':
-    from resources.lib.OtakuBrowser import OtakuBrowser
-    BROWSER = OtakuBrowser()
-elif control.settingids.browser_api == 'mal':
-    from resources.lib.MalBrowser import MalBrowser
-    BROWSER = MalBrowser()
-else:
-    from resources.lib.AniListBrowser import AniListBrowser
-    BROWSER = AniListBrowser()
+# Lazy browser initialization for improved startup performance
+_BROWSER_INSTANCE = None
+
+
+def _get_browser():
+    """Lazy-load browser instance on first access"""
+    global _BROWSER_INSTANCE
+    if _BROWSER_INSTANCE is None:
+        if control.getStr('browser.api') == 'otaku':
+            from resources.lib.OtakuBrowser import OtakuBrowser
+            _BROWSER_INSTANCE = OtakuBrowser()
+        elif control.getStr('browser.api') == 'mal':
+            from resources.lib.MalBrowser import MalBrowser
+            _BROWSER_INSTANCE = MalBrowser()
+        else:
+            from resources.lib.AniListBrowser import AniListBrowser
+            _BROWSER_INSTANCE = AniListBrowser()
+    return _BROWSER_INSTANCE
+
+
+# Backwards compatibility: BROWSER property that lazily initializes
+class _BrowserProxy:
+    """Proxy that provides attribute access to the lazily-loaded browser"""
+    def __getattribute__(self, name):
+        return getattr(_get_browser(), name)
+
+BROWSER = _BrowserProxy()
 
 
 def get_anime_init(mal_id):
+    # Lazy import indexers only when needed for episode data
+    from resources.lib.indexers import simkl, anizip, jikanmoe, kitsu, anidb, otaku
+
     show_meta = database.get_show_meta(mal_id)
     if not show_meta:
         BROWSER.get_anime(mal_id)

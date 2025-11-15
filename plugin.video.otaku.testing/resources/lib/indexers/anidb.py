@@ -194,7 +194,7 @@ class ANIDBAPI:
         if isinstance(clearlogo, list):
             clearlogo = random.choice(clearlogo) if clearlogo else ''
         tvshowtitle = kodi_meta['title_userPreferred']
-        if not (eps_watched := kodi_meta.get('eps_watched')) and control.settingids.watchlist_data:
+        if not (eps_watched := kodi_meta.get('eps_watched')) and control.getBool('interface.watchlist.data'):
             from resources.lib.WatchlistFlavor import WatchlistFlavor
             flavor = WatchlistFlavor.get_update_flavor()
             if flavor and flavor.flavor_name in control.enabled_watchlists():
