@@ -5,8 +5,8 @@ import service
 import json
 
 from resources.lib.ui import control, database
-from resources.lib.endpoints import aniskip, anime_skip
-from resources.lib import WatchlistIntegration, indexers
+# Lazy import endpoints and indexers - only import what's actually needed
+from resources.lib import WatchlistIntegration
 
 
 playList = control.playList
@@ -123,7 +123,11 @@ class WatchlistPlayer(player):
                 episode_count = airing_anime['current_episode']
                 self.episodes = self.episodes[:episode_count]
 
-        video_data = indexers.process_episodes(self.episodes, '') if self.episodes else []
+        if self.episodes:
+            from resources.lib import indexers
+            video_data = indexers.process_episodes(self.episodes, '')
+        else:
+            video_data = []
         playlist = control.bulk_dir_list(video_data, True)[self.episode:]
 
         for i, item in enumerate(playlist):
@@ -492,6 +496,7 @@ class WatchlistPlayer(player):
                         self.showSubtitles(True)
 
     def process_aniskip(self):
+        from resources.lib.endpoints import aniskip
         if self.skipintro_aniskip_enable and not self.skipintro_aniskip:
             skipintro_aniskip_res = aniskip.get_skip_times(self.mal_id, self.episode, 'op')
             if skipintro_aniskip_res:
@@ -509,6 +514,7 @@ class WatchlistPlayer(player):
                 self.skipoutro_aniskip = True
 
     def process_animeskip(self):
+        from resources.lib.endpoints import anime_skip
         show_meta = database.get_show_meta(self.mal_id)
         anilist_id = pickle.loads(show_meta['meta_ids'])['anilist_id']
 

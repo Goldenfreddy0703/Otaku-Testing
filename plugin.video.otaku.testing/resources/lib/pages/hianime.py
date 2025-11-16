@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup, SoupStrainer
 from resources.lib.ui import control, database, utils
 from resources.lib.ui.BrowserBase import BrowserBase
 from resources.lib.endpoints import malsync
-from resources.lib.ui.megacloud_extractor import extract_megacloud_sources
+# Lazy import extractor - only import when extracting sources
 
 
 class Sources(BrowserBase):
@@ -175,6 +175,7 @@ class Sources(BrowserBase):
             else:
                 srclink = False
                 try:
+                    from resources.lib.ui.megacloud_extractor import extract_megacloud_sources
                     res = extract_megacloud_sources(slink, self._BASE_URL)
                     if not res:
                         control.log(f"HiAnime: Failed to extract sources from {slink}")

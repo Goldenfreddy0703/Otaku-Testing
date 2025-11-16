@@ -1,9 +1,9 @@
 import re
 import threading
 
+# Lazy import debrid modules - only import what's actually needed
 from resources.lib.ui import source_utils, control
 from resources.lib.ui.BrowserBase import BrowserBase
-from resources.lib.debrid import real_debrid, premiumize, all_debrid, torbox
 
 
 class Sources(BrowserBase):
@@ -35,6 +35,7 @@ class Sources(BrowserBase):
         return self.cloud_files
 
     def rd_cloud_inspection(self, query, mal_id, episode, season=None):
+        from resources.lib.debrid import real_debrid
         api = real_debrid.RealDebrid()
         torrents = api.list_torrents()
         torrents = source_utils.filter_sources('realdebrid', torrents, mal_id, season, episode)
@@ -75,6 +76,7 @@ class Sources(BrowserBase):
             )
 
     def premiumize_cloud_inspection(self, query, mal_id, episode, season=None):
+        from resources.lib.debrid import premiumize
         cloud_items = premiumize.Premiumize().list_folder()
         cloud_items = source_utils.filter_sources('premiumize', cloud_items, mal_id, season, episode)
         filenames = [re.sub(r'\[.*?]\s*', '', i['name'].replace(',', '')) for i in cloud_items]
@@ -110,6 +112,7 @@ class Sources(BrowserBase):
             )
 
     def torbox_cloud_inspection(self, query, mal_id, episode, season=None):
+        from resources.lib.debrid import torbox
         cloud_items = torbox.TorBox().list_torrents()
         cloud_items = source_utils.filter_sources('torbox', cloud_items, mal_id, season, episode)
         filenames = [re.sub(r'\[.*?]\s*', '', i['name'].replace(',', '')) for i in cloud_items]
@@ -144,6 +147,7 @@ class Sources(BrowserBase):
             )
 
     def alldebrid_cloud_inspection(self, query, mal_id, episode, season=None):
+        from resources.lib.debrid import all_debrid
         api = all_debrid.AllDebrid()
         torrents = api.list_torrents()['links']
         torrents = source_utils.filter_sources('alldebrid', torrents, mal_id, season, episode)
