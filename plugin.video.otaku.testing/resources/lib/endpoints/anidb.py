@@ -1,4 +1,4 @@
-from resources.lib.ui import client, database
+from resources.lib.ui import database
 import xml.etree.ElementTree as ET
 
 api_info = database.get_info('AniDB')
@@ -14,6 +14,7 @@ params = {
 
 
 def get_episode_meta(anidb_id):
+    from resources.lib.ui import client
     params['aid'] = anidb_id
     r = client.get(base_url, params=params)
     episode_meta = {}

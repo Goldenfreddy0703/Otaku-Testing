@@ -3,10 +3,9 @@
 import xbmcgui
 import time
 
-from resources.lib import Main
 from resources.lib.ui import control
 from resources.lib.windows.anichart_window import BaseWindow
-from resources.lib import MetaBrowser, WatchlistIntegration
+from resources.lib import MetaBrowser
 
 BROWSER = MetaBrowser.BROWSER
 
@@ -143,10 +142,12 @@ class Anichart(BaseWindow):
                 control.draw_items(BROWSER.get_watch_order(anime), 'tvshows')
                 self.close()
             elif choice == "Delete From Database":
+                from resources.lib import Main
                 payload = f"some_path/{anime}/0"
                 params = {}
                 Main.DELETE_ANIME_DATABASE(payload, params)
             elif choice == "WatchList Manager":
+                from resources.lib import WatchlistIntegration
                 payload = f"some_path/{anime}/0"
                 params = {}
                 WatchlistIntegration.CONTEXT_MENU(payload, params)
@@ -194,6 +195,7 @@ class Anichart(BaseWindow):
         control.log(f"[ANICHART] Generated URL: {self.anime_path}", "info")
 
         # Show progress dialog for all actions
+        from resources.lib import Main
         control.progressDialog.create(control.ADDON_NAME, "Loading..")
         try:
             new_payload, new_params = control.get_payload_params(self.anime_path)

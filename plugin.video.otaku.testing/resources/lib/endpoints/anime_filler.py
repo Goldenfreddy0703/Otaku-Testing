@@ -1,12 +1,12 @@
 import re
 
 from bs4 import BeautifulSoup
-from resources.lib.ui import client
 
 url = "https://www.animefillerlist.com/shows"
 
 
 def get_data(anime_eng_title):
+    from resources.lib.ui import client
     filler_list = []
     if anime_eng_title:
         anime_url = re.sub(r'\W', '-', anime_eng_title)

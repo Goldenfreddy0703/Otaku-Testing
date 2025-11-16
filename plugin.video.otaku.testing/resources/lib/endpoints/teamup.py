@@ -2,7 +2,7 @@ import datetime
 import re
 import time
 
-from resources.lib.ui import client, database
+from resources.lib.ui import database
 
 api_info = database.get_info('Teamup')
 api_key = api_info['api_key']
@@ -12,6 +12,7 @@ api_url = "https://api.teamup.com"
 
 
 def get_dub_data(en_title):
+    from resources.lib.ui import client
     if en_title:
         # match first word or first two words (separated by {space} )
         regex = r'([^ ]+)' if '-' in en_title else r'([^ ]+) ?([^ ]+)?'

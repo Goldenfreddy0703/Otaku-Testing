@@ -1,7 +1,7 @@
-from resources.lib.ui import client
 
 
 def get_skip_times(mal_id, episodenum, skip_type):
+    from resources.lib.ui import client
     # skip_types = op, recap, mixed-ed, mixed-op, ed
     url = 'https://api.aniskip.com/v2/skip-times/%s/%d' % (mal_id, episodenum)
     params = {

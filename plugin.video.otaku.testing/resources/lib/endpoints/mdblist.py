@@ -3,7 +3,7 @@ MDBList API endpoint for fetching media ratings and information
 API Documentation: https://mdblist.docs.apiary.io/
 """
 
-from resources.lib.ui import client, database, control
+from resources.lib.ui import database, control
 
 
 class MDBListAPI:
@@ -34,6 +34,7 @@ class MDBListAPI:
             dict: Dictionary mapping MAL IDs to their ratings data
                   Format: {mal_id: {'mal': score, 'imdb': score, 'trakt': score, 'tmdb': score, 'score_average': score}}
         """
+        from resources.lib.ui import client
         if not self.api_key:
             control.log("MDBList API key not available", "warning")
             return {}
