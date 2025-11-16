@@ -24,7 +24,7 @@ import sys
 from resources.lib import MetaBrowser
 from resources.lib.ui import control, database, utils
 from resources.lib.ui.router import Route
-from resources.lib.WatchlistIntegration import add_watchlist
+# Lazy import WatchlistIntegration - only import when watchlist features are used
 
 BROWSER = MetaBrowser.BROWSER
 plugin_url = control.get_plugin_url(sys.argv[0])
@@ -2718,6 +2718,7 @@ def LIST_MENU(payload, params):
     MENU_ITEMS = get_menu_items('main')
 
     enabled_menu_items = []
+    from resources.lib.WatchlistIntegration import add_watchlist
     enabled_menu_items = add_watchlist(enabled_menu_items)
 
     # Retrieve the list from your settings list control
@@ -2787,6 +2788,7 @@ def MOVIES_MENU(payload, params):
     MOVIES_ITEMS = get_menu_items('movies')
 
     enabled_movies_items = []
+    from resources.lib.WatchlistIntegration import add_watchlist
     enabled_movies_items = add_watchlist(enabled_movies_items)
 
     # Retrieve the list from your settings list control
@@ -2856,6 +2858,7 @@ def TV_SHOWS_MENU(payload, params):
     TV_SHOWS_ITEMS = get_menu_items('tv_shows')
 
     enabled_tv_show_items = []
+    from resources.lib.WatchlistIntegration import add_watchlist
     enabled_tv_show_items = add_watchlist(enabled_tv_show_items)
 
     # Retrieve the list from your settings list control
@@ -2925,6 +2928,7 @@ def TV_SHORTS_MENU(payload, params):
     TV_SHORTS_ITEMS = get_menu_items('tv_shorts')
 
     enabled_tv_short_items = []
+    from resources.lib.WatchlistIntegration import add_watchlist
     enabled_tv_short_items = add_watchlist(enabled_tv_short_items)
 
     # Retrieve the list from your settings list control
@@ -2994,6 +2998,7 @@ def SPECIALS_MENU(payload, params):
     SPECIALS_ITEMS = get_menu_items('specials')
 
     enabled_special_items = []
+    from resources.lib.WatchlistIntegration import add_watchlist
     enabled_special_items = add_watchlist(enabled_special_items)
 
     # Retrieve the list from your settings list control
@@ -3063,6 +3068,7 @@ def OVAS_MENU(payload, params):
     OVAS_ITEMS = get_menu_items('ovas')
 
     enabled_ova_items = []
+    from resources.lib.WatchlistIntegration import add_watchlist
     enabled_ova_items = add_watchlist(enabled_ova_items)
 
     # Retrieve the list from your settings list control
@@ -3132,6 +3138,7 @@ def ONAS_MENU(payload, params):
     ONAS_ITEMS = get_menu_items('onas')
 
     enabled_ona_items = []
+    from resources.lib.WatchlistIntegration import add_watchlist
     enabled_ona_items = add_watchlist(enabled_ona_items)
 
     # Retrieve the list from your settings list control
@@ -3201,6 +3208,7 @@ def MUSIC_MENU(payload, params):
     MUSIC_ITEMS = get_menu_items('music')
 
     enabled_music_items = []
+    from resources.lib.WatchlistIntegration import add_watchlist
     enabled_music_items = add_watchlist(enabled_music_items)
 
     # Retrieve the list from your settings list control

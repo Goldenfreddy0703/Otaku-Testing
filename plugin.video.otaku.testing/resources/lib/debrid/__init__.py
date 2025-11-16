@@ -1,7 +1,7 @@
 import threading
 
 from copy import deepcopy
-from resources.lib.debrid import premiumize, torbox, easydebrid
+# Lazy import debrid modules - only import what's actually needed
 from resources.lib.ui import control
 
 
@@ -80,6 +80,7 @@ class Debrid:
     def premiumize_worker(self, torrent_list):
         hash_list = [i['hash'] for i in torrent_list]
         if len(hash_list) > 0:
+            from resources.lib.debrid import premiumize
             premiumizeCache = premiumize.Premiumize().hash_check(hash_list)
             premiumizeCache = premiumizeCache['response']
 
@@ -93,6 +94,7 @@ class Debrid:
     def torbox_worker(self, torrent_list):
         hash_list = [i['hash'] for i in torrent_list]
         if len(hash_list) > 0:
+            from resources.lib.debrid import torbox
             cache_check = [i['hash'] for i in torbox.TorBox().hash_check(hash_list)]
             for torrent in torrent_list:
                 torrent['debrid_provider'] = 'TorBox'
@@ -105,6 +107,7 @@ class Debrid:
         # Prepend the magnet prefix to each hash within torrent_list
         hash_list = ["magnet:?xt=urn:btih:" + i['hash'] for i in torrent_list]
         if len(hash_list) > 0:
+            from resources.lib.debrid import easydebrid
             response = easydebrid.EasyDebrid().lookup_link(hash_list)
             cached_flags = response.get("cached", [])
             for torrent, is_cached in zip(torrent_list, cached_flags):

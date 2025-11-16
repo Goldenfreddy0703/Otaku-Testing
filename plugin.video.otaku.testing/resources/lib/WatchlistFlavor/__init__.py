@@ -1,5 +1,5 @@
 from resources.lib.ui import control
-from resources.lib.WatchlistFlavor import AniList, Kitsu, MyAnimeList, Simkl  # noQA
+# Lazy import watchlist flavors - only import what's actually needed
 from resources.lib.WatchlistFlavor.WatchlistFlavorBase import WatchlistFlavorBase
 
 
@@ -52,6 +52,8 @@ class WatchlistFlavor:
 
     @staticmethod
     def __get_flavor_class(name):
+        # Lazy import watchlist flavors only when needed
+        from resources.lib.WatchlistFlavor import AniList, Kitsu, MyAnimeList, Simkl  # noQA
         for flav in WatchlistFlavorBase.__subclasses__():
             if flav.name() == name:
                 return flav
