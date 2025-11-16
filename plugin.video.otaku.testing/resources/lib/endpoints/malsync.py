@@ -1,9 +1,9 @@
-from resources.lib.ui import client
 
 baseUrl = 'https://api.malsync.moe'
 
 
 def get_slugs(mal_id, site=''):
+    from resources.lib.ui import client
     slugs = []
     if site in ['Gogoanime', 'Zoro', 'animepahe']:
         response = client.get(f'{baseUrl}/mal/anime/{mal_id}')
@@ -16,6 +16,7 @@ def get_slugs(mal_id, site=''):
 
 
 def get_title(mal_id, site=''):
+    from resources.lib.ui import client
     if site in ['Gogoanime', 'Zoro', 'animepahe']:
         response = client.get(f'{baseUrl}/mal/anime/{mal_id}')
         if response:

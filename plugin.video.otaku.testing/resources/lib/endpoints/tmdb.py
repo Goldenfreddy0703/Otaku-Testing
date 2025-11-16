@@ -1,4 +1,4 @@
-from resources.lib.ui import client, database
+from resources.lib.ui import database
 
 api_info = database.get_info('TMDB')
 apiKey = api_info['api_key']
@@ -8,6 +8,7 @@ backgroundPath = "https://image.tmdb.org/t/p/original"
 
 
 def getArt(meta_ids, mtype, limit=None):
+    from resources.lib.ui import client
     art = {}
     mid = meta_ids.get('themoviedb_id')
     if mid is None:
