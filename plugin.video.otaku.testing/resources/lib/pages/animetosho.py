@@ -7,8 +7,7 @@ from bs4 import BeautifulSoup
 from resources.lib.ui.BrowserBase import BrowserBase
 from resources.lib.ui import database, source_utils, client, control, utils
 from resources.lib.debrid import Debrid
-from resources.lib.indexers.simkl import SIMKLAPI
-from resources.lib.endpoints import anidb
+# Lazy import indexers and endpoints - only import what's actually needed
 
 
 class Sources(BrowserBase):
@@ -59,6 +58,7 @@ class Sources(BrowserBase):
             meta_ids = pickle.loads(show_meta['meta_ids'])
             self.anidb_id = meta_ids.get('anidb_id')
             if not self.anidb_id:
+                from resources.lib.indexers.simkl import SIMKLAPI
                 ids = SIMKLAPI().get_mapping_ids_from_simkl(mal_id, 'mal_id')
                 if ids:
                     self.anidb_id = meta_ids['anidb_id'] = ids['anidb']
@@ -68,6 +68,7 @@ class Sources(BrowserBase):
             if episode_meta:
                 self.anidb_ep_id = episode_meta.get('anidb_ep_id')
             if not self.anidb_ep_id:
+                from resources.lib.endpoints import anidb
                 anidb_meta = anidb.get_episode_meta(self.anidb_id)
                 anidb_meta = {x: v for x, v in anidb_meta.items() if x.isdigit()}
                 for anidb_ep in anidb_meta:
@@ -171,6 +172,7 @@ class Sources(BrowserBase):
             meta_ids = pickle.loads(show_meta['meta_ids'])
             self.anidb_id = meta_ids.get('anidb_id')
             if not self.anidb_id:
+                from resources.lib.indexers.simkl import SIMKLAPI
                 ids = SIMKLAPI().get_mapping_ids_from_simkl(mal_id, 'mal_id')
                 if ids:
                     self.anidb_id = meta_ids['anidb_id'] = ids['anidb']
@@ -196,6 +198,7 @@ class Sources(BrowserBase):
             meta_ids = pickle.loads(show_meta['meta_ids'])
             self.anidb_id = meta_ids.get('anidb_id')
             if not self.anidb_id:
+                from resources.lib.indexers.simkl import SIMKLAPI
                 ids = SIMKLAPI().get_mapping_ids_from_simkl(mal_id, 'mal_id')
                 if ids:
                     self.anidb_id = meta_ids['anidb_id'] = ids['anidb']

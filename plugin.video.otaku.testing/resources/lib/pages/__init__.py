@@ -1,7 +1,7 @@
 import threading
 import time
 
-from resources.lib.pages import nyaa, animetosho, debrid_cloudfiles, animixplay, aniwave, animepahe, hianime, watchnixtoons2, localfiles
+# Lazy import indexers - only import what's actually needed
 from resources.lib.ui import control, database
 from resources.lib.windows.get_sources_window import GetSources
 from resources.lib.windows import sort_select
@@ -207,6 +207,7 @@ class Sources(GetSources):
 
     # Torrents #
     def nyaa_worker(self, query, mal_id, episode, status, media_type, rescrape):
+        from resources.lib.pages import nyaa
         if rescrape:
             all_sources = nyaa.Sources().get_sources(query, mal_id, episode, status, media_type)
         else:
@@ -222,6 +223,7 @@ class Sources(GetSources):
         self.remainingProviders.remove('nyaa')
 
     def animetosho_worker(self, query, mal_id, episode, status, media_type, rescrape):
+        from resources.lib.pages import animetosho
         if rescrape:
             all_sources = animetosho.Sources().get_sources(query, mal_id, episode, status, media_type)
         else:
@@ -238,6 +240,7 @@ class Sources(GetSources):
 
     # embeds #
     def animepahe_worker(self, mal_id, episode, rescrape):
+        from resources.lib.pages import animepahe
         if rescrape:
             self.embedSources += animepahe.Sources().get_sources(mal_id, episode)
         else:
@@ -245,6 +248,7 @@ class Sources(GetSources):
         self.remainingProviders.remove('animepahe')
 
     def animix_worker(self, mal_id, episode, rescrape):
+        from resources.lib.pages import animixplay
         if rescrape:
             self.embedSources += animixplay.Sources().get_sources(mal_id, episode)
         else:
@@ -252,6 +256,7 @@ class Sources(GetSources):
         self.remainingProviders.remove('animix')
 
     def aniwave_worker(self, mal_id, episode, rescrape):
+        from resources.lib.pages import aniwave
         if rescrape:
             aniwave_sources = aniwave.Sources().get_sources(mal_id, episode)
         else:
@@ -275,6 +280,7 @@ class Sources(GetSources):
     #     self.remainingProviders.remove('gogo')
 
     def hianime_worker(self, mal_id, episode, rescrape):
+        from resources.lib.pages import hianime
         if rescrape:
             hianime_sources = hianime.Sources().get_sources(mal_id, episode)
         else:
@@ -291,6 +297,7 @@ class Sources(GetSources):
         self.remainingProviders.remove('hianime')
 
     def watchnixtoons2_worker(self, mal_id, episode, media_type, rescrape):
+        from resources.lib.pages import watchnixtoons2
         if rescrape:
             self.embedSources += watchnixtoons2.Sources().get_sources(mal_id, episode, media_type)
         else:
@@ -299,12 +306,14 @@ class Sources(GetSources):
 
     # Local & Cloud #
     def user_local_inspection(self, query, mal_id, episode):
+        from resources.lib.pages import localfiles
         episode_data = database.get_episode(mal_id)
         season = episode_data.get('season') if episode_data else None
         self.local_files += localfiles.Sources().get_sources(query, mal_id, episode, season)
         self.remainingProviders.remove('Local Inspection')
 
     def user_cloud_inspection(self, query, mal_id, episode):
+        from resources.lib.pages import debrid_cloudfiles
         episode_data = database.get_episode(mal_id)
         season = episode_data.get('season') if episode_data else None
         self.cloud_files += debrid_cloudfiles.Sources().get_sources(query, mal_id, episode, season)

@@ -1,11 +1,9 @@
 import pickle
 import xbmcgui
 
+# Lazy import modules - only import what's actually needed
 from resources.lib.ui import control, database
 from resources.lib.windows.base_window import BaseWindow
-from resources.lib.windows.download_manager import Manager
-from resources.lib.windows.resolver import Resolver
-from resources.lib import MetaBrowser
 
 
 class SourceSelect(BaseWindow):
@@ -25,6 +23,7 @@ class SourceSelect(BaseWindow):
 
         # Set properties for the selected episode
         if episode:
+            from resources.lib import MetaBrowser
             anime_init = MetaBrowser.get_anime_init(actionArgs.get('mal_id'))
             episode = int(episode)
             try:
@@ -158,6 +157,8 @@ class SourceSelect(BaseWindow):
                 elif self.displayed_sources[self.position]['debrid_provider'] == 'EasyDebrid':
                     control.notify(control.ADDON_NAME, "EasyDebrid does not support Downloads")
                 else:
+                    from resources.lib.windows.resolver import Resolver
+                    from resources.lib.windows.download_manager import Manager
                     self.close()
                     source = [self.displayed_sources[self.display_list.getSelectedPosition()]]
                     self.actionArgs['play'] = False
@@ -175,6 +176,7 @@ class SourceSelect(BaseWindow):
                     self.resolve_item(True)
 
     def resolve_item(self, pack_select=False):
+        from resources.lib.windows.resolver import Resolver
         if control.getBool('general.autotrynext') and not pack_select:
             sources = self.displayed_sources[self.position:]
         else:

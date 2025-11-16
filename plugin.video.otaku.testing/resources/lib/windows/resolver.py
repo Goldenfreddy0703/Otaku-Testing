@@ -4,7 +4,7 @@ import xbmc
 import urllib.parse
 
 from resources.lib.WatchlistIntegration import watchlist_update_episode
-from resources.lib.debrid import all_debrid, debrid_link, premiumize, real_debrid, torbox, easydebrid
+# Lazy import debrid modules - only import what's actually needed
 from resources.lib.ui import client, control, source_utils, player
 from resources.lib.windows.base_window import BaseWindow
 
@@ -41,14 +41,8 @@ class Resolver(BaseWindow):
         self.sources = None
         self.args = None
         self.image = {}
-        self.resolvers = {
-            'Alldebrid': all_debrid.AllDebrid,
-            'Debrid-Link': debrid_link.DebridLink,
-            'Premiumize': premiumize.Premiumize,
-            'Real-Debrid': real_debrid.RealDebrid,
-            'TorBox': torbox.TorBox,
-            'EasyDebrid': easydebrid.EasyDebrid
-        }
+        # Lazy resolver mapping - imports modules only when accessed
+        self.resolvers = {}
         self.source_select = source_select
         self.pack_select = False
         self.mal_id = actionArgs['mal_id']
@@ -70,6 +64,29 @@ class Resolver(BaseWindow):
 
         # if self.source_select:
         #     control.setSetting('last_played_source', str(None))
+
+    def _get_resolver_class(self, debrid_provider):
+        """Lazy load debrid resolver class only when needed"""
+        if debrid_provider not in self.resolvers:
+            if debrid_provider == 'Alldebrid':
+                from resources.lib.debrid import all_debrid
+                self.resolvers[debrid_provider] = all_debrid.AllDebrid
+            elif debrid_provider == 'Debrid-Link':
+                from resources.lib.debrid import debrid_link
+                self.resolvers[debrid_provider] = debrid_link.DebridLink
+            elif debrid_provider == 'Premiumize':
+                from resources.lib.debrid import premiumize
+                self.resolvers[debrid_provider] = premiumize.Premiumize
+            elif debrid_provider == 'Real-Debrid':
+                from resources.lib.debrid import real_debrid
+                self.resolvers[debrid_provider] = real_debrid.RealDebrid
+            elif debrid_provider == 'TorBox':
+                from resources.lib.debrid import torbox
+                self.resolvers[debrid_provider] = torbox.TorBox
+            elif debrid_provider == 'EasyDebrid':
+                from resources.lib.debrid import easydebrid
+                self.resolvers[debrid_provider] = easydebrid.EasyDebrid
+        return self.resolvers.get(debrid_provider)
 
     def onInit(self):
         self.sources = self.reorder_sources(self.sources)
@@ -144,7 +161,7 @@ class Resolver(BaseWindow):
                 if i['type'] == 'cloud' and i['debrid_provider'] == 'Alldebrid':
                     stream_link = i['hash']
                 else:
-                    stream_link = self.resolve_source(self.resolvers[i['debrid_provider']], i)
+                    stream_link = self.resolve_source(i['debrid_provider'], i)
                 if stream_link:
                     self.return_data['link'] = stream_link
                     break
@@ -297,10 +314,13 @@ class Resolver(BaseWindow):
                 'tvshow.poster': self.image.get('poster') or self.params.get('poster') or '',
             }
 
-    def resolve_source(self, api, source):
+    def resolve_source(self, debrid_provider, source):
         """Improved resolve_source with better error handling for Premiumize"""
         try:
-            api = api()
+            resolver_class = self._get_resolver_class(debrid_provider)
+            if not resolver_class:
+                return None
+            api = resolver_class()
             hash_ = source['hash']
             magnet = f"magnet:?xt=urn:btih:{hash_}"
             stream_link = {}
@@ -362,7 +382,10 @@ class Resolver(BaseWindow):
     def resolve_uncache(self, source):
         heading = f'{control.ADDON_NAME}: Cache Resolver'
         status = None
-        api = self.resolvers[source['debrid_provider']]()
+        resolver_class = self._get_resolver_class(source['debrid_provider'])
+        if not resolver_class:
+            return None
+        api = resolver_class()
         f_string = (f"[I]{source['release_title']}[/I][CR]"
                     f"[CR]"
                     f"This source is not cached. Would you like to cache it now?")
