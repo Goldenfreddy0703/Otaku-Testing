@@ -32,9 +32,7 @@ BROWSER = _BrowserProxy()
 
 
 def get_anime_init(mal_id):
-    # Lazy import indexers only when needed for episode data
-    from resources.lib.indexers import simkl, anizip, jikanmoe, kitsu, anidb, otaku
-
+    # Lazy import indexers - only import what's actually needed
     show_meta = database.get_show_meta(mal_id)
     if not show_meta:
         BROWSER.get_anime(mal_id)
@@ -43,29 +41,43 @@ def get_anime_init(mal_id):
             return [], 'episodes'
 
     if control.getBool('override.meta.api'):
+        # Import only the specified indexer when override is enabled
         meta_api = control.getSetting('meta.api')
         if meta_api == 'simkl':
+            from resources.lib.indexers import simkl
             data = simkl.SIMKLAPI().get_episodes(mal_id, show_meta)
         elif meta_api == 'anizip':
+            from resources.lib.indexers import anizip
             data = anizip.ANIZIPAPI().get_episodes(mal_id, show_meta)
         elif meta_api == 'jikanmoe':
+            from resources.lib.indexers import jikanmoe
             data = jikanmoe.JikanAPI().get_episodes(mal_id, show_meta)
         elif meta_api == 'anidb':
+            from resources.lib.indexers import anidb
             data = anidb.ANIDBAPI().get_episodes(mal_id, show_meta)
         elif meta_api == 'kitsu':
+            from resources.lib.indexers import kitsu
             data = kitsu.KitsuAPI().get_episodes(mal_id, show_meta)
         elif meta_api == 'otaku':
+            from resources.lib.indexers import otaku
             data = otaku.OtakuAPI().get_episodes(mal_id, show_meta)
-
+        else:
+            data = None
     else:
+        # Fallback chain - import indexers one by one as needed
+        from resources.lib.indexers import simkl
         data = simkl.SIMKLAPI().get_episodes(mal_id, show_meta)
         if not data:
+            from resources.lib.indexers import anizip
             data = anizip.ANIZIPAPI().get_episodes(mal_id, show_meta)
         if not data:
+            from resources.lib.indexers import jikanmoe
             data = jikanmoe.JikanAPI().get_episodes(mal_id, show_meta)
         if not data:
+            from resources.lib.indexers import anidb
             data = anidb.ANIDBAPI().get_episodes(mal_id, show_meta)
         if not data:
+            from resources.lib.indexers import kitsu
             data = kitsu.KitsuAPI().get_episodes(mal_id, show_meta)
         if not data:
             data = []
