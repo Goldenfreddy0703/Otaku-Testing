@@ -96,7 +96,7 @@ def add_watch_history(items):
 
         if recent_history:
             # Add a "Watch History" menu item that shows recent watches
-            history_title = "%s[I]%s[/I]" % (control.lang(30001), "Watch History")  # You may need to add this lang string
+            history_title = control.lang(30068)
 
             # Use a generic anime icon or create a custom one for history
             history_info = {

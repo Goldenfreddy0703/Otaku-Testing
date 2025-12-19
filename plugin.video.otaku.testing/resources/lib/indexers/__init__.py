@@ -56,6 +56,33 @@ def get_diff(episodes_0):
     return update_time, diff
 
 
+def should_hide_unaired_episode(aired_date_str):
+    """
+    Check if an episode should be hidden based on aired date and interface.aired_episodes setting.
+    Returns True if episode is unaired and should be hidden, False otherwise.
+    """
+    import datetime
+    if not control.getBool('interface.aired_episodes'):
+        return False
+    
+    if not aired_date_str:
+        return False
+    
+    try:
+        # Parse the aired date with fallback for compatibility
+        try:
+            aired_date = datetime.datetime.strptime(aired_date_str[:10], '%Y-%m-%d')
+        except:
+            import time
+            aired_date = datetime.datetime.fromtimestamp(time.mktime(time.strptime(aired_date_str[:10], '%Y-%m-%d')))
+        
+        today = datetime.datetime.now()
+        return aired_date > today
+    except (ValueError, TypeError, AttributeError, Exception):
+        # If date parsing fails, show the episode anyway
+        return False
+
+
 def update_database(mal_id, update_time, res, url, image, info, season, episode, episodes, title, fanart, poster, clearart, clearlogo, dub_data, filler, anidb_ep_id=None):
     code = endpoints.get_second_label(info, dub_data)
     if not code and control.getBool('jz.filler'):

@@ -96,6 +96,11 @@
 					<default>false</default>
 					<control type="toggle"/>
 				</setting>
+				<setting id="interface.aired_episodes" type="boolean" label="30448" help="">
+					<level>0</level>
+					<default>false</default>
+					<control type="toggle"/>
+				</setting>
 				<setting id="interface.content_type" type="boolean" label="30387" help="30388">
 					<level>0</level>
 					<default>false</default>

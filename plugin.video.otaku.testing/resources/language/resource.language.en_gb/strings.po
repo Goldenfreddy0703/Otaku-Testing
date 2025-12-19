@@ -1824,3 +1824,7 @@ msgstr ""
 msgctxt "#30447"
 msgid "Choose Items to Filter..."
 msgstr ""
+
+msgctxt "#30448"
+msgid "Hide Unaired Episodes"
+msgstr ""
