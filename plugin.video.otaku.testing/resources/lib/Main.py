@@ -1797,6 +1797,8 @@ def PLAY_MOVIE(payload, params):
     # Populate params with movie metadata from database if not already present
     # This ensures metadata is available even when playing from Information dialog
     if not params.get('name'):
+        from resources.lib.OtakuBrowser import OtakuBrowser
+        OtakuBrowser().get_anime_data(mal_id)
         anime_meta = database.get_show_meta(mal_id)
         anime_data = database.get_show(mal_id)
         kodi_meta = pickle.loads(anime_data['kodi_meta'])

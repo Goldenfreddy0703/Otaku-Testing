@@ -1828,3 +1828,11 @@ msgstr ""
 msgctxt "#30448"
 msgid "Hide Unaired Episodes"
 msgstr ""
+
+msgctxt "#30449"
+msgid "Enable Watchlist Paging"
+msgstr ""
+
+msgctxt "#30450"
+msgid "Prefetch Watchlist on Startup"
+msgstr ""
