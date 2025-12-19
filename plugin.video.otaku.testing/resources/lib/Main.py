@@ -38,6 +38,13 @@ def add_last_watched(items):
     mal_id = control.getSetting("addon.last_watched")
     try:
         kodi_meta = pickle.loads(database.get_show(mal_id)['kodi_meta'])
+        
+        # Get extended artwork from shows_meta table
+        show_meta = database.get_show_meta(mal_id)
+        art = {}
+        if show_meta and show_meta.get('art'):
+            art = pickle.loads(show_meta['art'])
+        
         last_watched = "%s[I]%s[/I]" % (control.lang(30000), kodi_meta['title_userPreferred'])
         info = {
             'UniqueIDs': {
@@ -69,8 +76,19 @@ def add_last_watched(items):
         else:
             url = f'animes/{mal_id}/'
 
+        # Merge artwork from shows_meta into kodi_meta for the tuple
+        # This way the menu processing code can access the extended artwork
+        artwork_meta = dict(kodi_meta)
+        artwork_meta['poster'] = art.get('poster') or kodi_meta.get('poster', '')
+        artwork_meta['fanart'] = art.get('fanart', '')
+        artwork_meta['thumb'] = art.get('thumb', '')
+        artwork_meta['banner'] = art.get('banner', '')
+        artwork_meta['clearlogo'] = art.get('clearlogo', '')
+        artwork_meta['clearart'] = art.get('clearart', '')
+        artwork_meta['landscape'] = art.get('landscape', '')
+
         # Return tuple with special marker for last_watched items
-        items.append(('LAST_WATCHED_ITEM', last_watched, url, kodi_meta.get('poster', ''), info, kodi_meta))
+        items.append(('LAST_WATCHED_ITEM', last_watched, url, artwork_meta.get('poster', ''), info, artwork_meta))
 
     except TypeError:
         pass
@@ -133,6 +151,12 @@ def save_to_watch_history(mal_id):
 
         kodi_meta = pickle.loads(anime_data['kodi_meta'])
 
+        # Get extended artwork from shows_meta table
+        show_meta = database.get_show_meta(mal_id)
+        art = {}
+        if show_meta and show_meta.get('art'):
+            art = pickle.loads(show_meta['art'])
+
         # Create history entry with the same info as add_last_watched
         history_entry = {
             'UniqueIDs': {
@@ -154,16 +178,16 @@ def save_to_watch_history(mal_id):
             'year': kodi_meta.get('year', ''),
             'premiered': kodi_meta.get('premiered', ''),
             'episodes': kodi_meta.get('episodes', 0),
-            # Artwork
-            'poster': kodi_meta.get('poster', ''),
-            'tvshow.poster': kodi_meta.get('poster', ''),
-            'icon': kodi_meta.get('poster', ''),
-            'thumb': kodi_meta.get('thumb', ''),
-            'fanart': kodi_meta.get('fanart', ''),
-            'landscape': kodi_meta.get('landscape', ''),
-            'banner': kodi_meta.get('banner', ''),
-            'clearart': kodi_meta.get('clearart', ''),
-            'clearlogo': kodi_meta.get('clearlogo', '')
+            # Artwork - use art dict from shows_meta, fallback to kodi_meta
+            'poster': art.get('poster') or kodi_meta.get('poster', ''),
+            'tvshow.poster': art.get('poster') or kodi_meta.get('poster', ''),
+            'icon': art.get('poster') or kodi_meta.get('poster', ''),
+            'thumb': art.get('thumb', ''),
+            'fanart': art.get('fanart', ''),
+            'landscape': art.get('landscape', ''),
+            'banner': art.get('banner', ''),
+            'clearart': art.get('clearart', ''),
+            'clearlogo': art.get('clearlogo', '')
         }
 
         # Remove any existing entry for this anime to avoid duplicates
@@ -246,17 +270,30 @@ def WATCH_HISTORY(payload, params):
                 }
 
                 # Build the base item like MalBrowser does
+                import random
+                
+                # Handle fanart (may be a list)
+                fanart = entry.get('fanart', '')
+                if isinstance(fanart, list) and fanart:
+                    fanart = random.choice(fanart)
+                
+                # Handle banner with fallback to poster
+                banner = entry.get('banner', '')
+                if isinstance(banner, list) and banner:
+                    banner = random.choice(banner)
+                if not banner:
+                    banner = entry.get('poster', '')
+                
                 base = {
                     'name': title,
                     'url': f'animes/{mal_id}/',
                     'image': entry.get('poster', ''),
                     'poster': entry.get('poster', ''),
-                    'fanart': entry.get('fanart', ''),
-                    'banner': entry.get('poster', ''),  # Use poster as fallback for banner
+                    'fanart': fanart,
+                    'banner': banner,
                     'info': info
                 }
 
-                import random
                 if entry.get('thumb'):
                     thumb = entry['thumb']
                     base['landscape'] = random.choice(thumb) if isinstance(thumb, list) else thumb
