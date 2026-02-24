@@ -284,7 +284,7 @@ def apply_migration_settings():
             # Yes selected
             if choice == 1:
                 control.setBool('first_time', False)
-                control.execute('RunPlugin(plugin://plugin.video.otaku/setup_wizard)')
+                control.execute('RunPlugin(plugin://plugin.video.otaku.testing/setup_wizard)')
 
             # No selected
             elif choice == 0:
