@@ -28,6 +28,20 @@ class KitsuWLF(WatchlistFlavorBase):
         }
         return headers
 
+    def get_last_activity_timestamp(self):
+        """Check Kitsu user profile's updatedAt to detect remote changes."""
+        r = client.get(
+            f'{self._URL}/edge/users/{self.user_id}',
+            headers=self.__headers(),
+            params={'fields[users]': 'updatedAt,statsData'}
+        )
+        if not r:
+            return None
+        data = r.json()
+        user_data = data.get('data', {}).get('attributes', {})
+        updated_at = user_data.get('updatedAt', '')
+        return updated_at if updated_at else None
+
     def login(self):
         params = {
             "grant_type": "password",
@@ -123,6 +137,9 @@ class KitsuWLF(WatchlistFlavorBase):
         return actions
 
     def get_watchlist_status(self, status, next_up, offset, page, cache_only=False):
+        # Check for remote changes before using cache
+        self._should_refresh_cache()
+
         from resources.lib.ui.database import (
             get_watchlist_cache, save_watchlist_cache,
             is_watchlist_cache_valid, get_watchlist_cache_count
@@ -483,10 +500,7 @@ class KitsuWLF(WatchlistFlavorBase):
 
         # Duration
         duration = None
-        try:
-            duration = eres['attributes']['episodeLength'] * 60
-        except TypeError:
-            pass
+        duration = control.safe_call(lambda: eres['attributes']['episodeLength'] * 60)
         if not duration and anilist_res and anilist_res.get('duration'):
             duration = anilist_res.get('duration') * 60 if isinstance(anilist_res.get('duration'), int) else anilist_res.get('duration')
 
@@ -670,9 +684,8 @@ class KitsuWLF(WatchlistFlavorBase):
         }
         result = client.get(f'{self._URL}/edge/library-entries', headers=self.__headers(), params=params)
         result = result.json() if result else {}
-        try:
-            item_dict = result['data'][0]['attributes']
-        except (IndexError, KeyError):
+        item_dict = control.safe_call(lambda: result['data'][0]['attributes'])
+        if not item_dict:
             return {}
 
         # Get total episodes from included anime data

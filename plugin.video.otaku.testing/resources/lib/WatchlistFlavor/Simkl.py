@@ -98,6 +98,9 @@ class SimklWLF(WatchlistFlavorBase):
         return [utils.allocate_item(name, f'{base_url}?page={next_page}', True, False, [], 'next.png', {'plot': name}, fanart='next.png')]
 
     def get_watchlist_status(self, status, next_up, offset, page, cache_only=False):
+        # Check for remote changes before using cache
+        self._should_refresh_cache()
+
         # Handle Next Up separately - it needs special episode-level processing
         if next_up and not cache_only:
             return self._get_next_up_episodes(status, offset, page)
@@ -577,6 +580,24 @@ class SimklWLF(WatchlistFlavorBase):
         r = client.get(f'{self._URL}/sync/all-items/anime/{status}', headers=self.__headers(), params=params)
         return r.json() if r else {}
 
+    def get_last_activity_timestamp(self):
+        """Check Simkl's /sync/activities endpoint for the latest anime list activity."""
+        r = client.get(f'{self._URL}/sync/activities', headers=self.__headers())
+        if not r:
+            return None
+        data = r.json()
+        anime = data.get('anime', {})
+        # Collect all activity timestamps and return the most recent
+        timestamps = [
+            anime.get('all', ''),
+            anime.get('rated_at', ''),
+            anime.get('watchlist', ''),
+            anime.get('collected_at', ''),
+            anime.get('dropped_at', ''),
+        ]
+        timestamps = [t for t in timestamps if t]
+        return max(timestamps) if timestamps else None
+
     def update_list_status(self, mal_id, status):
         from resources.lib.ui.database import clear_watchlist_cache
         data = {
@@ -604,7 +625,7 @@ class SimklWLF(WatchlistFlavorBase):
                 "ids": {
                     "mal": mal_id
                 },
-                "episodes": [{'number': i} for i in range(1, int(episode) + 1)]
+                "episodes": [{'number': int(episode)}]
             }]
         }
         r = client.post(f'{self._URL}/sync/history', headers=self.__headers(), json_data=data)

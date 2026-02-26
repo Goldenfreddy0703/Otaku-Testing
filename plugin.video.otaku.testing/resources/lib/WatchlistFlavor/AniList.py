@@ -20,6 +20,30 @@ class AniListWLF(WatchlistFlavorBase):
         }
         return headers
 
+    def get_last_activity_timestamp(self):
+        """Check AniList Viewer's updatedAt timestamp to detect remote changes."""
+        query = '''
+        query {
+            Viewer {
+                updatedAt
+                statistics {
+                    anime {
+                        count
+                    }
+                }
+            }
+        }
+        '''
+        r = client.post(self._URL, headers=self.__headers(), json_data={'query': query})
+        if not r:
+            return None
+        data = r.json()
+        viewer = data.get('data', {}).get('Viewer', {})
+        updated_at = viewer.get('updatedAt', '')
+        anime_count = viewer.get('statistics', {}).get('anime', {}).get('count', 0)
+        # Combine timestamp and count so both deletions and updates trigger refresh
+        return f"{updated_at}_{anime_count}"
+
     def login(self):
         query = '''
         query ($name: String) {
@@ -180,6 +204,9 @@ class AniListWLF(WatchlistFlavorBase):
         return [utils.allocate_item(name, f'{base_url}?page={next_page}', True, False, [], 'next.png', {'plot': name}, fanart='next.png')]
 
     def process_status_view(self, query, variables, next_up, status, offset, page, cache_only=False):
+        # Check for remote changes before using cache
+        self._should_refresh_cache()
+
         # Handle Next Up separately - it needs special episode-level processing
         if next_up and not cache_only:
             return self._get_next_up_episodes(query, variables, status, offset, page)
@@ -466,10 +493,7 @@ class AniListWLF(WatchlistFlavorBase):
         if res['episodes'] != 0 and progress == res['episodes']:
             info['playcount'] = 1
 
-        try:
-            info['duration'] = res.get('duration') * 60
-        except TypeError:
-            pass
+        info['duration'] = control.safe_call(lambda: res.get('duration') * 60)
 
         try:
             if res['trailer']['site'] == 'youtube':
@@ -479,10 +503,7 @@ class AniListWLF(WatchlistFlavorBase):
         except TypeError:
             pass
 
-        try:
-            info['rating'] = {'score': res.get('averageScore') / 10.0}
-        except TypeError:
-            pass
+        info['rating'] = control.safe_call(lambda: {'score': res.get('averageScore') / 10.0})
 
         desc = res.get('description')
         if desc:
