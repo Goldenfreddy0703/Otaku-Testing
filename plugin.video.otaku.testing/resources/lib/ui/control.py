@@ -9,6 +9,7 @@ import sys
 import json
 import shutil
 
+from concurrent.futures import ThreadPoolExecutor
 from urllib import parse
 
 # Session-based cache for artwork selections to avoid repeated random.choice() calls
@@ -549,7 +550,11 @@ def draw_items(video_data, content_type=''):
 
     # move to episode position currently watching
     if content_type == "episodes" and getBool('general.smart.scroll.enable'):
-        xbmc.sleep(500)  # Delay to ensure episode list is fully rendered before trying to scroll
+        # Wait until the container has files (max ~750ms) instead of a fixed delay
+        for _ in range(15):
+            if xbmc.getCondVisibility("Container.HasFiles"):
+                break
+            xbmc.sleep(50)
         try:
             num_watched = int(xbmc.getInfoLabel("Container.TotalWatched"))
             total_ep = int(xbmc.getInfoLabel('Container(id).NumItems'))
@@ -569,7 +574,12 @@ def draw_items(video_data, content_type=''):
 
 
 def bulk_dir_list(video_data, bulk_add=True):
-    return [xbmc_add_dir(vid['name'], vid['url'], vid['image'], vid['info'], vid['cm'], bulk_add, vid['isfolder'], vid['isplayable']) for vid in video_data if vid]
+    with ThreadPoolExecutor(max_workers=15) as executor:
+        list_items = list(executor.map(
+            lambda x: xbmc_add_dir(x['name'], x['url'], x['image'], x['info'], x['cm'], bulk_add, x['isfolder'], x['isplayable']),
+            [v for v in video_data if v]
+        ))
+    return list_items
 
 
 def get_view_type(viewtype):

@@ -1,3 +1,17 @@
+Changelog v5.2.85 (2026-04-03):
+- Added external debrid cache checking for Real-Debrid and AllDebrid (Torrentio, AIOStreams, DMM)
+- RD/AD removed their cache-check APIs — now uses external services to determine cached status
+- External cache results stored in local SQLite DB with 24-hour TTL for instant repeat lookups
+- Torrent scrapers (nyaa, animetosho, nekobt) now pass mal_id, episode, and media_type to cache checker
+- Improved menu loading speed — bulk_dir_list now uses ThreadPoolExecutor(15 workers) instead of sequential processing
+- Improved smart scroll — dynamic Container.HasFiles wait loop (max 750ms) replaces fixed 500ms sleep
+- Increased process_episodes thread pool from 8 to 15 workers for faster episode metadata loading
+- Switched SQLite journal_mode from OFF to WAL for concurrent read performance
+- Switched SQLite synchronous from OFF to NORMAL for better data safety with minimal speed impact
+- Fixed "Playback Failed" appearing multiple times after stopping playlist playback
+- Resolver and Player monitors now ignore leftover OnStop events from previous episode transitions (2s grace period)
+- Monitors reset playbackerror flag when OnAVStart is received (playback actually started = not an error)
+
 Changelog v5.2.84 (2026-03-31):
 - Improved browser API selection logic for enhanced user experience
 - Minor tweaks to AniList integration

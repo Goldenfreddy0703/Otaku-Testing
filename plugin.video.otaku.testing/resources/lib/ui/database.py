@@ -66,8 +66,8 @@ class SQL:
             self._conn = dbapi2.connect(self.path, timeout=self.timeout)
             self._conn.row_factory = _dict_factory
             self._conn.execute("PRAGMA foreign_keys = ON")
-            self._conn.execute("PRAGMA synchronous = OFF")
-            self._conn.execute("PRAGMA journal_mode = OFF")
+            self._conn.execute("PRAGMA synchronous = NORMAL")
+            self._conn.execute("PRAGMA journal_mode = WAL")
             self._conn.execute("PRAGMA mmap_size = 268435456")  # 256 MB mmap I/O
             self._cursor = self._conn.cursor()
             return self._cursor
@@ -84,13 +84,16 @@ class SQL:
             _db_lock.release()
 
         if exc_type:
+            if exc_type is OperationalError:
+                import traceback
+                control.log('database OperationalError', level='error')
+                control.log(''.join(traceback.format_exception(
+                    exc_type, exc_val, exc_tb)), level='error')
+                return True
             import traceback
-            msg = ('database OperationalError'
-                   if exc_type is OperationalError else 'database error')
-            control.log(msg, level='error')
+            control.log('database error', level='error')
             control.log(''.join(traceback.format_exception(
                 exc_type, exc_val, exc_tb)), level='error')
-            return exc_type is OperationalError
         return False
 
 

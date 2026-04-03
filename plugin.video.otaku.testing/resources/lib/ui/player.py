@@ -1,3 +1,4 @@
+import time
 import xbmc
 import xbmcgui
 import pickle
@@ -640,7 +641,17 @@ class Monitor(xbmc.Monitor):
     def __init__(self):
         super().__init__()
         self.playbackerror = False
+        self._playback_started = False
+        self._created = time.time()
 
     def onNotification(self, sender, method, data):
-        if method == 'Player.OnStop':
-            self.playbackerror = True
+        if method == 'Player.OnAVStart':
+            self._playback_started = True
+            self.playbackerror = False
+        elif method == 'Player.OnStop':
+            # Ignore OnStop events within 2 seconds of creation — these are
+            # leftover from the previous episode's stop (playlist transitions).
+            if time.time() - self._created < 2:
+                return
+            if not self._playback_started:
+                self.playbackerror = True

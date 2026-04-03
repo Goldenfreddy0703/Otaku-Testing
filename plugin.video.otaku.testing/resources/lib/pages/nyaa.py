@@ -176,7 +176,7 @@ class Sources(BrowserBase):
 
             filtered_list = source_utils.filter_sources('nyaa', list_, mal_id, int(season_zfill), int(episode_zfill), part)
 
-            cache_list, uncashed_list_ = Debrid().torrentCacheCheck(filtered_list)
+            cache_list, uncashed_list_ = Debrid().torrentCacheCheck(filtered_list, mal_id=mal_id, episode=episode_zfill, media_type=self.media_type)
             cache_list = sorted(cache_list, key=lambda k: k['downloads'], reverse=True)
 
             uncashed_list = [i for i in uncashed_list_ if i['seeders'] > 0]
@@ -219,7 +219,7 @@ class Sources(BrowserBase):
 
             filtered_list = source_utils.filter_sources('nyaa', list_, mal_id)
 
-            cache_list, uncashed_list_ = Debrid().torrentCacheCheck(filtered_list)
+            cache_list, uncashed_list_ = Debrid().torrentCacheCheck(filtered_list, mal_id=mal_id, episode='1', media_type='movie')
             cache_list = sorted(cache_list, key=lambda k: k['downloads'], reverse=True)
 
             uncashed_list = [i for i in uncashed_list_ if i['seeders'] > 0]

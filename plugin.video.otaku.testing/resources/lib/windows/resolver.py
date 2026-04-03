@@ -1,3 +1,4 @@
+import time
 import xbmcgui
 import xbmcplugin
 import xbmc
@@ -483,12 +484,20 @@ class Monitor(xbmc.Monitor):
         super().__init__()
         self.playbackerror = False
         self.playing = False
+        self._created = time.time()
 
     def onNotification(self, sender, method, data):
         if method == 'Player.OnAVStart':
             self.playing = True
+            self.playbackerror = False
         elif method == 'Player.OnStop':
-            self.playbackerror = True
+            # Ignore OnStop events that arrive within 2 seconds of monitor
+            # creation — these are leftover notifications from the previous
+            # episode ending (playlist transitions / user stops).
+            if time.time() - self._created < 2:
+                return
+            if not self.playing:
+                self.playbackerror = True
         # else:
         #     control.log(f'{method} | {data}')
 
