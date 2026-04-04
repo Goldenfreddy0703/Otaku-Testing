@@ -25,6 +25,10 @@ class SimklWLF(WatchlistFlavorBase):
         return headers
 
     def login(self):
+        import os
+        import pyqrcode
+        from resources.lib.windows.progress_dialog import Progress_dialog
+
         params = {
             'client_id': self.client_id,
         }
@@ -32,23 +36,35 @@ class SimklWLF(WatchlistFlavorBase):
         r = client.get(f'{self._URL}/oauth/pin', params=params)
         device_code = r.json() if r else {}
 
-        copied = control.copy2clip(device_code["user_code"])
-        display_dialog = (f"{control.lang(30081).format(control.colorstr('https://simkl.com/pin'))}[CR]"
-                          f"{control.lang(30082).format(control.colorstr(device_code['user_code']))}")
-        if copied:
-            display_dialog = f"{display_dialog}[CR]{control.lang(30083)}"
-        control.progressDialog.create('SIMKL Auth', display_dialog)
-        control.progressDialog.update(100)
+        verification_url = 'https://simkl.com/pin'
+        user_code = device_code["user_code"]
+        control.copy2clip(user_code)
+
+        qr_path = os.path.join(control.dataPath, 'qr_code.png')
+        qr_code = pyqrcode.create(verification_url)
+        qr_code.png(qr_path, scale=20)
+
+        config = {
+            'heading': 'SIMKL Auth',
+            'text': f"{control.lang(30081).format(control.colorstr(verification_url))}[CR]{control.lang(30082).format(control.colorstr(user_code))}[CR]{control.lang(30083)}",
+            'qr_code': qr_path
+        }
+
+        dialog = Progress_dialog('progress_dialog.xml', control.ADDON_PATH, config=config)
+        dialog.show()
+        dialog.update(100)
+
         inter = int(device_code['expires_in'] / device_code['interval'])
         for i in range(inter):
-            if control.progressDialog.iscanceled():
-                control.progressDialog.close()
+            if dialog.iscanceled():
+                dialog.close()
                 return
             control.sleep(device_code['interval'] * 1000)
 
             r = client.get(f'{self._URL}/oauth/pin/{device_code["user_code"]}', params=params)
             r = r.json() if r else {}
             if r.get('result') == 'OK':
+                dialog.close()
                 self.token = r['access_token']
                 login_data = {'token': self.token}
                 r = client.post(f'{self._URL}/users/settings', headers=self.__headers(), json_data={})
@@ -56,8 +72,7 @@ class SimklWLF(WatchlistFlavorBase):
                     user = r.json()['user']
                     login_data['username'] = user['name']
                 return login_data
-            new_display_dialog = f"{display_dialog}[CR]Code Valid for {control.colorstr(device_code['expires_in'] - i * device_code['interval'])} Seconds"
-            control.progressDialog.update(int((inter - i) / inter * 100), new_display_dialog)
+            dialog.update(int((inter - i) / inter * 100))
 
     def watchlist(self):
         statuses = [

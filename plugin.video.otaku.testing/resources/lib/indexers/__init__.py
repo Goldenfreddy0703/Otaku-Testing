@@ -30,7 +30,7 @@ def process_dub(mal_id, ename):
     if not (show_data := database.get_show_data(mal_id)) or show_data['last_updated'] != update_time:
         if control.getInt('jz.dub.api') == 0:
             from resources.lib.endpoints import teamup
-            dub_data = teamup.get_dub_data(ename)
+            dub_data = teamup.get_dub_data(mal_id, ename)
             data = {"dub_data": dub_data}
             database.update_show_data(mal_id, data, update_time)
         else:

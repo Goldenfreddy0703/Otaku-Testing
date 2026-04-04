@@ -149,7 +149,10 @@ def refresh():
 
 
 def getSetting(key):
-    """Get setting as string - kept for backward compatibility"""
+    """Get setting as string - first checks window property cache, then Kodi API"""
+    cache = homeWindow.getProperty(f'{ADDON_ID}_{key}')
+    if cache:
+        return cache
     ck = f's_{key}'
     if ck in _settings_cache:
         return _settings_cache[ck]
@@ -159,7 +162,10 @@ def getSetting(key):
 
 
 def getBool(key):
-    """Get setting as boolean"""
+    """Get setting as boolean - first checks window property cache, then Kodi API"""
+    cache = homeWindow.getProperty(f'{ADDON_ID}_{key}')
+    if cache:
+        return cache == 'true'
     ck = f'b_{key}'
     if ck in _settings_cache:
         return _settings_cache[ck]
@@ -169,7 +175,13 @@ def getBool(key):
 
 
 def getInt(key):
-    """Get setting as integer"""
+    """Get setting as integer - first checks window property cache, then Kodi API"""
+    cache = homeWindow.getProperty(f'{ADDON_ID}_{key}')
+    if cache:
+        try:
+            return int(cache)
+        except ValueError:
+            pass
     ck = f'i_{key}'
     if ck in _settings_cache:
         return _settings_cache[ck]
@@ -179,7 +191,10 @@ def getInt(key):
 
 
 def getStr(key):
-    """Get setting as string"""
+    """Get setting as string - first checks window property cache, then Kodi API"""
+    cache = homeWindow.getProperty(f'{ADDON_ID}_{key}')
+    if cache:
+        return cache
     ck = f'gs_{key}'
     if ck in _settings_cache:
         return _settings_cache[ck]
@@ -189,7 +204,13 @@ def getStr(key):
 
 
 def getNumber(key):
-    """Get setting as float/number"""
+    """Get setting as float/number - first checks window property cache, then Kodi API"""
+    cache = homeWindow.getProperty(f'{ADDON_ID}_{key}')
+    if cache:
+        try:
+            return float(cache)
+        except ValueError:
+            pass
     ck = f'n_{key}'
     if ck in _settings_cache:
         return _settings_cache[ck]
@@ -199,22 +220,46 @@ def getNumber(key):
 
 
 def getStringList(settingid):
-    """Get setting as list of strings"""
+    """Get setting as list of strings - first checks window property cache, then Kodi API"""
+    cache = homeWindow.getProperty(f'{ADDON_ID}_{settingid}')
+    if cache:
+        try:
+            return json.loads(cache)
+        except (ValueError, TypeError):
+            pass
     return settings.getStringList(settingid)
 
 
 def getBoolList(settingid):
-    """Get setting as list of booleans"""
+    """Get setting as list of booleans - first checks window property cache, then Kodi API"""
+    cache = homeWindow.getProperty(f'{ADDON_ID}_{settingid}')
+    if cache:
+        try:
+            return json.loads(cache)
+        except (ValueError, TypeError):
+            pass
     return settings.getBoolList(settingid)
 
 
 def getIntList(settingid):
-    """Get setting as list of integers"""
+    """Get setting as list of integers - first checks window property cache, then Kodi API"""
+    cache = homeWindow.getProperty(f'{ADDON_ID}_{settingid}')
+    if cache:
+        try:
+            return json.loads(cache)
+        except (ValueError, TypeError):
+            pass
     return settings.getIntList(settingid)
 
 
 def getNumberList(settingid):
-    """Get setting as list of numbers"""
+    """Get setting as list of numbers - first checks window property cache, then Kodi API"""
+    cache = homeWindow.getProperty(f'{ADDON_ID}_{settingid}')
+    if cache:
+        try:
+            return json.loads(cache)
+        except (ValueError, TypeError):
+            pass
     return settings.getNumberList(settingid)
 
 
@@ -278,6 +323,30 @@ def clearSettingsCache():
     """Clear the in-memory settings cache (call after settings change)."""
     _settings_cache.clear()
     _artwork_cache.clear()
+
+
+def process_context():
+    """Cache context menu settings into window properties."""
+    context_settings = [
+        "context.otaku.testing.findrecommendations",
+        "context.otaku.testing.findrelations",
+        "context.otaku.testing.getwatchorder",
+        "context.otaku.testing.rescrape",
+        "context.otaku.testing.sourceselect",
+        "context.otaku.testing.logout",
+        "context.otaku.testing.deletefromdatabase",
+        "context.otaku.testing.watchlist",
+        "context.otaku.testing.markedaswatched",
+        "context.otaku.testing.fanartselect"
+    ]
+    for s_id in context_settings:
+        try:
+            cache_val = homeWindow.getProperty(s_id)
+            val = settings.getBool(s_id)
+            if cache_val != str(val).lower():
+                homeWindow.setProperty(s_id, str(val).lower())
+        except:
+            log(f'Failed to cache context setting: {s_id}', 'error')
 
 
 def setGlobalProp(property, value):

@@ -61,9 +61,6 @@ class Resolver(BaseWindow):
         self.context = actionArgs.get('context')
         self.silent = actionArgs.get('silent')
         self.params = actionArgs.get('params', {})
-        self.autoruninbackground = control.getBool('uncached.autoruninbackground')
-        self.autoruninforground = control.getBool('uncached.autoruninforground')
-        self.autoskipuncached = control.getBool('uncached.autoskipuncached')
         self.abort = False
 
         # if self.season:
@@ -133,13 +130,10 @@ class Resolver(BaseWindow):
             self._update_source_properties(i)
 
             if 'uncached' in i['type']:
-                if not self.autoskipuncached:
-                    self.return_data['link'] = self.resolve_uncache(i)
-                else:
-                    stream_link = self.resolve_uncache(i)
-                    if stream_link:
-                        self.return_data['link'] = stream_link
-                        break
+                stream_link = self.resolve_uncache(i)
+                if stream_link:
+                    self.return_data['link'] = stream_link
+                    break
 
             if i['type'] in ['torrent', 'cloud', 'hoster']:
                 if i['type'] == 'cloud' and i['debrid_provider'] == 'Alldebrid':
@@ -400,26 +394,16 @@ class Resolver(BaseWindow):
             runbackground = False
             runinforground = False
         else:
-            # Not yet cached: decide based on settings or prompt the user.
-            if self.autoruninbackground:
-                runbackground = True
-                runinforground = False
-            elif self.autoruninforground:
-                runbackground = False
-                runinforground = True
-            elif self.autoskipuncached:
-                # Auto-skip uncached: simply return nothing.
+            # Not yet cached: prompt the user.
+            yesnocustom = control.yesnocustom_dialog(
+                heading, f_string, "Cancel", "Run in Background", "Run in Foreground",
+                defaultbutton=xbmcgui.DLG_YESNO_YES_BTN
+            )
+            if yesnocustom == -1 or yesnocustom == 2:
+                self.canceled = True
                 return
-            else:
-                yesnocustom = control.yesnocustom_dialog(
-                    heading, f_string, "Cancel", "Run in Background", "Run in Foreground",
-                    defaultbutton=xbmcgui.DLG_YESNO_YES_BTN
-                )
-                if yesnocustom == -1 or yesnocustom == 2:
-                    self.canceled = True
-                    return
-                runbackground = (yesnocustom == 0)
-                runinforground = (yesnocustom == 1)
+            runbackground = (yesnocustom == 0)
+            runinforground = (yesnocustom == 1)
 
         try:
             resolved_cache = api.resolve_uncached_source(source, runbackground, runinforground, self.pack_select)
@@ -430,13 +414,8 @@ class Resolver(BaseWindow):
             control.log(traceback.format_exc(), level='error')
             return
 
-        best_match = control.getBool('best_match')
-
-        if not resolved_cache or not self.autoskipuncached:
+        if not resolved_cache:
             self.canceled = True
-
-        if not best_match and self.autoskipuncached:
-            self.canceled = False
 
         return resolved_cache
 
