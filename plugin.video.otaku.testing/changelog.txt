@@ -11,6 +11,12 @@ Changelog v5.2.85 (2026-04-03):
 - Fixed "Playback Failed" appearing multiple times after stopping playlist playback
 - Resolver and Player monitors now ignore leftover OnStop events from previous episode transitions (2s grace period)
 - Monitors reset playbackerror flag when OnAVStart is received (playback actually started = not an error)
+- Added QR code authentication dialogs for all debrid services (Real-Debrid, AllDebrid, TorBox, Premiumize, Debrid-Link)
+- Added QR code to Simkl, AniList, and MAL watchlist authentication
+- Added pyqrcode module dependency for QR code generation
+- Removed deprecated uncached auto settings (handled by external cache checking)
+- Context menu items now update dynamically without Kodi restart via onSettingsChanged() → process_context()
+- Removed redundant context.otaku.testing service — main addon now manages all context menu property updates
 
 Changelog v5.2.84 (2026-03-31):
 - Improved browser API selection logic for enhanced user experience
