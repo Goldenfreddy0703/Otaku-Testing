@@ -71,7 +71,7 @@ class Sources(BrowserBase):
             def process_server(server_info, _lang=lang):
                 return self._resolve_and_build_source(server_info, title, episode, _lang)
 
-            server_sources = utils.parallel_process(lang_servers, process_server, max_workers=3)
+            server_sources = utils.parallel_process(lang_servers, process_server)
 
             for server_source in server_sources:
                 if server_source:

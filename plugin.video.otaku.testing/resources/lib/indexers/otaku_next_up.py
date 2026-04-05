@@ -71,7 +71,7 @@ class Otaku_Next_Up_API:
 
         # Fetch remaining pages in parallel
         page_numbers = list(range(1, total_pages))
-        all_page_results = utils.parallel_process(page_numbers, fetch_page, max_workers=3)
+        all_page_results = utils.parallel_process(page_numbers, fetch_page)
 
         # Combine all results
         for page_data in all_page_results:
@@ -306,7 +306,7 @@ class Otaku_Next_Up_API:
 
         # Fetch from all providers concurrently
         control.log(f"Fetching episode metadata from 3 providers in parallel for MAL ID: {mal_id}")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=control.max_threads) as executor:
             futures = [
                 executor.submit(fetch_simkl),
                 executor.submit(fetch_anizip),
@@ -329,7 +329,7 @@ class Otaku_Next_Up_API:
 
         # Parse episodes in parallel for faster processing
         mapfunc = partial(self.parse_episode_view, mal_id=mal_id, season=season, poster=poster, fanart=fanart, clearart=clearart, clearlogo=clearlogo, eps_watched=eps_watched, update_time=update_time, tvshowtitle=tvshowtitle, dub_data=dub_data, filler_data=filler_data, meta_cache=meta_cache)
-        all_results = utils.parallel_process(base_ep_list, mapfunc, max_workers=8)
+        all_results = utils.parallel_process(base_ep_list, mapfunc)
         all_results = [r for r in all_results if r is not None]
         all_results = sorted(all_results, key=lambda x: x['info']['episode'])
 
@@ -344,12 +344,12 @@ class Otaku_Next_Up_API:
             season = episodes[0]['season']
             mapfunc2 = partial(self.parse_episode_view, mal_id=mal_id, season=season, poster=poster, fanart=fanart, clearart=clearart, clearlogo=clearlogo, eps_watched=eps_watched, update_time=update_time, tvshowtitle=tvshowtitle, dub_data=dub_data, filler_data=filler_data, episodes=episodes)
             # Parallelize episode parsing
-            all_results = utils.parallel_process(result, mapfunc2, max_workers=8)
+            all_results = utils.parallel_process(result, mapfunc2)
             all_results = [r for r in all_results if r is not None]
         else:
             mapfunc1 = partial(indexers.parse_episodes, eps_watched=eps_watched, dub_data=dub_data)
             # Parallelize episode parsing
-            all_results = utils.parallel_process(episodes, mapfunc1, max_workers=8)
+            all_results = utils.parallel_process(episodes, mapfunc1)
         return all_results
 
     def get_episodes(self, mal_id, show_meta):

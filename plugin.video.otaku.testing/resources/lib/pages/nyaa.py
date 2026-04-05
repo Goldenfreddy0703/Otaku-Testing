@@ -111,7 +111,7 @@ class Sources(BrowserBase):
                 control.log(f"Nyaa: {task['name']} search failed: {str(e)}")
                 return []
 
-        all_search_results = utils.parallel_process(search_tasks, run_search, max_workers=4)
+        all_search_results = utils.parallel_process(search_tasks, run_search)
 
         # Combine all results
         nyaa_sources = []
@@ -184,10 +184,10 @@ class Sources(BrowserBase):
 
             # Parse sources in parallel for faster processing
             mapfunc = partial(self.parse_nyaa_view, episode=episode_zfill)
-            all_results = utils.parallel_process(cache_list, mapfunc, max_workers=5) if cache_list else []
+            all_results = utils.parallel_process(cache_list, mapfunc) if cache_list else []
             if control.getBool('show.uncached') and uncashed_list:
                 mapfunc2 = partial(self.parse_nyaa_view, episode=episode_zfill, cached=False)
-                all_results += utils.parallel_process(uncashed_list, mapfunc2, max_workers=5)
+                all_results += utils.parallel_process(uncashed_list, mapfunc2)
             return all_results
 
     def process_nyaa_movie(self, url, params, mal_id):
@@ -227,10 +227,10 @@ class Sources(BrowserBase):
 
             # Parse sources in parallel for faster processing
             mapfunc = partial(self.parse_nyaa_view, episode=1)
-            all_results = utils.parallel_process(cache_list, mapfunc, max_workers=5) if cache_list else []
+            all_results = utils.parallel_process(cache_list, mapfunc) if cache_list else []
             if control.getBool('show.uncached') and uncashed_list:
                 mapfunc2 = partial(self.parse_nyaa_view, episode=1, cached=False)
-                all_results += utils.parallel_process(uncashed_list, mapfunc2, max_workers=5)
+                all_results += utils.parallel_process(uncashed_list, mapfunc2)
             return all_results
 
     @staticmethod

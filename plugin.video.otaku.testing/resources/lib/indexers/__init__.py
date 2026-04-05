@@ -21,7 +21,7 @@ def parse_episodes(res, eps_watched, dub_data=None):
 def process_episodes(episodes, eps_watched, dub_data=None):
     mapfunc = partial(parse_episodes, eps_watched=eps_watched, dub_data=dub_data)
     # Parallelize episode parsing for faster processing
-    all_results = utils.parallel_process(episodes, mapfunc, max_workers=15)
+    all_results = utils.parallel_process(episodes, mapfunc)
     return all_results
 
 

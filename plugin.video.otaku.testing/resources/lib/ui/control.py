@@ -38,6 +38,7 @@ from urllib import parse
 # ═══════════════════════════════════════════════════════════════════════════
 
 _artwork_cache = {}
+max_threads = os.cpu_count()
 
 try:
     HANDLE = int(sys.argv[1])
@@ -119,7 +120,7 @@ def closeBusyDialog():
         execute('Dialog.Close(busydialognocancel)')
 
 
-def log(msg, level="info"):
+def log(msg, level="debug"):
     if level == 'info':
         level = xbmc.LOGINFO
     elif level == 'warning':
@@ -702,7 +703,7 @@ def draw_items(video_data, content_type=''):
 
 
 def bulk_dir_list(video_data, bulk_add=True):
-    with ThreadPoolExecutor(max_workers=15) as executor:
+    with ThreadPoolExecutor(max_workers=max_threads) as executor:
         list_items = list(executor.map(
             lambda x: xbmc_add_dir(x['name'], x['url'], x['image'], x['info'], x['cm'], bulk_add, x['isfolder'], x['isplayable']),
             [v for v in video_data if v]

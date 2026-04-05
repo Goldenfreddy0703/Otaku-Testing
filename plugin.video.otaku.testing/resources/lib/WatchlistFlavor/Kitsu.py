@@ -374,7 +374,7 @@ class KitsuWLF(WatchlistFlavorBase):
                 return None
 
         # Process items in parallel
-        all_results = utils.parallel_process(filtered_items, process_next_up_item, max_workers=5)
+        all_results = utils.parallel_process(filtered_items, process_next_up_item)
         all_results = [r for r in all_results if r is not None]
 
         # Handle paging

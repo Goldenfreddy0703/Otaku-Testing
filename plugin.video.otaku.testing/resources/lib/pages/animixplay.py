@@ -62,7 +62,7 @@ class Sources(BrowserBase):
                 slugs = list(slugs.keys()) if isinstance(slugs, dict) else slugs
                 mapfunc = partial(self._process_animixplay, title=title, episode=episode)
                 # Process slugs in parallel for faster scraping
-                all_results = utils.parallel_process(slugs, mapfunc, max_workers=2)
+                all_results = utils.parallel_process(slugs, mapfunc)
                 all_results = list(itertools.chain(*all_results))
 
         control.log(f"AnimixPlay: Returning {len(all_results)} sources")
