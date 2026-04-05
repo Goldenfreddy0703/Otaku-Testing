@@ -1,9 +1,24 @@
+"""get_meta.py – Artwork & Metadata Fetcher
+==========================================
+Collects artwork from Fanart.tv, TMDB, and TVDB in parallel,
+then merges the results into a single metadata record per show.
+
+Sections
+--------
+Metadata Collection   – collect_meta (batch), update_meta (single show)
+Artwork Merging       – merge_artwork (multi-provider combine & dedupe)
+"""
+
 import concurrent.futures
 import random
 
 from resources.lib.endpoints import fanart, tmdb, tvdb
 from resources.lib.ui import database, control
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Metadata Collection
+# ═══════════════════════════════════════════════════════════════════════════
 
 def collect_meta(anime_list):
     # Prepare list of anime that need metadata
@@ -185,6 +200,10 @@ def update_meta(mal_id, mtype='tv', anilist_banner=None):
 
     database.update_show_meta(mal_id, meta_ids, combined_art)
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Artwork Merging
+# ═══════════════════════════════════════════════════════════════════════════
 
 def merge_artwork(fanart_art, tmdb_art, tvdb_art, fanart_limit=1,
                   clearlogo_enabled=True, clearart_enabled=True, banner_enabled=True, landscape_enabled=True, anilist_banner=None):

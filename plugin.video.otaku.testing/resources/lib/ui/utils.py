@@ -1,8 +1,26 @@
+"""utils.py – List-Item Allocation & Search History
+==================================================
+Helpers for creating Kodi directory items, managing search history,
+detecting season numbers, and running parallel operations.
+
+Sections
+--------
+Item Allocation   – allocate_item, parse_view, artwork path cache
+Search History    – search_history, parse_history_view, URL mappings
+Season Detection  – get_season (regex-based from title list)
+Parallel Helpers  – parallel_fetch, parallel_process
+"""
+
 import os
 import concurrent.futures
 
 from functools import partial
 from resources.lib.ui import control, database
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Item Allocation & Artwork Cache
+# ═══════════════════════════════════════════════════════════════════════════
 
 # Cache for artwork file paths to avoid repeated os.path.exists() calls
 _artwork_path_cache = {}
@@ -46,6 +64,10 @@ def allocate_item(name, url, isfolder, isplayable, cm, image='', info=None, fana
         }
     }
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Search History & URL Mappings
+# ═══════════════════════════════════════════════════════════════════════════
 
 def get_format_to_url_mappings():
     format_to_url = {
@@ -106,6 +128,10 @@ def parse_view(base, isfolder, isplayable, dub=False):
     return parsed_view
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+#  Season Detection
+# ═══════════════════════════════════════════════════════════════════════════
+
 def get_season(titles_list, mal_id):
     import re
     meta_ids = database.get_mappings(mal_id, 'mal_id')
@@ -146,6 +172,10 @@ def get_season(titles_list, mal_id):
             season = 1
         return season
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Parallel Helpers
+# ═══════════════════════════════════════════════════════════════════════════
 
 def format_time(seconds):
     minutes, seconds = divmod(seconds, 60)

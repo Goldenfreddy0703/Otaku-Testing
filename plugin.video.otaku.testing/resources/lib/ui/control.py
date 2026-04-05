@@ -1,3 +1,23 @@
+"""
+control.py – Otaku Addon Control & Settings Layer
+==================================================
+Central hub for addon-wide constants, settings access, GUI helpers,
+directory listing, and Kodi integration utilities.
+
+Architecture
+------------
+Constants    – Addon ID, paths, database files, Kodi objects
+Settings     – Cached getters/setters (window property → in-memory → Kodi API)
+Logging      – Unified log() helper with level mapping
+Debrid/WL    – Helper functions for enabled services
+GUI/Dialogs  – Dialog wrappers, notifications, keyboard input
+VideoTags    – ListItem metadata builder (set_videotags)
+Directory    – draw_items / bulk_dir_list / xbmc_add_dir
+View Types   – Container view mode helpers
+Context Menu – process_context() for dynamic context menu caching
+Utilities    – Misc helpers (clipboard, color, refresh, abort)
+"""
+
 import random
 import xbmc
 import xbmcgui
@@ -12,7 +32,11 @@ import shutil
 from concurrent.futures import ThreadPoolExecutor
 from urllib import parse
 
-# Session-based cache for artwork selections to avoid repeated random.choice() calls
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Constants – Addon Identity & Paths
+# ═══════════════════════════════════════════════════════════════════════════
+
 _artwork_cache = {}
 
 try:
@@ -37,7 +61,6 @@ pathExists = xbmcvfs.exists
 dataPath = xbmcvfs.translatePath(addonInfo('profile'))
 kodi_version = float(xbmcaddon.Addon('xbmc.addon').getAddonInfo('version')[:4])
 
-# In-memory settings cache — avoids repeated Kodi API calls
 _settings_cache = {}
 
 CONTEXT_ADDON_ID = 'context.otaku.testing'
@@ -45,11 +68,13 @@ CONTEXT_ADDON = xbmcaddon.Addon(CONTEXT_ADDON_ID)
 CONTEXT_ADDON_PATH = CONTEXT_ADDON.getAddonInfo('path')
 infoDB = os.path.join(CONTEXT_ADDON_PATH, 'info.db')
 
+# — Database files —
 cacheFile = os.path.join(dataPath, 'cache.db')
 searchHistoryDB = os.path.join(dataPath, 'search.db')
 malSyncDB = os.path.join(dataPath, 'malSync.db')
 mappingDB = os.path.join(dataPath, 'mappings.db')
 
+# — JSON data files —
 maldubFile = os.path.join(dataPath, 'mal_dub.json')
 downloads_json = os.path.join(dataPath, 'downloads.json')
 completed_json = os.path.join(dataPath, 'completed.json')
@@ -59,10 +84,11 @@ watch_history_json = os.path.join(dataPath, 'watch_history.json')
 embeds_json = os.path.join(dataPath, 'embeds.json')
 animeschedule_calendar_json = os.path.join(dataPath, 'animeschedule_calendar.json')
 
-# Kodi system paths
+# — Kodi system paths —
 kodi_userdata_path = xbmcvfs.translatePath('special://userdata/')
 kodi_advancedsettings_path = os.path.join(kodi_userdata_path, 'advancedsettings.xml')
 
+# — Image / artwork paths —
 IMAGES_PATH = os.path.join(ADDON_PATH, 'resources', 'images')
 OTAKU_LOGO_PATH = os.path.join(ADDON_PATH, 'resources', 'images', 'trans-goku.png')
 OTAKU_LOGO2_PATH = os.path.join(ADDON_PATH, 'resources', 'images', 'trans-goku-small.png')
@@ -70,6 +96,7 @@ OTAKU_LOGO3_PATH = os.path.join(ADDON_PATH, 'resources', 'images', 'trans-goku-l
 OTAKU_ICONS_PATH = os.path.join(CONTEXT_ADDON_PATH, 'resources', 'images', 'icons', ADDON.getSetting("interface.icons"))
 OTAKU_GENRE_PATH = os.path.join(CONTEXT_ADDON_PATH, 'resources', 'images', 'genres')
 
+# — Kodi GUI objects —
 dialogWindow = xbmcgui.WindowDialog
 homeWindow = xbmcgui.Window(10000)
 menuItem = xbmcgui.ListItem
@@ -81,6 +108,10 @@ playList = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 sleep = xbmc.sleep
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+#  Logging
+# ═══════════════════════════════════════════════════════════════════════════
+
 def closeBusyDialog():
     if xbmc.getCondVisibility('Window.IsActive(busydialog)'):
         execute('Dialog.Close(busydialog)')
@@ -88,7 +119,7 @@ def closeBusyDialog():
         execute('Dialog.Close(busydialognocancel)')
 
 
-def log(msg, level="debug"):
+def log(msg, level="info"):
     if level == 'info':
         level = xbmc.LOGINFO
     elif level == 'warning':
@@ -105,6 +136,10 @@ def log(msg, level="debug"):
 def bin(s):
     return s.encode('latin-1')
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Debrid & Watchlist Helpers
+# ═══════════════════════════════════════════════════════════════════════════
 
 def enabled_debrid():
     debrids = ['realdebrid', 'debridlink', 'alldebrid', 'premiumize', 'torbox', 'easydebrid']
@@ -147,6 +182,10 @@ def colorstr(text, color='deepskyblue'):
 def refresh():
     execute('Container.Refresh')
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Settings – Cached Getters & Setters
+# ═══════════════════════════════════════════════════════════════════════════
 
 def getSetting(key):
     """Get setting as string - first checks window property cache, then Kodi API"""
@@ -263,40 +302,40 @@ def getNumberList(settingid):
     return settings.getNumberList(settingid)
 
 
+def _evict_setting(settingid):
+    """Evict all cached variants of a setting key."""
+    for prefix in ('s_', 'gs_', 'b_', 'i_', 'n_'):
+        _settings_cache.pop(f'{prefix}{settingid}', None)
+
+
 def setSetting(settingid, value):
     """Set setting as string - kept for backward compatibility"""
     settings.setString(settingid, str(value))
-    # Evict all cached variants of this key
-    for prefix in ('s_', 'gs_', 'b_', 'i_', 'n_'):
-        _settings_cache.pop(f'{prefix}{settingid}', None)
+    _evict_setting(settingid)
 
 
 def setBool(settingid, value):
     """Set setting as boolean"""
     settings.setBool(settingid, value)
-    for prefix in ('s_', 'gs_', 'b_', 'i_', 'n_'):
-        _settings_cache.pop(f'{prefix}{settingid}', None)
+    _evict_setting(settingid)
 
 
 def setInt(settingid, value):
     """Set setting as integer"""
     settings.setInt(settingid, value)
-    for prefix in ('s_', 'gs_', 'b_', 'i_', 'n_'):
-        _settings_cache.pop(f'{prefix}{settingid}', None)
+    _evict_setting(settingid)
 
 
 def setStr(settingid, value):
     """Set setting as string"""
     settings.setString(settingid, value)
-    for prefix in ('s_', 'gs_', 'b_', 'i_', 'n_'):
-        _settings_cache.pop(f'{prefix}{settingid}', None)
+    _evict_setting(settingid)
 
 
 def setNumber(settingid, value):
     """Set setting as float/number"""
     settings.setNumber(settingid, value)
-    for prefix in ('s_', 'gs_', 'b_', 'i_', 'n_'):
-        _settings_cache.pop(f'{prefix}{settingid}', None)
+    _evict_setting(settingid)
 
 
 def setStringList(settingid, value):
@@ -325,6 +364,10 @@ def clearSettingsCache():
     _artwork_cache.clear()
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+#  Context Menu – Dynamic Property Caching
+# ═══════════════════════════════════════════════════════════════════════════
+
 def process_context():
     """Cache context menu settings into window properties."""
     context_settings = [
@@ -348,6 +391,10 @@ def process_context():
         except:
             log(f'Failed to cache context setting: {s_id}', 'error')
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Window Properties & URL Helpers
+# ═══════════════════════════════════════════════════════════════════════════
 
 def setGlobalProp(property, value):
     homeWindow.setProperty(property, str(value))
@@ -399,6 +446,10 @@ def keyboard(title, text=''):
     return keyboard_.getText() if keyboard_.isConfirmed() else ""
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+#  GUI – Dialogs & Notifications
+# ═══════════════════════════════════════════════════════════════════════════
+
 def closeAllDialogs():
     execute('Dialog.Close(all,true)')
 
@@ -442,6 +493,10 @@ def context_menu(context_list):
 def browse(type_, heading, shares, mask=''):
     return xbmcgui.Dialog().browse(type_, heading, shares, mask)
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  VideoTags – ListItem Metadata Builder
+# ═══════════════════════════════════════════════════════════════════════════
 
 def set_videotags(li, info):
     vinfo: xbmc.InfoTagVideo = li.getVideoInfoTag()
@@ -507,6 +562,10 @@ def set_videotags(li, info):
 def jsonrpc(json_data):
     return json.loads(xbmc.executeJSONRPC(json.dumps(json_data)))
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Directory Listing – draw_items / bulk_dir_list / xbmc_add_dir
+# ═══════════════════════════════════════════════════════════════════════════
 
 def xbmc_add_dir(name, url, art, info, draw_cm, bulk_add, isfolder, isplayable):
     u = addon_url(url)
@@ -651,6 +710,10 @@ def bulk_dir_list(video_data, bulk_add=True):
     return list_items
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+#  View Types
+# ═══════════════════════════════════════════════════════════════════════════
+
 def get_view_type(viewtype):
     viewTypes = {
         'Default': 50,
@@ -666,6 +729,10 @@ def get_view_type(viewtype):
     }
     return viewTypes[viewtype]
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Utilities
+# ═══════════════════════════════════════════════════════════════════════════
 
 def clear_settings(silent=False):
     from resources.lib.ui.database_sync import SyncDatabase

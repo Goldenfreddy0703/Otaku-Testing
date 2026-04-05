@@ -231,18 +231,30 @@ class Resolver(BaseWindow):
         # Get the clean URL from item (hooks may have stripped headers)
         stream_url = item.getPath()
 
-        # Detect widget context - widgets need playlist-based playback
-        # because setResolvedUrl doesn't reliably carry metadata in widgets
+        # Detect widget/TMDB player context — Container.PluginName won't match
+        # our addon when playback is launched from a widget or external player.
         is_widget = xbmc.getInfoLabel('Container.PluginName') != control.ADDON_ID
 
-        if self.context or is_widget:
-            # Playlist-based playback: ensures metadata is always visible
-            # Used for source_select/rescrape AND widget playback
+        # Check whether we're resolving an auto-next episode inside an existing
+        # playlist (build_playlist added items after the first episode started).
+        in_playlist = control.playList.size() > 1
+
+        if self.context or (is_widget and not in_playlist):
+            # control.print("Playlist-based playback for widget or context menu")
+            # Playlist-based playback for:
+            #   1. Context menu (RunPlugin) — no valid plugin HANDLE
+            #   2. Widget / TMDB first-play — ensures metadata displays in
+            #      player OSD (not needed for auto-next; playlist is already
+            #      populated by build_playlist at that point).
             control.playList.clear()
             control.playList.add(stream_url, item)
             xbmc.Player().play(control.playList, item)
         else:
-            # Standard resolved URL playback (in-addon context)
+            # control.print("Standard resolved URL playback for in-addon and playlist auto-next")
+            # Standard resolved URL playback for in-addon and playlist
+            # auto-next.  setResolvedUrl satisfies Kodi's plugin HANDLE,
+            # preventing "Playback Failed" errors that pile up during
+            # playlist episode transitions.
             xbmcplugin.setResolvedUrl(control.HANDLE, True, item)
 
         # Monitor playback start

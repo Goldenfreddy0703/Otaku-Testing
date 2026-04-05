@@ -1,3 +1,15 @@
+"""player.py – Otaku Playback & Playlist Manager
+================================================
+Manages video playback lifecycle, skip-time processing,
+audio/subtitle preferences, watchlist updates, and playlist building.
+
+Architecture
+------------
+WatchlistPlayer  – Main player class: playback monitoring, skip times, watchlist
+PlayerDialogs    – Skip intro / skip outro / playing-next dialog display
+Monitor          – Playback error detection with grace period
+"""
+
 import time
 import xbmc
 import xbmcgui
@@ -9,12 +21,13 @@ from resources.lib.ui import control, database
 from resources.lib.endpoints import aniskip, anime_skip
 from resources.lib import indexers
 
-
 playList = control.playList
 player = xbmc.Player
 
-# from resources.lib import MetaBrowser
 
+# ═══════════════════════════════════════════════════════════════════════════
+#  WatchlistPlayer – Playback Lifecycle & Skip Times
+# ═══════════════════════════════════════════════════════════════════════════
 
 class WatchlistPlayer(player):
     def __init__(self):
@@ -89,6 +102,8 @@ class WatchlistPlayer(player):
         import threading
         threading.Thread(target=_process, daemon=True).start()
 
+    # ── Playback Callbacks ────────────────────────────────────────────────
+
     def onPlayBackStopped(self):
         control.closeAllDialogs()
         playList.clear()
@@ -115,6 +130,8 @@ class WatchlistPlayer(player):
     def onPlayBackError(self):
         control.closeAllDialogs()
         playList.clear()
+
+    # ── Playlist Building ─────────────────────────────────────────────────
 
     def build_playlist(self):
         if not control.getBool('playlist.unaired'):
@@ -248,6 +265,8 @@ class WatchlistPlayer(player):
         if self._monitor:
             del self._monitor
 
+    # ── Skip Intro / Outro / Playing Next ──────────────────────────────
+
     def _handle_skip_intro(self):
         """Handle skip intro functionality with fallbacks - optimized"""
         # Only proceed if skip intro dialog is enabled OR auto-skip is enabled
@@ -323,6 +342,8 @@ class WatchlistPlayer(player):
         elif not self.skipoutro_aniskip and playnext_time > 0:
             return time_remaining <= playnext_time
         return False
+
+    # ── Audio & Subtitle Setup ────────────────────────────────────────
 
     def setup_audio_and_subtitles(self):
         """Handle audio and subtitle setup"""
@@ -478,6 +499,8 @@ class WatchlistPlayer(player):
                     else:
                         self.showSubtitles(True)
 
+    # ── Skip Time Processing (AniSkip / AnimeSkip / Embed) ────────────
+
     def process_aniskip(self):
         if self.skipintro_aniskip_enable and not self.skipintro_aniskip:
             skipintro_aniskip_res = aniskip.get_skip_times(self.mal_id, self.episode, 'op')
@@ -543,6 +566,10 @@ class WatchlistPlayer(player):
                 self.skipoutro_end = control.getInt(f'{embed}.skipoutro.end') + self.skipoutro_offset
                 self.skipoutro_aniskip = True
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  PlayerDialogs – Skip Intro / Outro / Playing Next
+# ═══════════════════════════════════════════════════════════════════════════
 
 class PlayerDialogs(xbmc.Player):
     def __init__(self):
@@ -636,6 +663,10 @@ class PlayerDialogs(xbmc.Player):
     def _is_video_window_open():
         return False if xbmcgui.getCurrentWindowId() != 12005 else True
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Monitor – Playback Error Detection
+# ═══════════════════════════════════════════════════════════════════════════
 
 class Monitor(xbmc.Monitor):
     def __init__(self):

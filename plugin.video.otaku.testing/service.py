@@ -254,34 +254,32 @@ def load_settings():
         s_type = setting.get('type')
         if not s_id or s_type == 'action':
             continue
-        
+
+        prop_name = f"{control.ADDON_ID}_{s_id}"
         try:
             if s_type == 'boolean':
-                val = control.settings.getBool(s_id)
-                control.homeWindow.setProperty(f"{control.ADDON_ID}_{s_id}", str(val).lower())
+                val_str = str(control.settings.getBool(s_id)).lower()
             elif s_type == 'integer':
-                val = control.settings.getInt(s_id)
-                control.homeWindow.setProperty(f"{control.ADDON_ID}_{s_id}", str(val))
+                val_str = str(control.settings.getInt(s_id))
             elif s_type == 'number':
-                val = control.settings.getNumber(s_id)
-                control.homeWindow.setProperty(f"{control.ADDON_ID}_{s_id}", str(val))
+                val_str = str(control.settings.getNumber(s_id))
             elif s_type in ('string', 'path', 'folder', 'file', 'addon'):
-                val = control.settings.getString(s_id)
-                control.homeWindow.setProperty(f"{control.ADDON_ID}_{s_id}", val)
+                val_str = control.settings.getString(s_id)
             elif s_type == 'list[boolean]':
-                val = control.settings.getBoolList(s_id)
-                control.homeWindow.setProperty(f"{control.ADDON_ID}_{s_id}", json.dumps(val))
+                val_str = json.dumps(control.settings.getBoolList(s_id))
             elif s_type == 'list[integer]':
-                val = control.settings.getIntList(s_id)
-                control.homeWindow.setProperty(f"{control.ADDON_ID}_{s_id}", json.dumps(val))
+                val_str = json.dumps(control.settings.getIntList(s_id))
             elif s_type == 'list[string]':
-                val = control.settings.getStringList(s_id)
-                control.homeWindow.setProperty(f"{control.ADDON_ID}_{s_id}", json.dumps(val))
+                val_str = json.dumps(control.settings.getStringList(s_id))
             elif s_type == 'list[number]':
-                val = control.settings.getNumberList(s_id)
-                control.homeWindow.setProperty(f"{control.ADDON_ID}_{s_id}", json.dumps(val))
+                val_str = json.dumps(control.settings.getNumberList(s_id))
+            else:
+                continue
+
+            if control.homeWindow.getProperty(prop_name) != val_str:
+                control.homeWindow.setProperty(prop_name, val_str)
         except:
-            pass  # Setting might not exist or have issues
+            pass
 
 
 class Monitor(xbmc.Monitor):
