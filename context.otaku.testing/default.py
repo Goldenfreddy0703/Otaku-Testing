@@ -95,7 +95,7 @@ def main():
         xbmc.executebuiltin(f"RunPlugin({plugin}/marked_as_watched{path})")
     elif arg == 'fanartselect':
         path = path.split(plugin, 1)[1]
-        xbmc.executebuiltin(f"ActivateWindow(Videos,{plugin}/fanart_select{path})")
+        xbmc.executebuiltin(f"Container.Update({plugin}/fanart_select{path})")
     else:
         raise KeyError("Could Not find %s in Context Menu Action" % arg)
 
