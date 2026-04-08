@@ -375,6 +375,7 @@ def process_context():
         "context.otaku.testing.findrecommendations",
         "context.otaku.testing.findrelations",
         "context.otaku.testing.getwatchorder",
+        "context.otaku.testing.viewreviews",
         "context.otaku.testing.rescrape",
         "context.otaku.testing.sourceselect",
         "context.otaku.testing.logout",

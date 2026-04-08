@@ -236,6 +236,95 @@ def WATCH_ORDER(payload, params):
     control.draw_items(BROWSER.get_watch_order(mal_id), 'tvshows')
 
 
+@Route('anime_reviews/*')
+def ANIME_REVIEWS(payload, params):
+    from resources.lib.ui import client
+    path, mal_id, eps_watched = payload.rsplit("/")
+    url = f'https://api.jikan.moe/v4/anime/{mal_id}/reviews'
+    response = client.get(url)
+    if not response or not response.ok:
+        control.notify(control.ADDON_NAME, control.lang(30461))
+        control.draw_items([], 'addons')
+        return
+    data = response.json()
+    reviews = data.get('data', [])
+    if not reviews:
+        control.notify(control.ADDON_NAME, control.lang(30461))
+        control.draw_items([], 'addons')
+        return
+    # Store reviews in window property for detail view
+    import json as json_mod
+    control.setGlobalProp('otaku.reviews.cache', json_mod.dumps(reviews))
+    control.setGlobalProp('otaku.reviews.mal_id', str(mal_id))
+    review_items = []
+    for idx, review in enumerate(reviews):
+        user = review.get('user', {})
+        username = user.get('username', 'Anonymous')
+        score = review.get('score', '?')
+        tags = review.get('tags', [])
+        tag_str = tags[0] if tags else ''
+        date = review.get('date', '')[:10]
+        is_spoiler = review.get('is_spoiler', False)
+        spoiler_tag = ' [COLOR red][Spoiler][/COLOR]' if is_spoiler else ''
+        title = f"[COLOR deepskyblue]{username}[/COLOR] - {score}/10 [COLOR orange][{tag_str}][/COLOR]{spoiler_tag}  ({date})"
+        preview = review.get('review', '')[:200].replace('\n', ' ') + '...'
+        info = {
+            'title': title,
+            'plot': preview,
+            'mediatype': 'video',
+        }
+        art = {'poster': user.get('images', {}).get('jpg', {}).get('image_url', control.OTAKU_LOGO3_PATH),
+               'icon': user.get('images', {}).get('jpg', {}).get('image_url', control.OTAKU_LOGO3_PATH)}
+        review_items.append((title, f'view_review/{mal_id}/{idx}/', art, info))
+    import xbmcplugin
+    for item in review_items:
+        name, url, art, info = item
+        u = control.addon_url(url)
+        liz = control.menuItem(name, offscreen=True)
+        control.set_videotags(liz, info)
+        liz.setArt(art)
+        xbmcplugin.addDirectoryItem(control.HANDLE, u, liz, False)
+    xbmcplugin.endOfDirectory(control.HANDLE, cacheToDisc=True)
+
+
+@Route('view_review/*')
+def VIEW_REVIEW(payload, params):
+    import json as json_mod
+    parts = payload.strip('/').split('/')
+    mal_id = parts[0]
+    review_idx = int(parts[1])
+    cached = control.getGlobalProp('otaku.reviews.cache')
+    if not cached:
+        # Re-fetch if cache expired
+        from resources.lib.ui import client
+        url = f'https://api.jikan.moe/v4/anime/{mal_id}/reviews'
+        response = client.get(url)
+        if not response or not response.ok:
+            control.notify(control.ADDON_NAME, control.lang(30461))
+            return
+        data = response.json()
+        reviews = data.get('data', [])
+    else:
+        reviews = json_mod.loads(cached)
+    if review_idx >= len(reviews):
+        control.notify(control.ADDON_NAME, control.lang(30461))
+        return
+    review = reviews[review_idx]
+    user = review.get('user', {})
+    username = user.get('username', 'Anonymous')
+    score = review.get('score', '?')
+    tags = review.get('tags', [])
+    tag_str = tags[0] if tags else ''
+    date = review.get('date', '')[:10]
+    reactions = review.get('reactions', {})
+    header = f"By: {username}  |  Score: {score}/10  |  {tag_str}  |  {date}"
+    reaction_line = f"Reactions - Nice: {reactions.get('nice', 0)} | Love it: {reactions.get('love_it', 0)} | Funny: {reactions.get('funny', 0)} | Informative: {reactions.get('informative', 0)} | Well Written: {reactions.get('well_written', 0)} | Creative: {reactions.get('creative', 0)}"
+    separator = '-' * 60
+    body = review.get('review', 'No review text available.')
+    full_text = f"{header}\n{reaction_line}\n{separator}\n\n{body}"
+    control.textviewer_dialog(f"Review by {username}", full_text)
+
+
 @Route('watch_history/')
 def WATCH_HISTORY(payload, params):
     """Display watch history"""

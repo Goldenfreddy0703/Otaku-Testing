@@ -118,6 +118,8 @@ class Anichart(BaseWindow):
                 context_menu_options.append("Find Relations")
             if control.getBool('context.otaku.testing.getwatchorder'):
                 context_menu_options.append("Get Watch Order")
+            if control.getBool('context.otaku.testing.viewreviews'):
+                context_menu_options.append("View Reviews")
             if control.getBool('context.otaku.testing.deletefromdatabase'):
                 context_menu_options.append("Delete From Database")
             if control.getBool('context.otaku.testing.watchlist'):
@@ -141,6 +143,11 @@ class Anichart(BaseWindow):
                 self.close()
             elif choice == "Get Watch Order":
                 control.draw_items(BROWSER.get_watch_order(anime), 'tvshows')
+                self.close()
+            elif choice == "View Reviews":
+                payload = f"some_path/{anime}/0"
+                params = {}
+                Main.ANIME_REVIEWS(payload, params)
                 self.close()
             elif choice == "Delete From Database":
                 payload = f"some_path/{anime}/0"
