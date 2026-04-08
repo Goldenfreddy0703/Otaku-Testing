@@ -1,0 +1,653 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window>
+	<controls>
+		<control type="group">
+			<left>280</left>
+			<top>50</top>
+			<control type="group">
+				<width>1360</width>
+
+				<!-- Background -->
+				<control type="image">
+					<height>980</height>
+					<texture colordiffuse="FF555555">black.png</texture>
+				</control>
+
+				<!-- Header bar -->
+				<control type="image">
+					<height>100</height>
+					<texture>texture.png</texture>
+				</control>
+
+				<!-- Otaku logo -->
+				<control type="image">
+					<left>-10</left>
+					<top>-10</top>
+					<width>120</width>
+					<height>120</height>
+					<align>left</align>
+					<aligny>top</aligny>
+					<aspectratio aligny="top">keep</aspectratio>
+					<texture>common/changelog.png</texture>
+				</control>
+
+				<!-- Heading -->
+				<control type="label">
+					<top>40</top>
+					<left>105</left>
+					<width max="1115">auto</width>
+					<height>20</height>
+					<font>font16</font>
+					<textcolor>white</textcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<label>$INFO[Window().Property(otaku.heading)]</label>
+				</control>
+
+				<!-- ═══════════════════════════════════════ -->
+				<!--  Left Column: Summary Stats            -->
+				<!-- ═══════════════════════════════════════ -->
+				<control type="group">
+					<left>45</left>
+					<top>120</top>
+
+					<!-- Section title -->
+					<control type="label">
+						<width>600</width>
+						<height>35</height>
+						<font>font14</font>
+						<textcolor>FF00BFFF</textcolor>
+						<label>Summary Stats</label>
+					</control>
+
+					<!-- Total -->
+					<control type="label">
+						<top>50</top>
+						<width>600</width>
+						<height>30</height>
+						<font>font13</font>
+						<textcolor>white</textcolor>
+						<label>Total Members:  [COLOR FFffd700]$INFO[Window().Property(otaku.stats.total)][/COLOR]</label>
+					</control>
+
+					<!-- Watching -->
+					<control type="group">
+						<top>95</top>
+						<control type="label">
+							<width>200</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>FF2db039</textcolor>
+							<label>Watching</label>
+						</control>
+						<control type="label">
+							<left>200</left>
+							<width>200</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>white</textcolor>
+							<label>$INFO[Window().Property(otaku.stats.watching)]</label>
+						</control>
+						<control type="image">
+							<top>28</top>
+							<width>550</width>
+							<height>14</height>
+							<texture colordiffuse="FF333333">white.png</texture>
+						</control>
+						<control type="image">
+							<top>28</top>
+							<width>$INFO[Window().Property(otaku.stats.watching.bar)]</width>
+							<height>14</height>
+							<texture colordiffuse="FF2db039">white.png</texture>
+						</control>
+					</control>
+
+					<!-- Completed -->
+					<control type="group">
+						<top>155</top>
+						<control type="label">
+							<width>200</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>FF26448f</textcolor>
+							<label>Completed</label>
+						</control>
+						<control type="label">
+							<left>200</left>
+							<width>200</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>white</textcolor>
+							<label>$INFO[Window().Property(otaku.stats.completed)]</label>
+						</control>
+						<control type="image">
+							<top>28</top>
+							<width>550</width>
+							<height>14</height>
+							<texture colordiffuse="FF333333">white.png</texture>
+						</control>
+						<control type="image">
+							<top>28</top>
+							<width>$INFO[Window().Property(otaku.stats.completed.bar)]</width>
+							<height>14</height>
+							<texture colordiffuse="FF26448f">white.png</texture>
+						</control>
+					</control>
+
+					<!-- On Hold -->
+					<control type="group">
+						<top>215</top>
+						<control type="label">
+							<width>200</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>FFf9d457</textcolor>
+							<label>On Hold</label>
+						</control>
+						<control type="label">
+							<left>200</left>
+							<width>200</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>white</textcolor>
+							<label>$INFO[Window().Property(otaku.stats.on_hold)]</label>
+						</control>
+						<control type="image">
+							<top>28</top>
+							<width>550</width>
+							<height>14</height>
+							<texture colordiffuse="FF333333">white.png</texture>
+						</control>
+						<control type="image">
+							<top>28</top>
+							<width>$INFO[Window().Property(otaku.stats.on_hold.bar)]</width>
+							<height>14</height>
+							<texture colordiffuse="FFf9d457">white.png</texture>
+						</control>
+					</control>
+
+					<!-- Dropped -->
+					<control type="group">
+						<top>275</top>
+						<control type="label">
+							<width>200</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>FFa12f31</textcolor>
+							<label>Dropped</label>
+						</control>
+						<control type="label">
+							<left>200</left>
+							<width>200</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>white</textcolor>
+							<label>$INFO[Window().Property(otaku.stats.dropped)]</label>
+						</control>
+						<control type="image">
+							<top>28</top>
+							<width>550</width>
+							<height>14</height>
+							<texture colordiffuse="FF333333">white.png</texture>
+						</control>
+						<control type="image">
+							<top>28</top>
+							<width>$INFO[Window().Property(otaku.stats.dropped.bar)]</width>
+							<height>14</height>
+							<texture colordiffuse="FFa12f31">white.png</texture>
+						</control>
+					</control>
+
+					<!-- Plan to Watch -->
+					<control type="group">
+						<top>335</top>
+						<control type="label">
+							<width>200</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>FF888888</textcolor>
+							<label>Plan to Watch</label>
+						</control>
+						<control type="label">
+							<left>200</left>
+							<width>200</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>white</textcolor>
+							<label>$INFO[Window().Property(otaku.stats.plan_to_watch)]</label>
+						</control>
+						<control type="image">
+							<top>28</top>
+							<width>550</width>
+							<height>14</height>
+							<texture colordiffuse="FF333333">white.png</texture>
+						</control>
+						<control type="image">
+							<top>28</top>
+							<width>$INFO[Window().Property(otaku.stats.plan_to_watch.bar)]</width>
+							<height>14</height>
+							<texture colordiffuse="FF888888">white.png</texture>
+						</control>
+					</control>
+				</control>
+
+				<!-- ═══════════════════════════════════════ -->
+				<!--  Right Column: Score Distribution      -->
+				<!-- ═══════════════════════════════════════ -->
+				<control type="group">
+					<left>680</left>
+					<top>120</top>
+
+					<!-- Section title -->
+					<control type="label">
+						<width>600</width>
+						<height>35</height>
+						<font>font14</font>
+						<textcolor>FF00BFFF</textcolor>
+						<label>Score Distribution</label>
+					</control>
+
+					<!-- Score 10 -->
+					<control type="group">
+						<top>50</top>
+						<control type="label">
+							<width>40</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>white</textcolor>
+							<align>right</align>
+							<label>10</label>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>510</width>
+							<height>20</height>
+							<texture colordiffuse="FF333333">white.png</texture>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>$INFO[Window().Property(otaku.stats.score10.bar)]</width>
+							<height>20</height>
+							<texture colordiffuse="FF2db039">white.png</texture>
+						</control>
+						<control type="label">
+							<left>575</left>
+						<width>180</width>
+						<height>25</height>
+						<font>font10</font>
+						<textcolor>FFAAAAAA</textcolor>
+						<label>$INFO[Window().Property(otaku.stats.score10.info)]</label>
+						</control>
+					</control>
+
+					<!-- Score 9 -->
+					<control type="group">
+						<top>80</top>
+						<control type="label">
+							<width>40</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>white</textcolor>
+							<align>right</align>
+							<label>9</label>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>510</width>
+							<height>20</height>
+							<texture colordiffuse="FF333333">white.png</texture>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>$INFO[Window().Property(otaku.stats.score9.bar)]</width>
+							<height>20</height>
+							<texture colordiffuse="FF4db84d">white.png</texture>
+						</control>
+						<control type="label">
+							<left>575</left>
+						<width>180</width>
+						<height>25</height>
+						<font>font10</font>
+						<textcolor>FFAAAAAA</textcolor>
+						<label>$INFO[Window().Property(otaku.stats.score9.info)]</label>
+						</control>
+					</control>
+
+					<!-- Score 8 -->
+					<control type="group">
+						<top>110</top>
+						<control type="label">
+							<width>40</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>white</textcolor>
+							<align>right</align>
+							<label>8</label>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>510</width>
+							<height>20</height>
+							<texture colordiffuse="FF333333">white.png</texture>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>$INFO[Window().Property(otaku.stats.score8.bar)]</width>
+							<height>20</height>
+							<texture colordiffuse="FF89c34a">white.png</texture>
+						</control>
+						<control type="label">
+							<left>575</left>
+						<width>180</width>
+						<height>25</height>
+						<font>font10</font>
+						<textcolor>FFAAAAAA</textcolor>
+						<label>$INFO[Window().Property(otaku.stats.score8.info)]</label>
+						</control>
+					</control>
+
+					<!-- Score 7 -->
+					<control type="group">
+						<top>140</top>
+						<control type="label">
+							<width>40</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>white</textcolor>
+							<align>right</align>
+							<label>7</label>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>510</width>
+							<height>20</height>
+							<texture colordiffuse="FF333333">white.png</texture>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>$INFO[Window().Property(otaku.stats.score7.bar)]</width>
+							<height>20</height>
+							<texture colordiffuse="FFc5e21a">white.png</texture>
+						</control>
+						<control type="label">
+							<left>575</left>
+						<width>180</width>
+						<height>25</height>
+						<font>font10</font>
+						<textcolor>FFAAAAAA</textcolor>
+						<label>$INFO[Window().Property(otaku.stats.score7.info)]</label>
+						</control>
+					</control>
+
+					<!-- Score 6 -->
+					<control type="group">
+						<top>170</top>
+						<control type="label">
+							<width>40</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>white</textcolor>
+							<align>right</align>
+							<label>6</label>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>510</width>
+							<height>20</height>
+							<texture colordiffuse="FF333333">white.png</texture>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>$INFO[Window().Property(otaku.stats.score6.bar)]</width>
+							<height>20</height>
+							<texture colordiffuse="FFf9d457">white.png</texture>
+						</control>
+						<control type="label">
+							<left>575</left>
+						<width>180</width>
+						<height>25</height>
+						<font>font10</font>
+						<textcolor>FFAAAAAA</textcolor>
+						<label>$INFO[Window().Property(otaku.stats.score6.info)]</label>
+						</control>
+					</control>
+
+					<!-- Score 5 -->
+					<control type="group">
+						<top>200</top>
+						<control type="label">
+							<width>40</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>white</textcolor>
+							<align>right</align>
+							<label>5</label>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>510</width>
+							<height>20</height>
+							<texture colordiffuse="FF333333">white.png</texture>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>$INFO[Window().Property(otaku.stats.score5.bar)]</width>
+							<height>20</height>
+							<texture colordiffuse="FFf0c040">white.png</texture>
+						</control>
+						<control type="label">
+							<left>575</left>
+						<width>180</width>
+						<height>25</height>
+						<font>font10</font>
+						<textcolor>FFAAAAAA</textcolor>
+						<label>$INFO[Window().Property(otaku.stats.score5.info)]</label>
+						</control>
+					</control>
+
+					<!-- Score 4 -->
+					<control type="group">
+						<top>230</top>
+						<control type="label">
+							<width>40</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>white</textcolor>
+							<align>right</align>
+							<label>4</label>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>510</width>
+							<height>20</height>
+							<texture colordiffuse="FF333333">white.png</texture>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>$INFO[Window().Property(otaku.stats.score4.bar)]</width>
+							<height>20</height>
+							<texture colordiffuse="FFe88a2d">white.png</texture>
+						</control>
+						<control type="label">
+							<left>575</left>
+						<width>180</width>
+						<height>25</height>
+						<font>font10</font>
+						<textcolor>FFAAAAAA</textcolor>
+						<label>$INFO[Window().Property(otaku.stats.score4.info)]</label>
+						</control>
+					</control>
+
+					<!-- Score 3 -->
+					<control type="group">
+						<top>260</top>
+						<control type="label">
+							<width>40</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>white</textcolor>
+							<align>right</align>
+							<label>3</label>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>510</width>
+							<height>20</height>
+							<texture colordiffuse="FF333333">white.png</texture>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>$INFO[Window().Property(otaku.stats.score3.bar)]</width>
+							<height>20</height>
+							<texture colordiffuse="FFe05c2d">white.png</texture>
+						</control>
+						<control type="label">
+							<left>575</left>
+						<width>180</width>
+						<height>25</height>
+						<font>font10</font>
+						<textcolor>FFAAAAAA</textcolor>
+						<label>$INFO[Window().Property(otaku.stats.score3.info)]</label>
+						</control>
+					</control>
+
+					<!-- Score 2 -->
+					<control type="group">
+						<top>290</top>
+						<control type="label">
+							<width>40</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>white</textcolor>
+							<align>right</align>
+							<label>2</label>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>510</width>
+							<height>20</height>
+							<texture colordiffuse="FF333333">white.png</texture>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>$INFO[Window().Property(otaku.stats.score2.bar)]</width>
+							<height>20</height>
+							<texture colordiffuse="FFd8382d">white.png</texture>
+						</control>
+						<control type="label">
+							<left>575</left>
+						<width>180</width>
+						<height>25</height>
+						<font>font10</font>
+						<textcolor>FFAAAAAA</textcolor>
+						<label>$INFO[Window().Property(otaku.stats.score2.info)]</label>
+						</control>
+					</control>
+
+					<!-- Score 1 -->
+					<control type="group">
+						<top>320</top>
+						<control type="label">
+							<width>40</width>
+							<height>25</height>
+							<font>font12</font>
+							<textcolor>white</textcolor>
+							<align>right</align>
+							<label>1</label>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>510</width>
+							<height>20</height>
+							<texture colordiffuse="FF333333">white.png</texture>
+						</control>
+						<control type="image">
+							<left>55</left>
+							<top>3</top>
+							<width>$INFO[Window().Property(otaku.stats.score1.bar)]</width>
+							<height>20</height>
+							<texture colordiffuse="FFa12f31">white.png</texture>
+						</control>
+						<control type="label">
+							<left>575</left>
+						<width>180</width>
+						<height>25</height>
+						<font>font10</font>
+						<textcolor>FFAAAAAA</textcolor>
+						<label>$INFO[Window().Property(otaku.stats.score1.info)]</label>
+						</control>
+					</control>
+
+					<!-- Vote counts per score -->
+					<control type="group">
+						<top>370</top>
+						<control type="label">
+							<width>650</width>
+							<height>30</height>
+							<font>font12</font>
+							<textcolor>FF00BFFF</textcolor>
+							<label>Vote Counts</label>
+						</control>
+						<control type="textbox" id="3000">
+							<top>35</top>
+							<width>650</width>
+							<height>460</height>
+							<font>font12</font>
+							<textcolor>FFCCCCCC</textcolor>
+							<label>$INFO[Window().Property(otaku.stats.vote_details)]</label>
+						</control>
+					</control>
+				</control>
+
+				<!-- Goku decoration -->
+				<control type="image">
+					<left>-10</left>
+					<top>370</top>
+					<width>700</width>
+					<height>1000</height>
+					<align>left</align>
+					<aligny>bottom</aligny>
+					<aspectratio aligny="top">keep</aspectratio>
+					<texture>common/trans-goku.png</texture>
+				</control>
+
+				<!-- Close button (focusable for controller/remote) -->
+				<control type="button" id="3001">
+					<left>580</left>
+					<top>930</top>
+					<width>200</width>
+					<height>40</height>
+					<font>font12</font>
+					<textcolor>white</textcolor>
+					<focusedcolor>FF00BFFF</focusedcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<label>Close</label>
+					<texturefocus colordiffuse="FF444444">white.png</texturefocus>
+					<texturenofocus colordiffuse="FF333333">white.png</texturenofocus>
+					<onup>3001</onup>
+					<ondown>3001</ondown>
+				</control>
+			</control>
+		</control>
+	</controls>
+</window>

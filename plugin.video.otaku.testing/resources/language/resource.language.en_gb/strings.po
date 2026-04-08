@@ -1864,3 +1864,11 @@ msgstr ""
 msgctxt "#30461"
 msgid "No reviews available for this anime"
 msgstr ""
+
+msgctxt "#30462"
+msgid "View Statistics"
+msgstr ""
+
+msgctxt "#30463"
+msgid "No statistics available for this anime"
+msgstr ""

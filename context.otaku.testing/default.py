@@ -71,6 +71,9 @@ def main():
     elif arg == 'viewreviews':
         path = path.split(plugin, 1)[1]
         xbmc.executebuiltin(f"Container.Update({plugin}/anime_reviews{path})")
+    elif arg == 'viewstatistics':
+        path = path.split(plugin, 1)[1]
+        xbmc.executebuiltin(f"Container.Update({plugin}/anime_statistics{path})")
     elif arg == 'rescrape':
         params = get_video_info(item)
         params['rescrape'] = 'true'

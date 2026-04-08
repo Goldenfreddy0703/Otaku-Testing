@@ -21,6 +21,10 @@
         <label>View Reviews</label>
         <visible>String.IsEqual(Window(home).Property(context.otaku.testing.viewreviews),true) + String.StartsWith(ListItem.Path,plugin://plugin.video.otaku.testing/) + [String.IsEqual(ListItem.DBTYPE,tvshow)|String.IsEqual(ListItem.DBTYPE,movie)]</visible>
       </item>
+      <item library="default.py" args="viewstatistics">
+        <label>View Statistics</label>
+        <visible>String.IsEqual(Window(home).Property(context.otaku.testing.viewstatistics),true) + String.StartsWith(ListItem.Path,plugin://plugin.video.otaku.testing/) + [String.IsEqual(ListItem.DBTYPE,tvshow)|String.IsEqual(ListItem.DBTYPE,movie)]</visible>
+      </item>
       <item library="default.py" args="markedaswatched">
         <label>Marked as Watched [COLOR blue]WatchList[/COLOR]</label>
         <visible>String.IsEqual(Window(home).Property(context.otaku.testing.markedaswatched),true) + String.StartsWith(ListItem.Path,plugin://plugin.video.otaku.testing/) + [String.IsEqual(ListItem.DBTYPE,episode) | String.IsEqual(ListItem.DBTYPE,movie)] + !Player.HasMedia</visible>

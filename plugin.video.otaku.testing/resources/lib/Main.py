@@ -325,6 +325,24 @@ def VIEW_REVIEW(payload, params):
     control.textviewer_dialog(f"Review by {username}", full_text)
 
 
+@Route('anime_statistics/*')
+def ANIME_STATISTICS(payload, params):
+    from resources.lib.ui import client
+    path, mal_id, eps_watched = payload.rsplit("/")
+    url = f'https://api.jikan.moe/v4/anime/{mal_id}/statistics'
+    response = client.get(url)
+    if not response or not response.ok:
+        control.notify(control.ADDON_NAME, control.lang(30463))
+        return
+    data = response.json().get('data', {})
+    if not data:
+        control.notify(control.ADDON_NAME, control.lang(30463))
+        return
+    from resources.lib.windows.stats_window import StatsWindow
+    window = StatsWindow('anime_statistics.xml', control.ADDON_PATH, stats=data, heading='Anime Statistics')
+    window.run()
+
+
 @Route('watch_history/')
 def WATCH_HISTORY(payload, params):
     """Display watch history"""
