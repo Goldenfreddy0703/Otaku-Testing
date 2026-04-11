@@ -157,14 +157,6 @@ def enabled_watchlists():
     return [x for x in watchlists if getSetting(f'{x}.token') != '' and getBool(f'{x}.enabled')]
 
 
-def watchlist_to_update():
-    """Returns the first enabled watchlist name for backward compatibility."""
-    if getBool('watchlist.update.enabled'):
-        enabled = enabled_watchlists()
-        if enabled:
-            return enabled[0]
-
-
 def copy2clip(txt):
     platform = sys.platform
     if platform == 'win32':

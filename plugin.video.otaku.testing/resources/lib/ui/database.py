@@ -302,12 +302,10 @@ def get_show(mal_id):
 
 def update_show(mal_id, kodi_meta, anime_schedule_route=''):
     with SQL(control.malSyncDB) as cur:
-        cur.execute('PRAGMA foreign_keys=OFF')
         cur.execute(
-            'REPLACE INTO shows '
-            '(mal_id, kodi_meta, anime_schedule_route) VALUES (?, ?, ?)',
+            'INSERT INTO shows (mal_id, kodi_meta, anime_schedule_route) VALUES (?, ?, ?) '
+            'ON CONFLICT(mal_id) DO UPDATE SET kodi_meta=excluded.kodi_meta, anime_schedule_route=excluded.anime_schedule_route',
             (mal_id, kodi_meta, anime_schedule_route))
-        cur.execute('PRAGMA foreign_keys=ON')
         cur.connection.commit()
 
 
