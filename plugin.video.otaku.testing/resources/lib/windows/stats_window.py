@@ -1,5 +1,4 @@
 import xbmcgui
-from resources.lib.ui import control
 
 
 class StatsWindow(xbmcgui.WindowXMLDialog):
