@@ -55,7 +55,7 @@ class Sources(BrowserBase):
             if not slugs:
                 if len(items) > 0:
                     slugs = [items[0].get('href')]
-                    control.log(f"AnimixPlay: No exact match, using first result")
+                    control.log("AnimixPlay: No exact match, using first result")
 
             control.log(f"AnimixPlay: Processing {len(slugs)} slugs in parallel")
             if slugs:

@@ -354,8 +354,6 @@ class Sources(BrowserBase):
                 continue
         return list_
 
-
-
     def _process_movie_results(self, results, mal_id):
         if not results:
             return []

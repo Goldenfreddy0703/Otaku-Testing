@@ -118,8 +118,10 @@ def migrate_artwork_database():
                     for key in ['fanart', 'thumb']:
                         if key in art and isinstance(art[key], list):
                             images_after += len(art[key])
-                    images_after += sum(1 for key in ['clearart', 'clearlogo', 'landscape', 'banner']
-                                       if key in art and isinstance(art[key], str))
+                    images_after += sum(
+                        1 for key in ['clearart', 'clearlogo', 'landscape', 'banner']
+                        if key in art and isinstance(art[key], str)
+                    )
 
                     # Update database if changes were made
                     if updated:

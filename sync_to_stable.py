@@ -9,6 +9,7 @@ dst_base = r"C:\Users\jenki\Documents\Github\Otaku\plugin.video.otaku"
 # Files to exclude
 exclude_files = {"addon.xml", "changelog.txt", "news.txt", "sync_to_stable.py"}
 
+
 def get_changed_files():
     try:
         result = subprocess.check_output(
@@ -21,6 +22,7 @@ def get_changed_files():
         print("Error: Could not get changed files from git.")
         print(e)
         return []
+
 
 def copy_files(files):
     for rel_path in files:
@@ -46,6 +48,7 @@ def copy_files(files):
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         shutil.copy2(src, dst)
         print(f"Copied {src} -> {dst}")
+
 
 if __name__ == "__main__":
     changed_files = get_changed_files()

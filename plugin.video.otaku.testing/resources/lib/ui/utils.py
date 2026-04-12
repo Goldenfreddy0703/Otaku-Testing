@@ -1,14 +1,14 @@
-"""utils.py – List-Item Allocation & Search History
+"""utils.py - List-Item Allocation & Search History
 ==================================================
 Helpers for creating Kodi directory items, managing search history,
 detecting season numbers, and running parallel operations.
 
 Sections
 --------
-Item Allocation   – allocate_item, parse_view, artwork path cache
-Search History    – search_history, parse_history_view, URL mappings
-Season Detection  – get_season (regex-based from title list)
-Parallel Helpers  – parallel_fetch, parallel_process
+Item Allocation   - allocate_item, parse_view, artwork path cache
+Search History    - search_history, parse_history_view, URL mappings
+Season Detection  - get_season (regex-based from title list)
+Parallel Helpers  - parallel_fetch, parallel_process
 """
 
 import os

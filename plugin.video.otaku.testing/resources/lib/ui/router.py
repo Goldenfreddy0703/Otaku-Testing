@@ -1,4 +1,4 @@
-"""router.py – URL Route Dispatcher
+"""router.py - URL Route Dispatcher
 ====================================
 Simple decorator-based router: @Route('/path') registers a handler,
 router_process() dispatches incoming plugin URLs to the matching handler.

@@ -1,13 +1,13 @@
-"""player.py – Otaku Playback & Playlist Manager
+"""player.py - Otaku Playback & Playlist Manager
 ================================================
 Manages video playback lifecycle, skip-time processing,
 audio/subtitle preferences, watchlist updates, and playlist building.
 
 Architecture
 ------------
-WatchlistPlayer  – Main player class: playback monitoring, skip times, watchlist
-PlayerDialogs    – Skip intro / skip outro / playing-next dialog display
-Monitor          – Playback error detection with grace period
+WatchlistPlayer  - Main player class: playback monitoring, skip times, watchlist
+PlayerDialogs    - Skip intro / skip outro / playing-next dialog display
+Monitor          - Playback error detection with grace period
 """
 
 import time
@@ -26,7 +26,7 @@ player = xbmc.Player
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  WatchlistPlayer – Playback Lifecycle & Skip Times
+#  WatchlistPlayer - Playback Lifecycle & Skip Times
 # ═══════════════════════════════════════════════════════════════════════════
 
 class WatchlistPlayer(player):
@@ -568,7 +568,7 @@ class WatchlistPlayer(player):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  PlayerDialogs – Skip Intro / Outro / Playing Next
+#  PlayerDialogs - Skip Intro / Outro / Playing Next
 # ═══════════════════════════════════════════════════════════════════════════
 
 class PlayerDialogs(xbmc.Player):
@@ -665,7 +665,7 @@ class PlayerDialogs(xbmc.Player):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  Monitor – Playback Error Detection
+#  Monitor - Playback Error Detection
 # ═══════════════════════════════════════════════════════════════════════════
 
 class Monitor(xbmc.Monitor):

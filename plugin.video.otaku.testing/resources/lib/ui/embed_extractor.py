@@ -1,4 +1,4 @@
-"""embed_extractor.py – Video Embed Extraction Engine
+"""embed_extractor.py - Video Embed Extraction Engine
 ===================================================
 Resolves playable video URLs from embed/hosting sites.
 Each extractor is registered via __register_extractor and looked up
@@ -6,10 +6,10 @@ by URL prefix in load_video_from_url().
 
 Sections
 --------
-Extractor Dispatch   – load_video_from_url, registry lookup
-Helper Functions     – packed-data unpacking, header appending, URL checking
-Individual Extractors– one __extract_* per embed host
-Extractor Registry   – __register_extractor calls at module level
+Extractor Dispatch   - load_video_from_url, registry lookup
+Helper Functions     - packed-data unpacking, header appending, URL checking
+Individual Extractors- one __extract_* per embed host
+Extractor Registry   - __register_extractor calls at module level
 """
 
 import base64

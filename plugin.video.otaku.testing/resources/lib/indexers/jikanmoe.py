@@ -47,7 +47,7 @@ class JikanAPI:
 
         # Split remaining pages into batches of 3 to respect rate limit
         page_numbers = list(range(2, last_page + 1))
-        batches = [page_numbers[i:i+3] for i in range(0, len(page_numbers), 3)]
+        batches = [page_numbers[i:i + 3] for i in range(0, len(page_numbers), 3)]
 
         all_page_results = []
         for i, batch in enumerate(batches):

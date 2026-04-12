@@ -240,7 +240,7 @@ def version_check():
 def load_settings():
     """Load settings into Kodi window properties by parsing settings.xml."""
     import xml.etree.ElementTree as ET
-    
+
     settings_path = os.path.join(control.ADDON_PATH, 'resources', 'settings.xml')
     try:
         tree = ET.parse(settings_path)
@@ -248,7 +248,7 @@ def load_settings():
     except Exception as e:
         control.log(f'Failed to parse settings.xml: {e}', 'error')
         return
-    
+
     for setting in root.iter('setting'):
         s_id = setting.get('id')
         s_type = setting.get('type')

@@ -189,7 +189,7 @@ class Otaku_Next_Up_API:
         kodi_meta = pickle.loads(database.get_show(mal_id)['kodi_meta'])
         episode = res.get('mal_id', res.get('episode'))
         url = f"{mal_id}/{episode}"
-        
+
         # Check if should hide unaired episodes - use fallback logic across sources
         aired_date = (
             (simkl_meta.get('date') if simkl_meta else None)
@@ -199,7 +199,7 @@ class Otaku_Next_Up_API:
         )
         if indexers.should_hide_unaired_episode(aired_date):
             return None
-        
+
         # Fallback logic for title
         title = (
             (simkl_meta.get('title') if simkl_meta else None)

@@ -121,10 +121,10 @@ class SimklWLF(WatchlistFlavorBase):
             return self._get_next_up_episodes(status, offset, page)
 
         from resources.lib.ui.database import (
-            get_watchlist_cache, save_watchlist_cache, 
+            get_watchlist_cache, save_watchlist_cache,
             is_watchlist_cache_valid, get_watchlist_cache_count
         )
-        
+
         paging_enabled = control.getBool('interface.watchlist.paging')
         per_page = control.getInt('interface.perpage.watchlist') if paging_enabled else 0
         offset = int(offset) if offset else 0
@@ -135,20 +135,20 @@ class SimklWLF(WatchlistFlavorBase):
             results = self.get_all_items(status)
             if results and results.get('anime'):
                 save_watchlist_cache(self._NAME, status, results['anime'])
-        
+
         # If cache_only, we're done - raw data is cached
         if cache_only:
             return []
 
         # Get items from cache
         total_count = get_watchlist_cache_count(self._NAME, status)
-        
+
         # Always fetch ALL items so sorting works across the full list
         cached_items = get_watchlist_cache(self._NAME, status)
-        
+
         if not cached_items:
             return []
-        
+
         # Deserialize cached items
         import pickle
         items = [pickle.loads(item['data']) for item in cached_items]
@@ -509,10 +509,8 @@ class SimklWLF(WatchlistFlavorBase):
             'last_added': res['added_to_watchlist_at'],
             'last_watched': res['last_watched_at'],
             'last_rated': res['user_rated_at'],
-            'user_rating': res['user_rating'],
             'watched_episodes_count': res.get('watched_episodes_count'),
-            'total_episodes_count': res.get('total_episodes_count'),
-            
+            'total_episodes_count': res.get('total_episodes_count')
         }
         if info_rating:
             info['rating'] = info_rating

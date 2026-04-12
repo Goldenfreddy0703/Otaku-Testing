@@ -1,4 +1,4 @@
-"""source_utils.py – Source Quality & Filtering Engine
+"""source_utils.py - Source Quality & Filtering Engine
 =====================================================
 Detects video quality, codec, audio format, and subtitle info from
 release titles.  Provides regex-based torrent filtering, fuzzy matching,
@@ -6,12 +6,12 @@ and file-selection helpers used by the resolver pipeline.
 
 Sections
 --------
-Quality & Info Detection   – getQuality, getAudio_lang, getInfo, etc.
-Episode Regex              – get_cache_check_reg, convert_to_bytes, get_size
-Fuzzy Matching             – get_fuzzy_match, get_best_match
-Torrent Filtering          – filter_sources (season / episode / part regex)
-Text Cleaning              – remove_patterns, cleanup_text, clean_text, cleanTitle
-File Utilities             – is_file_ext_valid, video_ext, user_select, get_embedhost
+Quality & Info Detection   - getQuality, getAudio_lang, getInfo, etc.
+Episode Regex              - get_cache_check_reg, convert_to_bytes, get_size
+Fuzzy Matching             - get_fuzzy_match, get_best_match
+Torrent Filtering          - filter_sources (season / episode / part regex)
+Text Cleaning              - remove_patterns, cleanup_text, clean_text, cleanTitle
+File Utilities             - is_file_ext_valid, video_ext, user_select, get_embedhost
 """
 
 import re

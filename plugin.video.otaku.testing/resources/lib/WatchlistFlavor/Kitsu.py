@@ -5,8 +5,6 @@ import pickle
 from resources.lib.ui import client, control, database, utils, get_meta
 from resources.lib.WatchlistFlavor.WatchlistFlavorBase import WatchlistFlavorBase
 from resources.lib.indexers.simkl import SIMKLAPI
-from urllib import parse
-
 from resources.lib.ui.divide_flavors import div_flavor
 
 
@@ -142,7 +140,7 @@ class KitsuWLF(WatchlistFlavorBase):
 
         from resources.lib.ui.database import (
             get_watchlist_cache, save_watchlist_cache,
-            is_watchlist_cache_valid, get_watchlist_cache_count
+            is_watchlist_cache_valid
         )
 
         paging_enabled = control.getBool('interface.watchlist.paging')

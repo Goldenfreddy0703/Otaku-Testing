@@ -64,10 +64,10 @@ def should_hide_unaired_episode(aired_date_str):
     import datetime
     if not control.getBool('interface.aired_episodes'):
         return False
-    
+
     if not aired_date_str:
         return False
-    
+
     try:
         # Parse the aired date with fallback for compatibility
         try:
@@ -75,7 +75,7 @@ def should_hide_unaired_episode(aired_date_str):
         except:
             import time
             aired_date = datetime.datetime.fromtimestamp(time.mktime(time.strptime(aired_date_str[:10], '%Y-%m-%d')))
-        
+
         today = datetime.datetime.now()
         return aired_date > today
     except (ValueError, TypeError, AttributeError, Exception):

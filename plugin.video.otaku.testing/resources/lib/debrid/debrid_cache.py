@@ -225,8 +225,8 @@ def _get_dmm_secret():
         half = int(len(s) // 2)
         left_s, right_s = s[:half], s[half:]
         left_n, right_n = n[:half], n[half:]
-        l = ''.join(ls + ln for ls, ln in zip(left_s, left_n))
-        return l + right_n[::-1] + right_s[::-1]
+        i = ''.join(ls + ln for ls, ln in zip(left_s, left_n))
+        return i + right_n[::-1] + right_s[::-1]
 
     def _generate_hash(e):
         t = _to_int32(0xDEADBEEF ^ len(e))

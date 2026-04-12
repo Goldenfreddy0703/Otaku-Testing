@@ -1,4 +1,4 @@
-"""BrowserBase.py – Scraper Base Class
+"""BrowserBase.py - Scraper Base Class
 ======================================
 Common utilities shared by all page/scraper modules:
 pagination, URL construction, HTTP helpers, and encoding.
@@ -13,7 +13,7 @@ from resources.lib.ui import client, control, utils
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  BrowserBase – Paging, URL Helpers & HTTP Wrappers
+#  BrowserBase - Paging, URL Helpers & HTTP Wrappers
 # ═══════════════════════════════════════════════════════════════════════════
 
 class BrowserBase(object):
@@ -160,4 +160,4 @@ class BrowserBase(object):
         'noadsalt', 'swish', 'streamtape', 'streamwish', 't-cloud', 'vidcdn',
         'vidhide', 'vidplay', 'vidsrc', 'vidstream', 'yourupload', 'zto'
     ]
-    control.setStringList('embed.config',(embed_servers))
+    control.setStringList('embed.config', (embed_servers))

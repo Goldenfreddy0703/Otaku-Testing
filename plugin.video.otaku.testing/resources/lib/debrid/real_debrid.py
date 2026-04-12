@@ -50,7 +50,7 @@ class RealDebrid:
         import pyqrcode
         import os
         from resources.lib.windows.progress_dialog import Progress_dialog
-        
+
         api_info = database.get_info('Real-Debrid')
         self.ClientID = api_info['client_id']
         self.ClientSecret = ''

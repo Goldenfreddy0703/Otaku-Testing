@@ -218,7 +218,7 @@ class OtakuAPI:
 
         # Split remaining pages into batches of 3 to respect rate limit
         page_numbers = list(range(2, last_page + 1))
-        batches = [page_numbers[i:i+3] for i in range(0, len(page_numbers), 3)]
+        batches = [page_numbers[i:i + 3] for i in range(0, len(page_numbers), 3)]
 
         all_page_results = []
         for i, batch in enumerate(batches):
@@ -280,7 +280,7 @@ class OtakuAPI:
         kodi_meta = pickle.loads(database.get_show(mal_id)['kodi_meta'])
         episode = res.get('mal_id', res.get('episode'))
         url = f"{mal_id}/{episode}"
-        
+
         # Check if should hide unaired episodes - use fallback logic across sources
         aired_date = (
             (anidb_meta.get('airdate') if anidb_meta else None)
@@ -292,7 +292,7 @@ class OtakuAPI:
         )
         if indexers.should_hide_unaired_episode(aired_date):
             return None
-        
+
         # Fallback logic for title
         title = (
             (anidb_meta.get('title') if anidb_meta else None)

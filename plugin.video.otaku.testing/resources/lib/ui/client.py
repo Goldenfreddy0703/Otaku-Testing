@@ -1,20 +1,20 @@
 """
-client.py – Otaku HTTP Client Layer
+client.py - Otaku HTTP Client Layer
 ====================================
 Full-featured HTTP client with keep-alive pooling, session management,
 Cloudflare/DDoS-Guard bypass, and a requests-compatible Response API.
 
 Architecture
 ------------
-Connection Pool – Thread-safe TCP/TLS keep-alive pool (_KeepAlivePool)
-Fast Path        – _fast_request() for pool-based HTTP with redirect/gzip
-Session Mgmt     – Cookie/opener caching per domain with auto cleanup
-User Agents      – Cached random desktop/mobile UA strings
-Response         – Requests-like Response object (text, json, status_code)
-HTTP Verbs       – get / post / put / patch / delete / head / session_request
-Legacy Request   – Full-featured urllib request() with CF/DDG bypass
-Challenge Bypass – cfcookie / ddgcookie via FlareSolverr
-Helpers          – store / retrieve / byteify / strip_cookie_url
+Connection Pool - Thread-safe TCP/TLS keep-alive pool (_KeepAlivePool)
+Fast Path        - _fast_request() for pool-based HTTP with redirect/gzip
+Session Mgmt     - Cookie/opener caching per domain with auto cleanup
+User Agents      - Cached random desktop/mobile UA strings
+Response         - Requests-like Response object (text, json, status_code)
+HTTP Verbs       - get / post / put / patch / delete / head / session_request
+Legacy Request   - Full-featured urllib request() with CF/DDG bypass
+Challenge Bypass - cfcookie / ddgcookie via FlareSolverr
+Helpers          - store / retrieve / byteify / strip_cookie_url
 """
 
 # -*- coding: utf-8 -*-
@@ -172,7 +172,7 @@ _keepalive_pool = _KeepAlivePool()
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  Fast Path – Pool-Based HTTP with Redirect & Gzip
+#  Fast Path - Pool-Based HTTP with Redirect & Gzip
 # ═══════════════════════════════════════════════════════════════════════════
 
 def _fast_request(url, headers, post_data=None, method='GET', timeout=20, jpost=False):
@@ -288,7 +288,7 @@ def _get_cached_useragent(mobile=False):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  Response – Requests-Compatible Response Object
+#  Response - Requests-Compatible Response Object
 # ═══════════════════════════════════════════════════════════════════════════
 
 class Response:
@@ -346,7 +346,7 @@ class Response:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  Legacy Request – Full-Featured urllib with CF/DDG Bypass
+#  Legacy Request - Full-Featured urllib with CF/DDG Bypass
 # ═══════════════════════════════════════════════════════════════════════════
 
 def request(
@@ -888,7 +888,7 @@ def request(
         elif text_content and encoding is None:
             # Try UTF-8 first (for modern APIs: JSON/XML from MAL, AniList, etc.)
             # Fall back to latin-1 if UTF-8 fails (for legacy content)
-            # This fixes mojibake for Unicode chars like ×, –, …, accented letters, etc.
+            # This fixes mojibake for Unicode chars like ×, -, …, accented letters, etc.
             try:
                 result = result.decode('utf-8')
             except UnicodeDecodeError:
@@ -923,7 +923,7 @@ def request(
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  HTTP Verbs – Requests-Compatible API
+#  HTTP Verbs - Requests-Compatible API
 # ═══════════════════════════════════════════════════════════════════════════
 
 def _build_response(result, url):
@@ -1061,7 +1061,7 @@ def clear_session():
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  Session Class – Persistent Cookie Management
+#  Session Class - Persistent Cookie Management
 # ═══════════════════════════════════════════════════════════════════════════
 
 class Session:
@@ -1253,7 +1253,7 @@ def retrieve(fname):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  Challenge Bypass – Cloudflare & DDoS-Guard via FlareSolverr
+#  Challenge Bypass - Cloudflare & DDoS-Guard via FlareSolverr
 # ═══════════════════════════════════════════════════════════════════════════
 
 class cfcookie:

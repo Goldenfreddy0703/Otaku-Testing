@@ -1,12 +1,12 @@
-"""get_meta.py – Artwork & Metadata Fetcher
+"""get_meta.py - Artwork & Metadata Fetcher
 ==========================================
 Collects artwork from Fanart.tv, TMDB, and TVDB in parallel,
 then merges the results into a single metadata record per show.
 
 Sections
 --------
-Metadata Collection   – collect_meta (batch), update_meta (single show)
-Artwork Merging       – merge_artwork (multi-provider combine & dedupe)
+Metadata Collection   - collect_meta (batch), update_meta (single show)
+Artwork Merging       - merge_artwork (multi-provider combine & dedupe)
 """
 
 import concurrent.futures
