@@ -120,6 +120,8 @@ class Anichart(BaseWindow):
                 context_menu_options.append("Get Watch Order")
             if control.getBool('context.otaku.testing.viewreviews'):
                 context_menu_options.append("View Reviews")
+            if control.getBool('context.otaku.testing.viewstatistics'):
+                context_menu_options.append("View Statistics")
             if control.getBool('context.otaku.testing.deletefromdatabase'):
                 context_menu_options.append("Delete From Database")
             if control.getBool('context.otaku.testing.watchlist'):
@@ -149,6 +151,10 @@ class Anichart(BaseWindow):
                 params = {}
                 Main.ANIME_REVIEWS(payload, params)
                 self.close()
+            elif choice == "View Statistics":
+                payload = f"some_path/{anime}/0"
+                params = {}
+                Main.ANIME_STATISTICS(payload, params)
             elif choice == "Delete From Database":
                 payload = f"some_path/{anime}/0"
                 params = {}
