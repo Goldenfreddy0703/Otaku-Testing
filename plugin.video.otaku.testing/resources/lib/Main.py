@@ -371,7 +371,7 @@ def ANIME_STATISTICS(payload, params):
         control.notify(control.ADDON_NAME, control.lang(30463))
         return
     from resources.lib.windows.stats_window import StatsWindow
-    window = StatsWindow('anime_statistics.xml', control.ADDON_PATH, stats=data, heading='Anime Statistics')
+    window = StatsWindow('anime_statistics.xml', control.ADDON_PATH, stats=data, heading='[B]Anime Statistics[/B]')
     window.run()
 
 

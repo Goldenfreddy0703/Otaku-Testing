@@ -1,4 +1,5 @@
 import xbmcgui
+from resources.lib.ui import control
 
 
 class StatsWindow(xbmcgui.WindowXMLDialog):
@@ -23,8 +24,6 @@ class StatsWindow(xbmcgui.WindowXMLDialog):
         for key in summary_keys:
             value = data.get(key, 0)
             self.setProperty(f'otaku.stats.{key}', f'{value:,}')
-            bar_width = int(550 * value / total) if total > 0 else 0
-            self.setProperty(f'otaku.stats.{key}.bar', str(bar_width))
 
         self.setProperty('otaku.stats.total', f'{total:,}')
 
@@ -35,9 +34,8 @@ class StatsWindow(xbmcgui.WindowXMLDialog):
             s = scores.get(i, {})
             pct = s.get('percentage', 0)
             votes = s.get('votes', 0)
-            bar_width = int(510 * pct / max_pct) if max_pct > 0 else 0
-            # control.log(f'{i}: {bar_width}', level='info')
-            self.setProperty(f'otaku.stats.score{i}.bar', str(bar_width))
+            bar_pct = pct / max_pct * 100 if max_pct > 0 else 0
+            self.getControl(4000 + i).setPercent(bar_pct)
             self.setProperty(f'otaku.stats.score{i}.pct', f'{pct}%')
             self.setProperty(f'otaku.stats.score{i}.votes', f'({votes} votes)')
 
