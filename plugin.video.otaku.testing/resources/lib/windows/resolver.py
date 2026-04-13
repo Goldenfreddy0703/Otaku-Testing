@@ -226,7 +226,8 @@ class Resolver(BaseWindow):
             control.set_videotags(item, self.params)
 
         art = self._build_art_dict(use_params=False)
-        item.setArt(art)
+        if isinstance(art, str):
+            item.setArt(art)
 
         # Get the clean URL from item (hooks may have stripped headers)
         stream_url = item.getPath()
