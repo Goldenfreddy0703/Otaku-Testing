@@ -1,6 +1,7 @@
 import re
 
 from functools import partial
+from resources.lib.debrid import Debrid
 from resources.lib.ui import database, source_utils, control, client, utils
 from resources.lib.ui.BrowserBase import BrowserBase
 
@@ -17,44 +18,9 @@ class Sources(BrowserBase):
 
     def _build_config(self):
         providers = control.getStringList('torrentio.config')
-        config = {
-            'providers': ','.join(providers) if providers else ''
-        }
-        
-        if not control.getBool('show.uncached'):
-            config['debridoptions'] = 'nodownloadlinks'
-
-        enabled_debrids = control.enabled_debrid()
-        if enabled_debrids.get('realdebrid'):
-            token = control.getSetting('realdebrid.token')
-            if token:
-                config['realdebrid'] = token
-        if enabled_debrids.get('debridlink'):
-            token = control.getSetting('debridlink.token')
-            if token:
-                config['debridlink'] = token
-        if enabled_debrids.get('alldebrid'):
-            token = control.getSetting('alldebrid.token')
-            if token:
-                config['alldebrid'] = token
-        if enabled_debrids.get('premiumize'):
-            token = control.getSetting('premiumize.token')
-            if token:
-                config['premiumize'] = token
-        if enabled_debrids.get('torbox'):
-            token = control.getSetting('torbox.token')
-            if token:
-                config['torbox'] = token
-        if enabled_debrids.get('easydebrid'):
-            token = control.getSetting('easydebrid.token')
-            if token:
-                config['easydebrid'] = token
-
-        return config
-
-    def _config_url(self):
-        config = self._build_config()
-        return "|".join([f"{k}={v}" for k, v in config.items()])
+        if providers:
+            return f"providers={','.join(providers)}"
+        return ''
 
     def get_sources(self, query, mal_id, episode, status, media_type, season=None, part=None):
         self.media_type = media_type
@@ -71,7 +37,7 @@ class Sources(BrowserBase):
             return self.get_movie_sources(mal_id)
 
         episode_zfill = episode.zfill(2)
-        self.sources = self.process_torrentio_episodes(mal_id, episode_zfill)
+        self.sources = self.process_torrentio_episodes(mal_id, episode_zfill, season, part)
 
         self.append_cache_uncached_noduplicates()
         return {'cached': self.cached, 'uncached': self.uncached}
@@ -82,109 +48,105 @@ class Sources(BrowserBase):
         self.append_cache_uncached_noduplicates()
         return {'cached': self.cached, 'uncached': self.uncached}
 
-    def process_torrentio_episodes(self, mal_id, episode):
-        config_str = self._config_url()
-        url = f"{self._BASE_URL}/{config_str}/stream/series/kitsu:{self.kitsu_id}:{episode}.json"
+    def process_torrentio_episodes(self, mal_id, episode, season, part):
+        config = self._build_config()
+        path = f"/{config}" if config else ""
+        url = f"{self._BASE_URL}{path}/stream/series/kitsu:{self.kitsu_id}:{episode}.json"
         control.log(f"Torrentio: Fetching episode sources from kitsu:{self.kitsu_id}:{episode}")
 
         response = client.get(url, timeout=30)
-        if response:
-            data = response.json()
-            if not data:
-                return []
+        if not response:
+            return []
 
-            list_ = self._parse_stream_list(data)
-            control.log(f"Torrentio: Got {len(list_)} raw streams")
+        data = response.json()
+        if not data:
+            return []
 
-            # Torrentio already returns debrid-checked results, split cached/uncached
-            cache_list = [i for i in list_ if i['cached']]
-            uncached_list = [i for i in list_ if not i['cached'] and i['seeders'] > 0]
+        list_ = self._parse_stream_list(data)
+        control.log(f"Torrentio: Got {len(list_)} raw streams")
+        if not list_:
+            return []
 
-            cache_list = sorted(cache_list, key=lambda k: k['seeders'], reverse=True)
-            uncached_list = sorted(uncached_list, key=lambda k: k['seeders'], reverse=True)
+        season_int = int(season) if season else None
+        filtered_list = source_utils.filter_sources('torrentio', list_, mal_id, season_int, int(episode), part)
+        control.log(f"Torrentio: {len(filtered_list)} sources after filtering")
 
-            mapfunc = partial(self.parse_torrentio_view, episode=episode)
-            all_results = utils.parallel_process(cache_list, mapfunc) if cache_list else []
-            if control.getBool('show.uncached') and uncached_list:
-                mapfunc2 = partial(self.parse_torrentio_view, episode=episode, cached=False)
-                all_results += utils.parallel_process(uncached_list, mapfunc2)
-            return all_results
-        return []
+        cache_list, uncached_list_ = Debrid().torrentCacheCheck(filtered_list, mal_id=mal_id, episode=episode, media_type=self.media_type)
+        cache_list = sorted(cache_list, key=lambda k: k['seeders'], reverse=True)
+
+        uncached_list = [i for i in uncached_list_ if i['seeders'] > 0]
+        uncached_list = sorted(uncached_list, key=lambda k: k['seeders'], reverse=True)
+
+        mapfunc = partial(self.parse_torrentio_view, episode=episode)
+        all_results = utils.parallel_process(cache_list, mapfunc) if cache_list else []
+        if control.getBool('show.uncached') and uncached_list:
+            mapfunc2 = partial(self.parse_torrentio_view, episode=episode, cached=False)
+            all_results += utils.parallel_process(uncached_list, mapfunc2)
+        return all_results
 
     def process_torrentio_movie(self, mal_id):
-        config_str = self._config_url()
-        url = f"{self._BASE_URL}/{config_str}/stream/movie/kitsu:{self.kitsu_id}.json"
+        config = self._build_config()
+        path = f"/{config}" if config else ""
+        url = f"{self._BASE_URL}{path}/stream/movie/kitsu:{self.kitsu_id}.json"
         control.log(f"Torrentio: Fetching movie sources from kitsu:{self.kitsu_id}")
 
         response = client.get(url, timeout=30)
-        if response:
-            data = response.json()
-            if not data:
-                return []
+        if not response:
+            return []
 
-            list_ = self._parse_stream_list(data)
-            control.log(f"Torrentio: Got {len(list_)} raw movie streams")
+        data = response.json()
+        if not data:
+            return []
 
-            cache_list = [i for i in list_ if i['cached']]
-            uncached_list = [i for i in list_ if not i['cached'] and i['seeders'] > 0]
+        list_ = self._parse_stream_list(data)
+        control.log(f"Torrentio: Got {len(list_)} raw movie streams")
+        if not list_:
+            return []
 
-            cache_list = sorted(cache_list, key=lambda k: k['seeders'], reverse=True)
-            uncached_list = sorted(uncached_list, key=lambda k: k['seeders'], reverse=True)
+        filtered_list = source_utils.filter_sources('torrentio', list_, mal_id)
 
-            mapfunc = partial(self.parse_torrentio_view, episode='1')
-            all_results = utils.parallel_process(cache_list, mapfunc) if cache_list else []
-            if control.getBool('show.uncached') and uncached_list:
-                mapfunc2 = partial(self.parse_torrentio_view, episode='1', cached=False)
-                all_results += utils.parallel_process(uncached_list, mapfunc2)
-            return all_results
-        return []
+        cache_list, uncached_list_ = Debrid().torrentCacheCheck(filtered_list, mal_id=mal_id, episode='1', media_type=self.media_type)
+        cache_list = sorted(cache_list, key=lambda k: k['seeders'], reverse=True)
+
+        uncached_list = [i for i in uncached_list_ if i['seeders'] > 0]
+        uncached_list = sorted(uncached_list, key=lambda k: k['seeders'], reverse=True)
+
+        mapfunc = partial(self.parse_torrentio_view, episode='1')
+        all_results = utils.parallel_process(cache_list, mapfunc) if cache_list else []
+        if control.getBool('show.uncached') and uncached_list:
+            mapfunc2 = partial(self.parse_torrentio_view, episode='1', cached=False)
+            all_results += utils.parallel_process(uncached_list, mapfunc2)
+        return all_results
 
     @staticmethod
     def _parse_stream_list(data):
-        re_hash = re.compile(r'(?<=/)([a-f0-9]{40})(?=/)')
         re_seeders = re.compile(r'👤\s*(\d+)')
-        re_provider = re.compile(r'⚙️\s*(\w+)')
+        re_provider = re.compile(r'⚙️\s*(.+)')
 
         list_ = []
         for stream in data.get('streams', []):
+            torrent_hash = stream.get('infoHash', '')
+            if not torrent_hash:
+                continue
+
+            title = stream.get('title', '')
+            name = title.split('\n', 1)[0].strip()
+            if not name:
+                continue
+
             behaviorhints = stream.get('behaviorHints', {})
-            match_seeders = re_seeders.search(stream.get('title', ''))
-            match_provider = re_provider.search(stream.get('title', ''))
-
-            try:
-                match_hash = re_hash.search(stream.get('url', ''))
-                torrent_hash = match_hash.group(1)
-            except (AttributeError, IndexError):
-                torrent_hash = ''
-
-            name = stream.get('name', '')
-            cached = 'download' not in name.lower()
-
-            if 'TB' in name:
-                debrid_provider = 'TorBox'
-            elif 'RD' in name:
-                debrid_provider = 'Real-Debrid'
-            elif 'DL' in name:
-                debrid_provider = 'Debrid-Link'
-            elif 'PR' in name:
-                debrid_provider = 'Premiumize'
-            elif 'AD' in name:
-                debrid_provider = 'Alldebrid'
-            elif 'ED' in name:
-                debrid_provider = 'EasyDebrid'
-            else:
-                debrid_provider = 'Unknown'
+            match_seeders = re_seeders.search(title)
+            match_provider = re_provider.search(title)
+            size_match = re.search(r'([\d.]+\s*[GMKT]B)', title, re.IGNORECASE)
 
             list_.append({
-                'name': stream.get('title', '').split('\n', 1)[0],
+                'name': name,
                 'hash': torrent_hash,
+                'magnet': f"magnet:?xt=urn:btih:{torrent_hash}&dn={name}",
                 'filename': behaviorhints.get('filename', ''),
-                'size': source_utils.get_size(behaviorhints.get('videoSize', 0)),
-                'byte_size': behaviorhints.get('videoSize', 0),
-                'seeders': 0 if match_seeders is None else int(match_seeders.group(1)),
-                'debrid_provider': debrid_provider,
-                'source_provider': match_provider.group(1) if match_provider else 'Unknown',
-                'cached': cached,
+                'size': size_match.group(1) if size_match else 'NA',
+                'seeders': int(match_seeders.group(1)) if match_seeders else 0,
+                'source_provider': match_provider.group(1).strip() if match_provider else '',
             })
 
         return list_
@@ -198,10 +160,10 @@ class Sources(BrowserBase):
             'type': 'torrent',
             'quality': source_utils.getQuality(res['name']),
             'debrid_provider': res.get('debrid_provider'),
-            'provider': 'torrentio',
+            'provider': f"Tio ({res['source_provider']})" if res.get('source_provider') else 'Torrentio',
             'episode_re': episode,
             'size': res['size'],
-            'byte_size': res.get('byte_size', 0),
+            'byte_size': 0,
             'info': source_utils.getInfo(res['name']),
             'lang': source_utils.getAudio_lang(res['name']),
             'channel': source_utils.getAudio_channel(res['name']),
@@ -210,14 +172,20 @@ class Sources(BrowserBase):
             'seeders': res['seeders'],
         }
 
+        match = re.match(r'([\d.]+)\s*(\w+)', res['size'])
+        if match:
+            try:
+                source['byte_size'] = source_utils.convert_to_bytes(float(match.group(1)), match.group(2))
+            except (ValueError, KeyError):
+                pass
+
         if not cached:
-            source['magnet'] = f"magnet:?xt=urn:btih:{res['hash']}"
+            source['magnet'] = res['magnet']
             source['type'] += ' (uncached)'
-            
+
         return source
 
     def append_cache_uncached_noduplicates(self):
-        # Keep one source per (hash, debrid_provider) so multiple providers can show for the same torrent
         unique = {}
         for source in self.sources:
             key = (source.get('hash'), source.get('debrid_provider'))

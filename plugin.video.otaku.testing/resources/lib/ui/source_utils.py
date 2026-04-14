@@ -379,6 +379,9 @@ def filter_sources(provider, torrent_list, mal_id, season=None, episode=None, pa
             torrent['hash'] = torrent.get('id', '')
         elif provider == 'torbox':
             torrent['hash'] = torrent.get('hash', '')
+        elif provider == 'torrentio':
+            if 'hash' not in torrent:
+                continue
         elif provider == 'local':
             torrent['hash'] = torrent.get('path', '')
         else:
