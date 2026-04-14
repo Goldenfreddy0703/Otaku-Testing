@@ -176,7 +176,7 @@ class TorBox:
         r = client.get(url, params=params)
         return r.json()['data'] if r else None
 
-    def resolve_single_magnet(self, hash_, magnet, episode, pack_select):
+    def resolve_single_magnet(self, hash_, magnet, episode, pack_select, filename=None):
         torrent = self.addMagnet(magnet)
         if not torrent or 'torrent_id' not in torrent:
             return None
@@ -188,7 +188,7 @@ class TorBox:
         folder_details = [{'fileId': x['id'], 'path': x['name']} for x in torrent_info['files']]
 
         if episode:
-            selected_file = source_utils.get_best_match('path', folder_details, str(episode), pack_select)
+            selected_file = source_utils.get_best_match('path', folder_details, str(episode), pack_select, filename)
             if selected_file and selected_file['fileId'] is not None:
                 stream_link = self.request_dl_link(torrent_id, selected_file['fileId'])
                 if self.autodelete:
@@ -210,6 +210,7 @@ class TorBox:
                     return {'folder_id': source['id'], 'file': source['hash'][f_index]}
 
     def resolve_uncached_source(self, source, runinbackground, runinforground, pack_select):
+        control.print(source)
         heading = f'{control.ADDON_NAME}: Cache Resolver'
         if runinforground:
             control.progressDialog.create(heading, "Caching Progress")

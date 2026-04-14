@@ -217,7 +217,7 @@ class RealDebrid:
                 if torrent_file['path'] == best_match['path']:
                     return source['torrent_info']['links'][f_index]
 
-    def resolve_single_magnet(self, hash_, magnet, episode='', pack_select=False):
+    def resolve_single_magnet(self, hash_, magnet, episode='', pack_select=False, filename=None):
         # DMM handles cache checking - just add the magnet directly
         stream_link = None
         torrent = self.addMagnet(magnet)
@@ -232,7 +232,7 @@ class RealDebrid:
 
         selected_files = [(idx, i) for idx, i in enumerate([i for i in files['files'] if i['selected'] == 1])]
         if pack_select:
-            best_match = source_utils.get_best_match('path', [i[1] for i in selected_files], episode, pack_select)
+            best_match = source_utils.get_best_match('path', [i[1] for i in selected_files], episode, pack_select, filename)
             if best_match:
                 try:
                     file_index = [i[0] for i in selected_files if i[1]['path'] == best_match['path']][0]
