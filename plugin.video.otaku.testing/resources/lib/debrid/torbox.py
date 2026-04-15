@@ -210,7 +210,6 @@ class TorBox:
                     return {'folder_id': source['id'], 'file': source['hash'][f_index]}
 
     def resolve_uncached_source(self, source, runinbackground, runinforground, pack_select):
-        control.print(source)
         heading = f'{control.ADDON_NAME}: Cache Resolver'
         if runinforground:
             control.progressDialog.create(heading, "Caching Progress")
