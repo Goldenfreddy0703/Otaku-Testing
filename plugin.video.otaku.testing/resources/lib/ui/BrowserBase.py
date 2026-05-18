@@ -19,13 +19,12 @@ from resources.lib.ui import client, control, utils
 class BrowserBase(object):
     _BASE_URL = None
 
-    # Full embed host list applied on metadata schema bumps only
-    # (see ``database_sync.SyncDatabase.check_database_version``).
+    # Full embed host list applied on metadata schema bumps only (see database_sync).
     EMBED_SERVERS_DEFAULT = (
-        'doodstream', 'filelions', 'filemoon', 'hd-1', 'hd-2', 'hd-3', 'iga', 'kwik',
-        'megacloud', 'megaf', 'moonf', 'mp4upload', 'mp4u', 'mycloud', 'noads',
-        'noadsalt', 'swish', 'streamtape', 'streamwish', 't-cloud', 'vidcdn',
-        'vidhide', 'vidplay', 'vidsrc', 'vidstream', 'yourupload', 'zto'
+        'doodstream', 'filelions', 'filemoon', 'hd-1', 'hd-2', 'hd-3', 'iga', 'kiwi', 'kiwistream',
+        'kwik', 'megacloud', 'megaf', 'megaplay', 'moonf', 'mp4upload', 'mp4u', 'mycloud', 'noads',
+        'noadsalt', 'swish', 'streamtape', 'streamwish', 't-cloud', 'vidcdn', 'vidcloud',
+        'vidhide', 'vidplay', 'vidsrc', 'vidstream', 'vidwish', 'vibestream', 'yourupload', 'zto',
     )
 
     @staticmethod

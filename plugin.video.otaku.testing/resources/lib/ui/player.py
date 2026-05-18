@@ -100,6 +100,7 @@ class WatchlistPlayer(player):
             try:
                 self.process_embed('aniwave')
                 self.process_embed('hianime')
+                self.process_embed('anikoto')
                 self.process_embed('animekai')
                 self.process_aniskip()
                 self.process_animeskip()
@@ -244,7 +245,7 @@ class WatchlistPlayer(player):
         # Continue with audio/subtitle setup which is needed immediately
         if self.type not in ['embed', 'direct']:
             self.setup_audio_and_subtitles()
-        elif self.provider in ['aniwave', 'h!anime']:
+        elif self.provider in ['aniwave', 'h!anime', 'anikoto']:
             self.setup_audio_and_subtitles()
 
         # Handle different media types

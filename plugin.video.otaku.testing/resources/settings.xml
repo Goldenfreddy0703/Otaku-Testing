@@ -862,7 +862,7 @@
 			<group id="3" label="30131" help="">
 				<setting id="embed.config" type="list[string]" label="30389" help="">
 					<level>0</level>
-					<default>doodstream,filelions,filemoon,hd-1,hd-2,hd-3,iga,kwik,megacloud,megaf,moonf,mp4upload,mp4u,mycloud,noads,noadsalt,swish,streamtape,streamwish,t-cloud,vidcdn,vidhide,vidplay,vidsrc,vidstream,yourupload,zto</default>
+					<default>doodstream,filelions,filemoon,hd-1,hd-2,hd-3,iga,kiwi,kiwistream,kwik,megacloud,megaf,megaplay,moonf,mp4upload,mp4u,mycloud,noads,noadsalt,swish,streamtape,streamwish,t-cloud,vibestream,vidcdn,vidcloud,vidhide,vidplay,vidsrc,vidstream,vidwish,yourupload,zto</default>
 					<constraints>
 						<options sort="ascending">
 							<option>doodstream</option>
@@ -872,9 +872,12 @@
 							<option>hd-2</option>
 							<option>hd-3</option>
 							<option>iga</option>
+							<option>kiwi</option>
+							<option>kiwistream</option>
 							<option>kwik</option>
 							<option>megacloud</option>
 							<option>megaf</option>
+							<option>megaplay</option>
 							<option>moonf</option>
 							<option>mp4upload</option>
 							<option>mp4u</option>
@@ -885,11 +888,14 @@
 							<option>streamtape</option>
 							<option>streamwish</option>
 							<option>t-cloud</option>
+							<option>vibestream</option>
 							<option>vidcdn</option>
+							<option>vidcloud</option>
 							<option>vidhide</option>
 							<option>vidplay</option>
 							<option>vidsrc</option>
 							<option>vidstream</option>
+							<option>vidwish</option>
 							<option>yourupload</option>
 							<option>zto</option>
 						</options>
@@ -944,6 +950,11 @@
 					</dependencies>
 				</setting> -->
 				<setting id="provider.hianime" type="boolean" label="30235" help="">
+					<level>0</level>
+					<default>true</default>
+					<control type="toggle"/>
+				</setting>
+				<setting id="provider.anikoto" type="boolean" label="30485" help="">
 					<level>0</level>
 					<default>true</default>
 					<control type="toggle"/>
@@ -4001,6 +4012,26 @@
 					<control type="edit" format="integer"/>
 				</setting>
 				<setting id="animekai.skipoutro.start" type="integer" label="" help="">
+					<level>4</level>
+					<default>0</default>
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="anikoto.skipintro.end" type="integer" label="" help="">
+					<level>4</level>
+					<default>0</default>
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="anikoto.skipintro.start" type="integer" label="" help="">
+					<level>4</level>
+					<default>0</default>
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="anikoto.skipoutro.end" type="integer" label="" help="">
+					<level>4</level>
+					<default>0</default>
+					<control type="edit" format="integer"/>
+				</setting>
+				<setting id="anikoto.skipoutro.start" type="integer" label="" help="">
 					<level>4</level>
 					<default>0</default>
 					<control type="edit" format="integer"/>

@@ -417,8 +417,8 @@ def __relative_url(original_url, new_url):
         return urllib.parse.urljoin(original_url, new_url)
 
 
-def get_sub(sub_url, sub_lang):
-    response = client.get(sub_url)
+def get_sub(sub_url, sub_lang, headers=None):
+    response = client.get(sub_url, headers=headers)
 
     # Handle both Response objects and string content
     if hasattr(response, 'text'):

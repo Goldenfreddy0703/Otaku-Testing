@@ -212,7 +212,8 @@ class Resolver(BaseWindow):
             for sub in self.return_data['sub']:
                 sub_url = sub.get('url')
                 sub_lang = sub.get('lang')
-                subtitles.append(embed_extractor.get_sub(sub_url, sub_lang))
+                sub_hdr = sub.get('headers')
+                subtitles.append(embed_extractor.get_sub(sub_url, sub_lang, headers=sub_hdr))
             item.setSubtitles(subtitles)
 
         # Handle mimetype - hooks will configure InputStream Adaptive for HLS/DASH

@@ -3,7 +3,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 
-from resources.lib.pages import nyaa, animetosho, nekobt, torrentio, debrid_cloudfiles, easynews, animixplay, aniwave, animepahe, hianime, animekai, watchnixtoons2, localfiles
+from resources.lib.pages import nyaa, animetosho, nekobt, torrentio, debrid_cloudfiles, easynews, animixplay, aniwave, animepahe, hianime, animekai, anikoto, watchnixtoons2, localfiles
 from resources.lib.ui import control, database
 from resources.lib.windows.get_sources_window import GetSources
 from resources.lib.windows import sort_select
@@ -30,6 +30,7 @@ _EMBED_MODULES = (
     ('animix', animixplay, 'animix', None, False),
     ('aniwave', aniwave, 'aniwave', 'aniwave', False),
     ('hianime', hianime, 'hianime', 'hianime', False),
+    ('anikoto', anikoto, 'anikoto', 'anikoto', False),
     ('animekai', animekai, 'animekai', 'animekai', False),
     ('watchnixtoons2', watchnixtoons2, 'watchnixtoons2', None, True),
 )
@@ -89,7 +90,7 @@ class Sources(GetSources):
 
         self.setProperty('process_started', 'true')
 
-        for prefix in ('hianime', 'aniwave', 'animekai'):
+        for prefix in ('hianime', 'aniwave', 'animekai', 'anikoto'):
             for key in ('skipintro.start', 'skipintro.end', 'skipoutro.start', 'skipoutro.end'):
                 control.setInt(f'{prefix}.{key}', -1)
 

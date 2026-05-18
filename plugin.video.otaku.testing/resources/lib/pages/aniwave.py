@@ -135,7 +135,8 @@ class Sources(BrowserBase):
                     for src in srcs:
                         edata_id = src.get('data-link-id')
                         edata_name = src.text
-                        if any(x in self.clean_embed_title(edata_name) for x in self.embeds()):
+                        clean_dn = self.clean_embed_title(edata_name)
+                        if any(self.clean_embed_title(x) in clean_dn for x in self.embeds() if x):
                             valid_servers.append({'id': edata_id, 'name': edata_name, 'lang': lang})
 
                     if not valid_servers:
