@@ -207,7 +207,7 @@ def request(
         # Parse domain for session management
         uri = urllib.parse.urlparse(url)
         domain = uri.scheme + '://' + uri.netloc
-        system_proxy = urllib.request.getproxies()
+        # system_proxy = urllib.request.getproxies()
 
         handlers = []
 
