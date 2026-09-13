@@ -1,7 +1,6 @@
 """MegaPlay video source extractor for Anikoto embed URLs."""
 import json
 import re
-import urllib.parse
 
 from resources.lib.ui import client, control
 
@@ -52,6 +51,12 @@ def extract_megaplay_sources(embed_url, referer=None):
             if file_url:
                 data['sources'] = [{'file': file_url}]
         elif not sources:
+            track = data.get('tracks')[0]
+            file_url = track.get('file')
+            if file_url:
+                file_url = file_url.split('subtitles')[0] + 'index-f2.m3u8'
+                data['sources'] = [{'file': file_url}]
+        else:
             return None
 
         return data

@@ -73,7 +73,7 @@ class Sources(BrowserBase):
             elif link.startswith('/'):
                 link = urllib.parse.urljoin(self._BASE_URL, link)
             final = client.request(
-                link,
+                link.replace('.com/', '.pw/'),
                 output='geturl',
                 headers=self._headers,
                 referer=self._BASE_URL,
@@ -108,7 +108,7 @@ class Sources(BrowserBase):
         )
         try:
             sitems = json.loads(r).get('data')
-        except json.JSONDecodeError:
+        except json.JSONDecodeError or TypeError:
             control.log('AnimePahe: search API returned invalid JSON', level='warning')
             return []
 
