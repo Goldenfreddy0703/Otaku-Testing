@@ -725,7 +725,7 @@ def draw_items(video_data, content_type=''):
     elif content_type == 'tvshows':
         xbmcplugin.addSortMethod(HANDLE, xbmcplugin.SORT_METHOD_NONE, "%L", "%R")
     xbmcplugin.endOfDirectory(HANDLE, cacheToDisc=True)
-    closeAllDialogs()
+    #closeAllDialogs()
     if getBool('interface.viewtype'):
         xbmc.sleep(100)  # Delay so the directory is painted before changing view mode
         if getBool('interface.viewidswitch'):
